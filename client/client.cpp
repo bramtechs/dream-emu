@@ -18,8 +18,9 @@ void game_level_empty()
 {
     if (CurrentLevel == nullptr)
     {
-        // TODO use memory pool
         CurrentLevel = new GameLevel();
+    }else{
+        CurrentLevel->data.blocks.clear();
     }
 
     // setup camera
@@ -117,6 +118,7 @@ int main()
             if (!IsWindowFocused()){
                 linker_lib_free();
                 isLoaded = false;
+                TraceLog(LOG_INFO,"FREED DLL");
             }
         } else
         {
@@ -125,6 +127,7 @@ int main()
                 if (linker_lib_link()){
                     load_or_reload();
                     isLoaded = true;
+                    TraceLog(LOG_INFO,"LOCKED DLL");
                 }
             }
         }

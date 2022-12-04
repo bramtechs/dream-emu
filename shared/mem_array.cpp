@@ -10,6 +10,10 @@ struct MemoryArray {
         return &items[i];
     }
 
+    void clear(){
+        count = 0;
+    }
+
     void paste(T *content, int i)
     {
         assert(i >= 0 && i < MAX_ITEMS);
