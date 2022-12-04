@@ -1,5 +1,5 @@
 #include "shared.hpp"
-#include "tiles.cpp"
+#include "blocks.cpp"
 
 // Raylib GPU draw functions cannot be called!
 
@@ -76,7 +76,8 @@ extern "C" void level_load(void *data, short index)
             }
 
             // set index in level array
-            int i = y * width + x;
+            Block block = blocks_spawn(x,y,match);
+            layout->blocks.push(&block);
         }
     }
     TraceLog(LOG_INFO, "Loaded level!");
