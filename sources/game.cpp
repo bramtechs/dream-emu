@@ -48,7 +48,6 @@ void game_update_and_render(){
 
     // Draw
     //----------------------------------------------------------------------------------
-    BeginDrawing();
 
     int width = CurrentLevel->data.width;
     int height = CurrentLevel->data.height;
@@ -71,7 +70,6 @@ void game_update_and_render(){
 
     DrawFPS(10, 10);
 
-    EndDrawing();
     //----------------------------------------------------------------------------------
 }
 
