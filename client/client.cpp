@@ -4,14 +4,12 @@
 
 #include "linker.hpp"
 #include "shared.hpp"
-
 #include "drawing.cpp"
 
 struct GameLevel {
     Camera camera;
     bool isFlying;
-
-    LevelLayout *data;
+    LevelLayout data;
 };
 
 static GameLevel *CurrentLevel = nullptr;
@@ -32,9 +30,7 @@ void game_level_empty()
     // load level
     assert(level_load != nullptr);
 
-    // TODO prevent allocations
-    CurrentLevel->data = new LevelLayout();
-    level_load(CurrentLevel->data,1);
+    level_load(&CurrentLevel->data,1);
 }
 
 void game_render_fail()
@@ -62,13 +58,13 @@ void game_update_and_render()
         }
     }
 
-    if (CurrentLevel->data != nullptr){
+    if (CurrentLevel != nullptr){
         BeginMode3D(CurrentLevel->camera);
 
         assert(level_update_and_stream != nullptr);
-        level_update_and_stream((void*)CurrentLevel->data);
+        level_update_and_stream((void*)&CurrentLevel->data);
 
-        drawing_scene_draw(CurrentLevel->data);
+        drawing_scene_draw(&CurrentLevel->data);
 
         EndMode3D();
     }else{
@@ -87,7 +83,7 @@ int main()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    InitWindow(WIDTH * SCALE, HEIGHT * SCALE, "droomwereld");
+    InitWindow(WIDTH * SCALE, HEIGHT * SCALE, "DREAM_EMU");
     SetWindowPosition((GetMonitorWidth(0) - WIDTH * SCALE) / 2, (GetMonitorHeight(0) - HEIGHT * SCALE) / 2);
 
     // Define the camera to look into our 3d world
@@ -142,6 +138,7 @@ int main()
         EndDrawing();
     }
 
+    delete CurrentLevel;
     linker_lib_free();
     UnloadRenderTexture(target);
     CloseWindow();                  // Close window and OpenGL context

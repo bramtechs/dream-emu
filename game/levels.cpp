@@ -35,7 +35,7 @@ extern "C" void level_load(void *data, short index)
     const char* texturePath = TextFormat("assets/levels/level%03d.png",index);
     auto *layout = (LevelLayout *) data;
 
-    layout->environment.skyColor = RED;
+    layout->environment.skyColor = BLUE;
 
     Image img = LoadImage(texturePath);
     if (palette == nullptr)
