@@ -8,12 +8,21 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#define WATER_DEPTH 0.3f
+
+#define DIR_NORTH 0
+#define DIR_EAST 1
+#define DIR_SOUTH 2
+#define DIR_WEST 3
+
+#define TILE_NONE (-1)
 #define TILE_FLOOR_GRASS 10
 #define TILE_FLOOR_WATER 17
 
 struct Block {
     int id;
     Vector3 pos;
+    int walls;
 };
 
 struct Environment {

@@ -1,9 +1,11 @@
 struct GameAssets {
     Mesh *planeMesh;
     Mesh *cubeMesh;
+    Mesh *wallLowerMesh;
 
     Model *floorModel;
     Model *cubeModel;
+    Model *wallLowerModel;
 
     Texture* placeHolderTexture;
     Texture* noiseTexture;
@@ -54,10 +56,12 @@ void assets_load()
     Assets->assetPrefix = "assets/";
 
     // Meshes
-    Mesh *plane = Assets->planeMesh = MESH_LOAD(GenMeshPlane(1, 1, 1, 1));
+    Assets->planeMesh = MESH_LOAD(GenMeshPlane(1, 1, 1, 1));
+    Assets->wallLowerMesh = MESH_LOAD(GenMeshPlane(1, WATER_DEPTH, 1, 1));
 
     // Models
-    Assets->floorModel = MODEL_LOAD(plane);
+    Assets->floorModel = MODEL_LOAD(Assets->planeMesh);
+    Assets->wallLowerModel = MODEL_LOAD(Assets->wallLowerMesh);
 
     // Textures
     Assets->placeHolderTexture = TEXTURE_LOAD(GenImageChecked(32, 32, 4, 4, RED, WHITE));
@@ -69,11 +73,11 @@ void assets_dispose()
     if (Assets == nullptr)
         return;
 
-    for (int i = 0; i < Assets->meshes.count; i++)
-        UnloadMesh(*Assets->meshes.get(i));
-
     for (int i = 0; i < Assets->models.count; i++)
         UnloadModel(*Assets->models.get(i));
+
+    for (int i = 0; i < Assets->meshes.count; i++)
+        UnloadMesh(*Assets->meshes.get(i));
 
     for (int i = 0; i < Assets->textures.count; i++)
         UnloadTexture(*Assets->textures.get(i));
