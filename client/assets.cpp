@@ -22,6 +22,9 @@ struct GameAssets {
     Shader *fogShader;
     int fogShaderDensityLoc;
 
+    // TODO NOT AN ASSET
+    Light playerLight;
+
     // easier for cleaning everything up
     // or rendering everything at once
     MemoryArray<Texture> textures;
@@ -96,7 +99,7 @@ void assets_load_shader_fog()
 
     Assets->fogShaderDensityLoc = GetShaderLocation(shader, "fogDensity");
 
-    CreateLight(LIGHT_POINT, (Vector3) {0, 2, 6}, Vector3Zero(), WHITE, shader);
+    Assets->playerLight = CreateLight(LIGHT_POINT, (Vector3) {0, 0, 0}, Vector3Zero(), WHITE, shader);
 }
 
 void assets_load()

@@ -61,6 +61,10 @@ void drawing_scene_draw(GameLevel *level)
     Shader fogShader = *Assets->fogShader;
     SetShaderValue(fogShader, Assets->fogShaderDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
+    // Move playerlight
+    Assets->playerLight.position = level->camera.position;
+    UpdateLightValues(fogShader,Assets->playerLight);
+
     // Update the light shader with the camera view position
     SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &level->camera.position.x, SHADER_UNIFORM_VEC3);
 
