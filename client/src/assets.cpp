@@ -8,12 +8,16 @@
 #define GLSL_VERSION            100
 #endif
 
+const char *AssetPrefix = "assets/";
+
 struct GameAssets {
     Mesh *planeMesh;
     Mesh *cubeMesh;
 
     Model *floorModel;
     Model *cubeModel;
+
+    Image *paletteImage;
 
     Texture *placeHolderTexture;
     Texture *noiseTexture;
@@ -27,24 +31,25 @@ struct GameAssets {
 
     // easier for cleaning everything up
     // or rendering everything at once
-    MemoryArray<Texture> textures;
-    MemoryArray<Model> models;
-    MemoryArray<Mesh> meshes;
-    MemoryArray<Shader> shaders;
-
-    std::string assetPrefix;
+    std::vector<LevelLayout> levelLayouts;
+    std::vector<Image> images;
+    std::vector<Texture> textures;
+    std::vector<Model> models;
+    std::vector<Mesh> meshes;
+    std::vector<Shader> shaders;
 };
 
 static GameAssets *Assets = nullptr;
 
 Shader *SHADER_LOAD(const char *vsPath, const char *fsPath)
 {
-
-    const char *relVsPath = TextFormat("%s/shaders/glsl%i/%s.vs", Assets->assetPrefix.c_str(), GLSL_VERSION, vsPath);
-    const char *relFsPath = TextFormat("%s/shaders/glsl%i/%s.fs", Assets->assetPrefix.c_str(), GLSL_VERSION, fsPath);
+    const char *relVsPath = TextFormat("%s/shaders/glsl%i/%s.vs", AssetPrefix, GLSL_VERSION, vsPath);
+    const char *relFsPath = TextFormat("%s/shaders/glsl%i/%s.fs", AssetPrefix, GLSL_VERSION, fsPath);
     Shader shader = LoadShader(relVsPath, relFsPath);
 
-    return Assets->shaders.push(shader);
+    Assets->shaders.push_back(shader);
+    return &Assets->shaders.back();
+
 }
 
 Texture *TEXTURE_LOAD(Image img)
@@ -53,16 +58,25 @@ Texture *TEXTURE_LOAD(Image img)
     {
         Texture texture = LoadTextureFromImage(img);
         UnloadImage(img);
-        return Assets->textures.push(texture);
+        Assets->textures.push_back(texture);
+        return &Assets->textures.back();
     }
     return Assets->placeHolderTexture;
 }
 
 Texture *TEXTURE_LOAD(const char *path)
 {
-    std::string relpath = Assets->assetPrefix + path;
-    Image img = LoadImage(relpath.c_str());
+    const char *relpath = TextFormat("%s%s", AssetPrefix, path);
+    Image img = LoadImage(relpath);
     return TEXTURE_LOAD(img);
+}
+
+Image *IMAGE_LOAD(const char *path)
+{
+    const char *relpath = TextFormat("%s%s", AssetPrefix, path);
+    Image img = LoadImage(relpath);
+    Assets->images.push_back(img);
+    return &Assets->images.back();
 }
 
 Model *MODEL_LOAD(Mesh *mesh)
@@ -72,12 +86,34 @@ Model *MODEL_LOAD(Mesh *mesh)
     // inject fog shader
     model.materials[0].shader = *Assets->fogShader;
 
-    return Assets->models.push(model);
+    Assets->models.push_back(model);
+    return &Assets->models.back();
 }
 
 Mesh *MESH_LOAD(Mesh mesh)
 {
-    return Assets->meshes.push(mesh);
+    Assets->meshes.push_back(mesh);
+    return &Assets->meshes.back();
+}
+
+LevelLayout *LEVEL_LAYOUT_LOAD(const char *path)
+{
+    LevelLayout layout = {};
+
+    int paletteCount;
+    Color *palColors = LoadImagePalette(*Assets->paletteImage, 512, &paletteCount);
+    for (int i = 0; i < paletteCount; i++)
+        layout.colors.push_back(palColors[i]);
+
+    Image *levelImg = IMAGE_LOAD(path);
+    Color *colors = LoadImageColors(*levelImg);
+    for (int i = 0; i < levelImg->width * levelImg->height; i++)
+        layout.colors.push_back(colors[i]);
+
+    TraceLog(LOG_INFO, "Loaded %d palette indices...", paletteCount);
+
+    Assets->levelLayouts.push_back(layout);
+    return &Assets->levelLayouts.back();
 }
 
 void assets_load_shader_fog()
@@ -105,7 +141,6 @@ void assets_load_shader_fog()
 void assets_load()
 {
     Assets = new GameAssets();
-    Assets->assetPrefix = "assets/";
 
     // Shaders
     assets_load_shader_fog();
@@ -118,10 +153,15 @@ void assets_load()
     Assets->floorModel = MODEL_LOAD(Assets->planeMesh);
     Assets->cubeModel = MODEL_LOAD(Assets->cubeMesh);
 
+    // Images
+    Assets->paletteImage = IMAGE_LOAD("palette.png");
+
     // Textures
     Assets->placeHolderTexture = TEXTURE_LOAD(GenImageChecked(32, 32, 4, 4, RED, WHITE));
     Assets->noiseTexture = TEXTURE_LOAD("gfx/noise.png");
 
+    // Level layouts
+    LEVEL_LAYOUT_LOAD("levels/level001.png");
 }
 
 void assets_dispose()
@@ -129,14 +169,20 @@ void assets_dispose()
     if (Assets == nullptr)
         return;
 
-    for (int i = 0; i < Assets->models.count; i++)
-        UnloadModel(*Assets->models.get(i));
+    for (const auto &item: Assets->models)
+    {
+        UnloadModel(item);
+    }
+    for (const auto &item: Assets->meshes)
+    {
+        UnloadMesh(item);
+    }
+    for (const auto &item: Assets->textures)
+    {
+        UnloadTexture(item);
+    }
 
-    for (int i = 0; i < Assets->meshes.count; i++)
-        UnloadMesh(*Assets->meshes.get(i));
-
-    for (int i = 0; i < Assets->textures.count; i++)
-        UnloadTexture(*Assets->textures.get(i));
+    delete Assets;
 
     TraceLog(LOG_INFO, "Disposed assets");
 }

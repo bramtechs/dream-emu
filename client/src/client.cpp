@@ -2,13 +2,16 @@
 #define HEIGHT 480
 #define SCALE 2
 
+#include "raylib.h"
 #include "linker.hpp"
 #include "shared.hpp"
 
 struct GameLevel {
     Camera camera;
     bool isFlying;
-    LevelLayout data;
+
+    LevelLayout layout;
+    LevelFeed feed;
 };
 
 #include "assets.cpp"
@@ -16,37 +19,8 @@ struct GameLevel {
 
 static GameLevel *CurrentLevel = nullptr;
 
-void game_level_empty()
-{
-    if (CurrentLevel == nullptr)
-    {
-        CurrentLevel = new GameLevel();
-    } else
-    {
-        CurrentLevel->data.blocks.clear();
-    }
-
-    // setup camera
-    CurrentLevel->camera = {{0.2f, 0.4f, 0.2f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f, 0};
-    CurrentLevel->isFlying = false;
-    SetCameraMode(CurrentLevel->camera, CAMERA_FIRST_PERSON);     // Set camera mode
-
-    // load level
-    assert(level_load != nullptr);
-
-    level_load(&CurrentLevel->data, 1);
-}
-
-void game_render_fail()
-{
-    ClearBackground(BLACK);
-    DrawText("Library unloaded...", 50, 50, 16, WHITE);
-    DrawText("Focus window to reload!", 50, 50 + 18, 12, WHITE);
-}
-
 void game_update_and_render()
 {
-
     UpdateCamera(&CurrentLevel->camera);
 
     if (IsKeyPressed(KEY_F3))
@@ -67,7 +41,7 @@ void game_update_and_render()
         BeginMode3D(CurrentLevel->camera);
 
         assert(level_update_and_stream != nullptr);
-        level_update_and_stream((void *) &CurrentLevel->data);
+        level_update_and_stream(GetFrameTime());
 
         drawing_scene_draw(CurrentLevel);
 
@@ -85,7 +59,19 @@ void game_update_and_render()
 
 void load_or_reload()
 {
-    game_level_empty();
+    CurrentLevel = new GameLevel();
+
+    // setup camera
+    CurrentLevel->camera = {{0.2f, 0.4f, 0.2f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f, 0};
+    CurrentLevel->isFlying = false;
+    CurrentLevel->layout = *Assets->levelLayouts.begin();
+    CurrentLevel->feed = {};
+    SetCameraMode(CurrentLevel->camera, CAMERA_FIRST_PERSON);     // Set camera mode
+
+    // load level
+    assert(level_load != nullptr);
+
+    level_load(&CurrentLevel->layout,&CurrentLevel->feed);
 }
 
 int main()
@@ -109,12 +95,12 @@ int main()
 
     bool isLoaded = linker_lib_link();
 
+    assets_load();
+
     if (isLoaded)
     {
         load_or_reload();
     }
-
-    assets_load();
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key

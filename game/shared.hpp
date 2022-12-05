@@ -2,10 +2,8 @@
 
 #include <iostream>
 #include <cassert>
+#include <vector>
 
-#include "mem_array.cpp"
-
-#include "raylib.h"
 #include "raymath.h"
 
 #define WATER_DEPTH 0.3f
@@ -20,6 +18,15 @@
 #define TILE_FLOOR_WATER 17
 #define TILE_FLOOR_STONE 42
 
+#ifndef RAYLIB_H
+struct Color {
+    unsigned char r;        // Color red value
+    unsigned char g;        // Color green value
+    unsigned char b;        // Color blue value
+    unsigned char a;        // Color alpha value
+};
+#endif
+
 struct Block {
     int id;
     Vector3 pos;
@@ -31,6 +38,13 @@ struct Environment {
 };
 
 struct LevelLayout {
+    int width;
+    int height;
+    std::vector<Color> colors;
+    std::vector<Color> paletteColors;
+};
+
+struct LevelFeed {
     Environment environment;
-    MemoryArray<Block> blocks;
+    std::vector<Block> blocks;
 };

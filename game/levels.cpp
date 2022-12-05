@@ -1,25 +1,10 @@
 #include "shared.hpp"
+#include "logger.cpp"
 #include "blocks.cpp"
 
 // Raylib GPU draw functions cannot be called!
-
-static Color *palette = nullptr;
-static int paletteCount = 0;
-
-void level_fetch(const char *palettePath)
-{
-    Image img = LoadImage(palettePath);
-
-    if (img.data == nullptr)
-    {
-        TraceLog(LOG_FATAL, "Could not load palette!");
-    }
-
-    palette = LoadImagePalette(img, 1024, &paletteCount);
-    TraceLog(LOG_INFO, "Loaded %d palette indices...", paletteCount);
-
-    UnloadImage(img);
-}
+static LevelLayout *Layout;
+static LevelFeed *Feed;
 
 bool color_equals(Color one, Color two)
 {
@@ -30,20 +15,21 @@ bool color_equals(Color one, Color two)
     return true;
 }
 
-int level_tile_id_get(int x, int y, Image palImg)
+int level_tile_id_get(int x, int y)
 {
-    if (x >= 0 && y < palImg.width && y >= 0 && y < palImg.height)
+    if (x >= 0 && y < Layout->width && y >= 0 && y < Layout->height)
     {
-        Color color = GetImageColor(palImg, x, y);
+        int j = y * Layout->width + x;
+        Color color = Layout->colors[j];
 
         if (color.a == 0)
             return TILE_NONE;
 
         // match color with database
         int match = TILE_NONE;
-        for (int i = 0; i < paletteCount; i++)
+        for (int i = 0; i < Layout->paletteColors.size(); i++)
         {
-            if (color_equals(palette[i], color))
+            if (color_equals(Layout->paletteColors[i], color))
             {
                 match = i;
                 break;
@@ -51,57 +37,48 @@ int level_tile_id_get(int x, int y, Image palImg)
         }
         if (match == TILE_NONE)
         {
-            TraceLog(LOG_WARNING, "Unknown level layout color!");
+            logger_warn("Unknown level layout color!");
         }
         return match;
     }
     return TILE_NONE;
 }
 
-extern "C" void level_load(void *data, short index)
+extern "C" void level_load(void *layoutPtr, void *feedPtr)
 {
-    const char *texturePath = TextFormat("assets/levels/level%03d.png", index);
-    auto *layout = (LevelLayout *) data;
+    Layout = (LevelLayout *) layoutPtr;
+    Feed = (LevelFeed *) feedPtr;
 
-    layout->environment.skyColor = DARKGRAY;
-
-    Image img = LoadImage(texturePath);
-    if (palette == nullptr)
-    {
-        level_fetch("assets/palette.png");
-    }
-
-    int width = img.width;
-    int height = img.height;
+    Feed->environment.skyColor = {20, 20, 20, 255};
 
     // read each pixel
-    for (int y = 0; y < height; y++)
+    for (int y = 0; y < Layout->height; y++)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < Layout->width; x++)
         {
             // match color with database
-            int match = level_tile_id_get(x, y, img);
-            if (match == TILE_NONE){
-               continue;
+            int match = level_tile_id_get(x, y);
+            if (match == TILE_NONE)
+            {
+                continue;
             }
 
             // generate block
             int neighbors[4];
-            neighbors[DIR_NORTH] = level_tile_id_get(x, y - 1, img);
-            neighbors[DIR_EAST] = level_tile_id_get(x + 1, y, img);
-            neighbors[DIR_SOUTH] = level_tile_id_get(x, y + 1, img);
-            neighbors[DIR_WEST] = level_tile_id_get(x - 1, y, img);
+            neighbors[DIR_NORTH] = level_tile_id_get(x, y - 1);
+            neighbors[DIR_EAST] = level_tile_id_get(x + 1, y);
+            neighbors[DIR_SOUTH] = level_tile_id_get(x, y + 1);
+            neighbors[DIR_WEST] = level_tile_id_get(x - 1, y);
 
+            // TODO slow
             Block block = blocks_spawn(x, y, match, neighbors);
-            layout->blocks.push(block);
+            Feed->blocks.push_back(block);
         }
     }
-    TraceLog(LOG_INFO, "Loaded level!");
-
-    UnloadImage(img);
+    logger_log("Loaded level!");
 }
 
-extern "C" void level_update_and_stream(void *data)
+extern "C" void level_update_and_stream(float delta)
 {
-    auto *layout = (LevelLayout *) data;
+
 }

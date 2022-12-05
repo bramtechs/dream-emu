@@ -1,4 +1,3 @@
-
 void drawing_draw_floor(Block *block, Texture *texture, Color tint, Vector3 offset = Vector3Zero())
 {
     Model floorModel = *Assets->floorModel;
@@ -54,7 +53,7 @@ void drawing_draw(Block *block)
 
 void drawing_scene_draw(GameLevel *level)
 {
-    ClearBackground(level->data.environment.skyColor);
+    ClearBackground(level->feed.environment.skyColor);
 
     // TODO fog shader cleanup
     float fogDensity = 0.2f;
@@ -68,11 +67,7 @@ void drawing_scene_draw(GameLevel *level)
     // Update the light shader with the camera view position
     SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &level->camera.position.x, SHADER_UNIFORM_VEC3);
 
-
-    auto blocks = &level->data.blocks;
-    for (int i = 0; i < blocks->count; i++)
-    {
-        Block *block = blocks->get(i);
-        drawing_draw(block);
+    for (auto &block: level->feed.blocks){
+        drawing_draw(&block);
     }
 }
