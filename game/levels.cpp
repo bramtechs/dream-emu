@@ -77,7 +77,7 @@ extern "C" void level_load(void *data, short index)
 
             // set index in level array
             Block block = blocks_spawn(x,y,match);
-            layout->blocks.push(&block);
+            layout->blocks.push(block);
         }
     }
     TraceLog(LOG_INFO, "Loaded level!");

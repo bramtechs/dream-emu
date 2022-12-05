@@ -21,11 +21,13 @@ struct MemoryArray {
         count++;
     }
 
-    void push(T *content)
+    T* push(T content)
     {
         assert(count >= 0 && count < MAX_ITEMS);
-        items[count] = *content;
+        items[count] = content;
+        T* item = &items[count];
         count++;
+        return item;
     }
 };
 

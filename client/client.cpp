@@ -4,6 +4,8 @@
 
 #include "linker.hpp"
 #include "shared.hpp"
+
+#include "assets.cpp"
 #include "drawing.cpp"
 
 struct GameLevel {
@@ -106,6 +108,8 @@ int main()
         load_or_reload();
     }
 
+    assets_load();
+
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
@@ -143,6 +147,7 @@ int main()
 
     delete CurrentLevel;
     linker_lib_free();
+    assets_dispose();
     UnloadRenderTexture(target);
     CloseWindow();                  // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
