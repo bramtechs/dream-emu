@@ -21,26 +21,27 @@ void game_level_empty()
     if (CurrentLevel == nullptr)
     {
         CurrentLevel = new GameLevel();
-    }else{
+    } else
+    {
         CurrentLevel->data.blocks.clear();
     }
 
     // setup camera
     CurrentLevel->camera = {{0.2f, 0.4f, 0.2f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f, 0};
-    CurrentLevel->isFlying = true;
-    SetCameraMode(CurrentLevel->camera, CAMERA_FREE);     // Set camera mode
+    CurrentLevel->isFlying = false;
+    SetCameraMode(CurrentLevel->camera, CAMERA_FIRST_PERSON);     // Set camera mode
 
     // load level
     assert(level_load != nullptr);
 
-    level_load(&CurrentLevel->data,1);
+    level_load(&CurrentLevel->data, 1);
 }
 
 void game_render_fail()
 {
     ClearBackground(BLACK);
-    DrawText("Library unloaded...",50,50,16,WHITE);
-    DrawText("Focus window to reload!",50,50+18,12,WHITE);
+    DrawText("Library unloaded...", 50, 50, 16, WHITE);
+    DrawText("Focus window to reload!", 50, 50 + 18, 12, WHITE);
 }
 
 void game_update_and_render()
@@ -61,24 +62,29 @@ void game_update_and_render()
         }
     }
 
-    if (CurrentLevel != nullptr){
+    if (CurrentLevel != nullptr)
+    {
         BeginMode3D(CurrentLevel->camera);
 
         assert(level_update_and_stream != nullptr);
-        level_update_and_stream((void*)&CurrentLevel->data);
+        level_update_and_stream((void *) &CurrentLevel->data);
 
         drawing_scene_draw(&CurrentLevel->data);
 
         EndMode3D();
-    }else{
+
+        DrawFPS(10, 10);
+    } else
+    {
         // no level
         ClearBackground(PURPLE);
-        DrawText("No level, this is a bug... :(",50,50,16,WHITE);
+        DrawText("No level, this is a bug... :(", 50, 50, 16, WHITE);
     }
 
 }
 
-void load_or_reload(){
+void load_or_reload()
+{
     game_level_empty();
 }
 
@@ -93,7 +99,7 @@ int main()
 
     // Get map image data to be used for collision detection
 
-    TraceLog(LOG_INFO,"Launched at %s",GetWorkingDirectory());
+    TraceLog(LOG_INFO, "Launched at %s", GetWorkingDirectory());
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
@@ -119,19 +125,22 @@ int main()
         if (isLoaded)
         {
             game_update_and_render();
-            if (!IsWindowFocused()){
+            if (!IsWindowFocused())
+            {
                 linker_lib_free();
                 isLoaded = false;
-                TraceLog(LOG_INFO,"FREED DLL");
+                TraceLog(LOG_INFO, "FREED DLL");
             }
         } else
         {
             // TODO do not load every frame
-            if (IsWindowFocused()){
-                if (linker_lib_link()){
+            if (IsWindowFocused())
+            {
+                if (linker_lib_link())
+                {
                     load_or_reload();
                     isLoaded = true;
-                    TraceLog(LOG_INFO,"LOCKED DLL");
+                    TraceLog(LOG_INFO, "LOCKED DLL");
                 }
             }
         }
@@ -147,7 +156,7 @@ int main()
 
     delete CurrentLevel;
     linker_lib_free();
-    assets_dispose();
+    // TODO assets_dispose();
     UnloadRenderTexture(target);
     CloseWindow();                  // Close window and OpenGL context
     //--------------------------------------------------------------------------------------

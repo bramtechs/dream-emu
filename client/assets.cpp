@@ -1,14 +1,12 @@
 struct GameAssets {
     Mesh *planeMesh;
     Mesh *cubeMesh;
-    Mesh *wallLowerMesh;
 
     Model *floorModel;
     Model *cubeModel;
-    Model *wallLowerModel;
 
-    Texture* placeHolderTexture;
-    Texture* noiseTexture;
+    Texture *placeHolderTexture;
+    Texture *noiseTexture;
 
     // easier for cleaning everything up
     // or rendering everything at once
@@ -57,11 +55,11 @@ void assets_load()
 
     // Meshes
     Assets->planeMesh = MESH_LOAD(GenMeshPlane(1, 1, 1, 1));
-    Assets->wallLowerMesh = MESH_LOAD(GenMeshPlane(1, WATER_DEPTH, 1, 1));
+    Assets->cubeMesh = MESH_LOAD(GenMeshCube(1, 1, 1));
 
     // Models
     Assets->floorModel = MODEL_LOAD(Assets->planeMesh);
-    Assets->wallLowerModel = MODEL_LOAD(Assets->wallLowerMesh);
+    Assets->cubeModel = MODEL_LOAD(Assets->cubeMesh);
 
     // Textures
     Assets->placeHolderTexture = TEXTURE_LOAD(GenImageChecked(32, 32, 4, 4, RED, WHITE));

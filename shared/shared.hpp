@@ -18,11 +18,12 @@
 #define TILE_NONE (-1)
 #define TILE_FLOOR_GRASS 10
 #define TILE_FLOOR_WATER 17
+#define TILE_FLOOR_STONE 42
 
 struct Block {
     int id;
     Vector3 pos;
-    int walls;
+    bool isBlock;
 };
 
 struct Environment {
