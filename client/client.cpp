@@ -5,14 +5,14 @@
 #include "linker.hpp"
 #include "shared.hpp"
 
-#include "assets.cpp"
-#include "drawing.cpp"
-
 struct GameLevel {
     Camera camera;
     bool isFlying;
     LevelLayout data;
 };
+
+#include "assets.cpp"
+#include "drawing.cpp"
 
 static GameLevel *CurrentLevel = nullptr;
 
@@ -69,7 +69,7 @@ void game_update_and_render()
         assert(level_update_and_stream != nullptr);
         level_update_and_stream((void *) &CurrentLevel->data);
 
-        drawing_scene_draw(&CurrentLevel->data);
+        drawing_scene_draw(CurrentLevel);
 
         EndMode3D();
 
