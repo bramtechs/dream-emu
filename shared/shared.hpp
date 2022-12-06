@@ -43,6 +43,10 @@ T POS(T val) // value passed was not positive
     return val;
 }
 
+struct Lamp {
+
+};
+
 struct Block {
     int id;
     Vector3 pos;
@@ -66,4 +70,5 @@ struct LevelLayout {
 struct LevelFeed {
     Environment environment;
     MemoryArray<Block> blocks;
+    SmallMemoryArray<Lamp> lamps;
 };

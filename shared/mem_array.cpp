@@ -1,13 +1,13 @@
-#define MAX_ITEMS 1024
+// heavy template abuse
 
-template<class T>
-struct MemoryArray {
-    T items[MAX_ITEMS];
+template<typename T, int N>
+struct GenericMemoryArray {
+    T items[N];
     int count;
 
     T *get(int i)
     {
-        assert(i >= 0 && i < MAX_ITEMS);
+        assert(i >= 0 && i < N);
         return &items[i];
     }
 
@@ -28,14 +28,14 @@ struct MemoryArray {
 
     void paste(T *content, int i)
     {
-        assert(i >= 0 && i < MAX_ITEMS);
+        assert(i >= 0 && i < N);
         items[i] = *content;
         count++;
     }
 
     T *push(T content)
     {
-        assert(count >= 0 && count < MAX_ITEMS);
+        assert(count >= 0 && count < N);
         items[count] = content;
         T *item = &items[count];
         count++;
@@ -43,4 +43,12 @@ struct MemoryArray {
     }
 };
 
-
+template<typename T>
+struct SmallMemoryArray : GenericMemoryArray<T, 128> {
+};
+template<typename T>
+struct MemoryArray : GenericMemoryArray<T, 1024> {
+};
+template<typename T>
+struct BigMemoryArray : GenericMemoryArray<T, 4096> {
+};

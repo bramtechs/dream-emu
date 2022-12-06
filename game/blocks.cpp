@@ -16,7 +16,6 @@ bool block_needs_wall(int id, int neighbors[4])
     return false;
 }
 
-// TODO implement block faces
 Block blocks_spawn(int x, int y, int palID, int neighbors[4])
 {
     assert(palID >= 0 && palID < 64);
