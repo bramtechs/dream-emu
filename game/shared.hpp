@@ -2,9 +2,8 @@
 
 #include <iostream>
 #include <cassert>
-#include <vector>
 
-#include "raymath.h"
+#include "mem_array.cpp"
 
 #define WATER_DEPTH 0.3f
 
@@ -18,14 +17,7 @@
 #define TILE_FLOOR_WATER 17
 #define TILE_FLOOR_STONE 42
 
-#ifndef RAYLIB_H
-struct Color {
-    unsigned char r;        // Color red value
-    unsigned char g;        // Color green value
-    unsigned char b;        // Color blue value
-    unsigned char a;        // Color alpha value
-};
-#endif
+#include "raymath.h"
 
 struct Block {
     int id;
@@ -37,14 +29,15 @@ struct Environment {
     Color skyColor;
 };
 
+// TODO free memory!
 struct LevelLayout {
     int width;
     int height;
-    std::vector<Color> colors;
-    std::vector<Color> paletteColors;
+    Color *colors;
+    Color* paletteColors;
 };
 
 struct LevelFeed {
     Environment environment;
-    std::vector<Block> blocks;
+    MemoryArray<Block> blocks;
 };

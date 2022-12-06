@@ -2,48 +2,62 @@
 #define HEIGHT 480
 #define SCALE 2
 
+// TODO confusing filename
+
 #include "raylib.h"
+
 #include "linker.hpp"
 #include "shared.hpp"
 
-struct GameLevel {
+struct GameSession {
     Camera camera;
     bool isFlying;
-
-    LevelLayout layout;
-    LevelFeed feed;
 };
 
 #include "assets.cpp"
 #include "drawing.cpp"
 
-static GameLevel *CurrentLevel = nullptr;
+static LevelFeed *CurrentFeed = nullptr;
+static GameSession *CurrentSession = nullptr;
+
+void game_session_reset()
+{
+    if (CurrentSession == nullptr){
+        CurrentSession = new GameSession();
+    }
+
+    // setup camera
+    CurrentSession->camera = {{0.2f, 0.4f, 0.2f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f, 0};
+    CurrentSession->isFlying = false;
+    SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
+}
 
 void game_update_and_render()
 {
-    UpdateCamera(&CurrentLevel->camera);
+
+    UpdateCamera(&CurrentSession->camera);
 
     if (IsKeyPressed(KEY_F3))
     {
-        bool *flying = &CurrentLevel->isFlying;
+        bool *flying = &CurrentSession->isFlying;
         *flying = !*flying;
         if (*flying)
         {
-            SetCameraMode(CurrentLevel->camera, CAMERA_FREE);     // Set camera mode
+            SetCameraMode(CurrentSession->camera, CAMERA_FREE);     // Set camera mode
         } else
         {
-            SetCameraMode(CurrentLevel->camera, CAMERA_FIRST_PERSON);     // Set camera mode
+            SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
         }
     }
 
-    if (CurrentLevel != nullptr)
+    if (CurrentFeed != nullptr)
     {
-        BeginMode3D(CurrentLevel->camera);
+        BeginMode3D(CurrentSession->camera);
 
         assert(level_update_and_stream != nullptr);
         level_update_and_stream(GetFrameTime());
 
-        drawing_scene_draw(CurrentLevel);
+        drawing_update_and_draw(CurrentFeed, CurrentSession);
 
         EndMode3D();
 
@@ -57,21 +71,9 @@ void game_update_and_render()
 
 }
 
-void load_or_reload()
-{
-    CurrentLevel = new GameLevel();
-
-    // setup camera
-    CurrentLevel->camera = {{0.2f, 0.4f, 0.2f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f, 0};
-    CurrentLevel->isFlying = false;
-    CurrentLevel->layout = *Assets->levelLayouts.begin();
-    CurrentLevel->feed = {};
-    SetCameraMode(CurrentLevel->camera, CAMERA_FIRST_PERSON);     // Set camera mode
-
-    // load level
-    assert(level_load != nullptr);
-
-    level_load(&CurrentLevel->layout,&CurrentLevel->feed);
+void game_refresh(){
+    // TOOD also reload assets
+    level_load(Assets->levelLayouts.first(),CurrentFeed);
 }
 
 int main()
@@ -89,17 +91,18 @@ int main()
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
-    Vector3 mapPosition = {-16.0f, 0.0f, -8.0f};  // Set model position
-
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
+    SetTargetFPS(60);
 
     bool isLoaded = linker_lib_link();
 
+    CurrentFeed = new LevelFeed();
+
     assets_load();
+    game_session_reset();
 
     if (isLoaded)
     {
-        load_or_reload();
+        game_refresh();
     }
 
     // Main game loop
@@ -111,24 +114,24 @@ int main()
         if (isLoaded)
         {
             game_update_and_render();
-            //if (!IsWindowFocused())
-            //{
-            //    linker_lib_free();
-            //    isLoaded = false;
-            //    TraceLog(LOG_INFO, "FREED DLL");
-            //}
+            if (!IsWindowFocused())
+            {
+                linker_lib_free();
+                isLoaded = false;
+                TraceLog(LOG_INFO, "FREED DLL");
+            }
         } else
         {
             // TODO do not load every frame
-            //if (IsWindowFocused())
-            //{
-            //    if (linker_lib_link())
-            //    {
-            //        load_or_reload();
-            //        isLoaded = true;
-            //        TraceLog(LOG_INFO, "LOCKED DLL");
-            //    }
-            //}
+            if (IsWindowFocused())
+            {
+                if (linker_lib_link())
+                {
+                    game_refresh();
+                    isLoaded = true;
+                    TraceLog(LOG_INFO, "LOCKED DLL");
+                }
+            }
         }
 
         EndTextureMode();
@@ -140,7 +143,7 @@ int main()
         EndDrawing();
     }
 
-    delete CurrentLevel;
+    delete CurrentFeed;
     linker_lib_free();
     // TODO assets_dispose();
     UnloadRenderTexture(target);

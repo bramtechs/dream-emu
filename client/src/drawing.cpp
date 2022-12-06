@@ -1,6 +1,7 @@
+
 void drawing_draw_floor(Block *block, Texture *texture, Color tint, Vector3 offset = Vector3Zero())
 {
-    Model floorModel = Assets->models[Assets->floorModel];
+    Model floorModel = *Assets->floorModel;
     floorModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = *texture;
     Vector3 pos = Vector3Add(block->pos, offset);
     DrawModel(floorModel, pos, 1, tint);
@@ -8,16 +9,15 @@ void drawing_draw_floor(Block *block, Texture *texture, Color tint, Vector3 offs
 
 void drawing_draw_block(Block *block, Texture *texture, Color color, Vector3 offset = Vector3Zero())
 {
-    Model cubeModel = Assets->models[Assets->cubeModel];
+    Model cubeModel = *Assets->cubeModel;
     Vector3 pos = Vector3Add(Vector3Add(block->pos, {0, -0.50, 0}), offset);
     cubeModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = *texture;
-    DrawModel(cubeModel, pos, 1.0f, color);
+    DrawModel(*Assets->cubeModel, pos, 1.0f, color);
 }
 
 void drawing_draw(Block *block)
 {
     Color tint;
-    // TODO dont
     Texture *texture;
     Vector3 offset = Vector3Zero();
 
@@ -25,7 +25,7 @@ void drawing_draw(Block *block)
     {
         case TILE_FLOOR_GRASS:
             tint = GREEN;
-            texture = Assets->textures[Assets->noiseTexture];
+            texture = Assets->noiseTexture;
             break;
         case TILE_FLOOR_STONE:
             tint = GRAY;
@@ -52,9 +52,10 @@ void drawing_draw(Block *block)
 
 }
 
-void drawing_scene_draw(GameLevel *level)
+// TODO nice naming man
+void drawing_update_and_draw(LevelFeed *feed, GameSession *session)
 {
-    ClearBackground(level->feed.environment.skyColor);
+    ClearBackground(feed->environment.skyColor);
 
     // TODO fog shader cleanup
     float fogDensity = 0.2f;
@@ -62,14 +63,17 @@ void drawing_scene_draw(GameLevel *level)
     SetShaderValue(fogShader, Assets->fogShaderDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
     // Move playerlight
-    Assets->playerLight.position = level->camera.position;
-    UpdateLightValues(fogShader, Assets->playerLight);
+    Assets->playerLight.position = session->camera.position;
+    UpdateLightValues(fogShader,Assets->playerLight);
 
     // Update the light shader with the camera view position
-    SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &level->camera.position.x, SHADER_UNIFORM_VEC3);
+    SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &session->camera.position.x, SHADER_UNIFORM_VEC3);
 
-    for (auto &block: level->feed.blocks)
+
+    auto blocks = &feed->blocks;
+    for (int i = 0; i < blocks->count; i++)
     {
-        drawing_draw(&block);
+        Block *block = blocks->get(i);
+        drawing_draw(block);
     }
 }

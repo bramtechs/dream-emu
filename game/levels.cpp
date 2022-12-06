@@ -1,8 +1,8 @@
-#include "shared.hpp"
-#include "logger.cpp"
-#include "blocks.cpp"
-
 // Raylib GPU draw functions cannot be called!
+
+static Color *palette = nullptr;
+static int paletteCount = 0;
+
 static LevelLayout *Layout;
 static LevelFeed *Feed;
 
@@ -17,6 +17,7 @@ bool color_equals(Color one, Color two)
 
 int level_tile_id_get(int x, int y)
 {
+    assert(Layout);
     if (x >= 0 && y < Layout->width && y >= 0 && y < Layout->height)
     {
         int j = y * Layout->width + x;
@@ -27,26 +28,34 @@ int level_tile_id_get(int x, int y)
 
         // match color with database
         int match = TILE_NONE;
-        for (int i = 0; i < Layout->paletteColors.size(); i++)
+        for (int i = 0; i < paletteCount; i++)
         {
-            if (color_equals(Layout->paletteColors[i], color))
+            if (color_equals(palette[i], color))
             {
                 match = i;
                 break;
             }
+        }
+        if (match == TILE_NONE)
+        {
+            logger_warn("Unknown level layout color!");
         }
         return match;
     }
     return TILE_NONE;
 }
 
-extern "C" void level_load(void *layoutPtr, void *feedPtr)
+extern "C" void level_load(void *data, void *feed)
 {
-    Layout = (LevelLayout *) layoutPtr;
-    Feed = (LevelFeed *) feedPtr;
+    assert(data != nullptr);
+    assert(feed != nullptr);
 
-    Feed->environment.skyColor = {20, 20, 20, 255};
-    assert(!Layout->paletteColors.empty());
+    Layout = (LevelLayout *) data;
+    Feed = (LevelFeed *) feed;
+
+    Feed->blocks.clear();
+
+    Feed->environment.skyColor = DARKGRAY;
 
     // read each pixel
     for (int y = 0; y < Layout->height; y++)
@@ -56,9 +65,7 @@ extern "C" void level_load(void *layoutPtr, void *feedPtr)
             // match color with database
             int match = level_tile_id_get(x, y);
             if (match == TILE_NONE)
-            {
                 continue;
-            }
 
             // generate block
             int neighbors[4];
@@ -67,9 +74,8 @@ extern "C" void level_load(void *layoutPtr, void *feedPtr)
             neighbors[DIR_SOUTH] = level_tile_id_get(x, y + 1);
             neighbors[DIR_WEST] = level_tile_id_get(x - 1, y);
 
-            // TODO slow
             Block block = blocks_spawn(x, y, match, neighbors);
-            Feed->blocks.push_back(block);
+            Feed->blocks.push(block);
         }
     }
     logger_log("Loaded level!");
@@ -77,5 +83,5 @@ extern "C" void level_load(void *layoutPtr, void *feedPtr)
 
 extern "C" void level_update_and_stream(float delta)
 {
-
+    // make this move etc
 }
