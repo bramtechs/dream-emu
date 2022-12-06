@@ -5,6 +5,8 @@
 
 #include "mem_array.cpp"
 
+#define IS_DEBUG true
+
 #define WATER_DEPTH 0.3f
 
 #define DIR_NORTH 0
@@ -18,6 +20,28 @@
 #define TILE_FLOOR_STONE 42
 
 #include "raymath.h"
+
+template<class T>
+T *NN(T *ptr) // pointer passed was null
+{
+    if (ptr == nullptr && IS_DEBUG)
+    {
+        int *i = nullptr;
+        *i = -1;
+    }
+    return ptr;
+}
+
+template<class T>
+T POS(T val) // value passed was not positive
+{
+    if (val <= 0 && IS_DEBUG)
+    {
+        int *i = nullptr;
+        *i = -1;
+    }
+    return val;
+}
 
 struct Block {
     int id;
@@ -35,7 +59,7 @@ struct LevelLayout {
     int height;
     Color *colors;
 
-    Color* paletteColors;
+    Color *paletteColors;
     int paletteColorCount;
 };
 

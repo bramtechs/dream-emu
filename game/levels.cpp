@@ -12,8 +12,7 @@ bool color_equals(Color one, Color two)
 
 int level_tile_id_get(int x, int y)
 {
-    assert(Layout);
-    if (x >= 0 && y < Layout->width && y >= 0 && y < Layout->height)
+    if (x >= 0 && y < POS(NN(Layout)->width) && y >= 0 && y < POS(Layout->height))
     {
         int j = y * Layout->width + x;
         Color color = Layout->colors[j];
@@ -23,7 +22,7 @@ int level_tile_id_get(int x, int y)
 
         // match color with database
         int match = TILE_NONE;
-        for (int i = 0; i < Layout->paletteColorCount; i++)
+        for (int i = 0; i < POS(Layout->paletteColorCount); i++)
         {
             if (color_equals(Layout->paletteColors[i], color))
             {
@@ -31,10 +30,7 @@ int level_tile_id_get(int x, int y)
                 break;
             }
         }
-        if (match == TILE_NONE)
-        {
-            logger_warn("Unknown level layout color!");
-        }
+        assert (match != TILE_NONE);
         return match;
     }
     return TILE_NONE;
@@ -42,20 +38,17 @@ int level_tile_id_get(int x, int y)
 
 extern "C" void level_load(void *data, void *feed)
 {
-    assert(data != nullptr);
-    assert(feed != nullptr);
-
-    Layout = (LevelLayout *) data;
-    Feed = (LevelFeed *) feed;
+    Layout = (LevelLayout *) NN(data);
+    Feed = (LevelFeed *) NN(feed);
 
     Feed->blocks.clear();
 
     Feed->environment.skyColor = DARKGRAY;
 
     // read each pixel
-    for (int y = 0; y < Layout->height; y++)
+    for (int y = 0; y < POS(Layout->height); y++)
     {
-        for (int x = 0; x < Layout->width; x++)
+        for (int x = 0; x < POS(Layout->width); x++)
         {
             // match color with database
             int match = level_tile_id_get(x, y);

@@ -36,6 +36,7 @@ struct GameAssets {
     MemoryArray<Shader> shaders;
     MemoryArray<LevelLayout> levelLayouts;
 
+    // TODO global
     std::string assetPrefix;
 };
 
