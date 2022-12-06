@@ -69,7 +69,6 @@ void drawing_update_and_draw(LevelFeed *feed, GameSession *session)
     // Update the light shader with the camera view position
     SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &session->camera.position.x, SHADER_UNIFORM_VEC3);
 
-
     auto blocks = &feed->blocks;
     for (int i = 0; i < blocks->count; i++)
     {
