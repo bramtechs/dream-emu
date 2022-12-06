@@ -30,6 +30,12 @@
 *
 **********************************************************************************************/
 
+#if defined(PLATFORM_DESKTOP)
+#define GLSL_VERSION            330
+#else   // PLATFORM_RPI, PLATFORM_ANDROID, PLATFORM_WEB
+#define GLSL_VERSION            100
+#endif
+
 #ifndef RLIGHTS_H
 #define RLIGHTS_H
 
@@ -43,14 +49,14 @@
 //----------------------------------------------------------------------------------
 
 // Light data
-typedef struct {   
+typedef struct {
     int type;
     bool enabled;
     Vector3 position;
     Vector3 target;
     Color color;
     float attenuation;
-    
+
     // Shader locations
     int enabledLoc;
     int typeLoc;
@@ -73,7 +79,8 @@ extern "C" {            // Prevents name mangling of functions
 //----------------------------------------------------------------------------------
 // Module Functions Declaration
 //----------------------------------------------------------------------------------
-Light CreateLight(int type, Vector3 position, Vector3 target, Color color, Shader shader);   // Create a light and get shader locations
+Light CreateLight(int type, Vector3 position, Vector3 target, Color color,
+                  Shader shader);   // Create a light and get shader locations
 void UpdateLightValues(Shader shader, Light light);         // Send light properties to shader
 
 #ifdef __cplusplus

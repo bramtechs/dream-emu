@@ -44,7 +44,10 @@ T POS(T val) // value passed was not positive
 }
 
 struct Lamp {
-
+    Vector3 pos;
+    Color color;
+    float brightness;
+    bool disabled;
 };
 
 struct Block {

@@ -1,13 +1,5 @@
 #define RLIGHTS_IMPLEMENTATION
 
-#include "rlights.h"
-
-#if defined(PLATFORM_DESKTOP)
-#define GLSL_VERSION            330
-#else   // PLATFORM_RPI, PLATFORM_ANDROID, PLATFORM_WEB
-#define GLSL_VERSION            100
-#endif
-
 struct GameAssets {
     Mesh *planeMesh;
     Mesh *cubeMesh;
@@ -23,9 +15,6 @@ struct GameAssets {
     Shader *lightShader;
     Shader *fogShader;
     int fogShaderDensityLoc;
-
-    // TODO NOT AN ASSET
-    Light playerLight;
 
     // easier for cleaning everything up
     // or rendering everything at once
@@ -126,8 +115,6 @@ void assets_load_shader_fog()
     SetShaderValue(shader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
     Assets->fogShaderDensityLoc = GetShaderLocation(shader, "fogDensity");
-
-    Assets->playerLight = CreateLight(LIGHT_POINT, (Vector3) {0, 0, 0}, Vector3Zero(), WHITE, shader);
 }
 
 void assets_load()

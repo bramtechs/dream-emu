@@ -1,3 +1,4 @@
+#include "rlights.h" // TODO shouldn't be needed
 
 void drawing_draw_floor(Block *block, Texture *texture, Color tint, Vector3 offset = Vector3Zero())
 {
@@ -62,9 +63,12 @@ void drawing_update_and_draw(LevelFeed *feed, GameSession *session)
     Shader fogShader = *Assets->fogShader;
     SetShaderValue(fogShader, Assets->fogShaderDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
-    // Move playerlight
-    Assets->playerLight.position = session->camera.position;
-    UpdateLightValues(fogShader,Assets->playerLight);
+    // Update lighting
+    for (int i = 0; i < session->lights.count; i++)
+    {
+        Light light = *session->lights.get(i);
+        UpdateLightValues(fogShader, light);
+    }
 
     // Update the light shader with the camera view position
     SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &session->camera.position.x, SHADER_UNIFORM_VEC3);

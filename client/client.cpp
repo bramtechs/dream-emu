@@ -5,36 +5,17 @@
 // TODO confusing filename
 
 #include "raylib.h"
+#include "rlights.h"
 
 #include "linker.hpp"
 #include "shared.hpp"
 
-struct GameSession {
-    Camera camera;
-    bool isFlying;
-};
-
 #include "assets.cpp"
+#include "session.cpp"
 #include "drawing.cpp"
 
-static LevelFeed *CurrentFeed = nullptr;
-static GameSession *CurrentSession = nullptr;
-
-void game_session_reset()
+void client_update_and_render()
 {
-    if (CurrentSession == nullptr){
-        CurrentSession = new GameSession();
-    }
-
-    // setup camera
-    CurrentSession->camera = {{0.2f, 0.4f, 0.2f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, 45.0f, 0};
-    CurrentSession->isFlying = false;
-    SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
-}
-
-void game_update_and_render()
-{
-
     UpdateCamera(&CurrentSession->camera);
 
     if (IsKeyPressed(KEY_F3))
@@ -71,11 +52,6 @@ void game_update_and_render()
 
 }
 
-void game_refresh(){
-    // TOOD also reload assets
-    level_load(Assets->levelLayouts.first(),CurrentFeed);
-}
-
 int main()
 {
     // Initialization
@@ -98,12 +74,7 @@ int main()
     CurrentFeed = new LevelFeed();
 
     assets_load();
-    game_session_reset();
-
-    if (isLoaded)
-    {
-        game_refresh();
-    }
+    session_reset();
 
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -113,7 +84,7 @@ int main()
 
         if (isLoaded)
         {
-            game_update_and_render();
+            client_update_and_render();
             if (!IsWindowFocused())
             {
                 linker_lib_free();
@@ -127,7 +98,7 @@ int main()
             {
                 if (linker_lib_link())
                 {
-                    game_refresh();
+                    session_reload();
                     isLoaded = true;
                     TraceLog(LOG_INFO, "LOCKED DLL");
                 }
