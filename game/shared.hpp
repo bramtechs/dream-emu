@@ -5,6 +5,8 @@
 
 #include "mem_array.cpp"
 
+#define IS_DEBUG true
+
 #define WATER_DEPTH 0.3f
 
 #define DIR_NORTH 0
@@ -16,6 +18,30 @@
 #define TILE_FLOOR_GRASS 10
 #define TILE_FLOOR_WATER 17
 #define TILE_FLOOR_STONE 42
+
+template<class T>
+T *NN(T *ptr)
+{
+    if (ptr == nullptr && IS_DEBUG)
+    {
+        printf("Pointer can't be NULL here!\n");
+        int *i = nullptr;
+        *i = -1;
+    }
+    return ptr;
+}
+
+template<class T>
+T POS(T x)
+{
+    if (x <= 0 && IS_DEBUG)
+    {
+        printf("Value needs to be positive!\n");
+        int *i = nullptr;
+        *i = -1;
+    }
+    return x;
+}
 
 #include "raymath.h"
 
@@ -34,7 +60,9 @@ struct LevelLayout {
     int width;
     int height;
     Color *colors;
-    Color* paletteColors;
+
+    Color *paletteColors;
+    int paletteColorCount;
 };
 
 struct LevelFeed {

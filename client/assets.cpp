@@ -52,6 +52,7 @@ LevelLayout *LAYOUT_LOAD(const char *levelPath, Image *palette)
     layout.height = img.height;
     layout.colors = LoadImageColors(img);
     layout.paletteColors = LoadImageColors(*palette);
+    layout.paletteColorCount = palette->width * palette->height;
 
     return Assets->levelLayouts.push(layout);
 

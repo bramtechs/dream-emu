@@ -1,8 +1,5 @@
 // Raylib GPU draw functions cannot be called!
 
-static Color *palette = nullptr;
-static int paletteCount = 0;
-
 static LevelLayout *Layout;
 static LevelFeed *Feed;
 
@@ -17,8 +14,7 @@ bool color_equals(Color one, Color two)
 
 int level_tile_id_get(int x, int y)
 {
-    assert(Layout);
-    if (x >= 0 && y < Layout->width && y >= 0 && y < Layout->height)
+    if (x >= 0 && y < POS(NN(Layout)->width) && y >= 0 && y < POS(Layout->height))
     {
         int j = y * Layout->width + x;
         Color color = Layout->colors[j];
@@ -28,18 +24,17 @@ int level_tile_id_get(int x, int y)
 
         // match color with database
         int match = TILE_NONE;
-        for (int i = 0; i < paletteCount; i++)
+        for (int i = 0; i < POS(Layout->paletteColorCount); i++)
         {
-            if (color_equals(palette[i], color))
+            if (color_equals(Layout->paletteColors[i], color))
             {
                 match = i;
                 break;
             }
         }
-        if (match == TILE_NONE)
-        {
-            logger_warn("Unknown level layout color!");
-        }
+
+        assert(match != TILE_NONE); // "Unknown level layout color!";
+
         return match;
     }
     return TILE_NONE;
