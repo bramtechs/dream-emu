@@ -15,6 +15,8 @@ struct GameAssets {
     Model *floorModel;
     Model *cubeModel;
 
+    Image *paletteImage;
+
     Texture *placeHolderTexture;
     Texture *noiseTexture;
 
@@ -27,6 +29,7 @@ struct GameAssets {
 
     // easier for cleaning everything up
     // or rendering everything at once
+    MemoryArray<Image> images;
     MemoryArray<Texture> textures;
     MemoryArray<Model> models;
     MemoryArray<Mesh> meshes;
@@ -39,7 +42,7 @@ struct GameAssets {
 static GameAssets *Assets = nullptr;
 
 // TODO make image another asset type
-LevelLayout *LAYOUT_LOAD(const char *levelPath, Image palette)
+LevelLayout *LAYOUT_LOAD(const char *levelPath, Image *palette)
 {
     std::string relpath = Assets->assetPrefix + levelPath;
     Image img = LoadImage(relpath.c_str());
@@ -48,7 +51,7 @@ LevelLayout *LAYOUT_LOAD(const char *levelPath, Image palette)
     layout.width = img.width;
     layout.height = img.height;
     layout.colors = LoadImageColors(img);
-    layout.paletteColors = LoadImageColors(palette);
+    layout.paletteColors = LoadImageColors(*palette);
 
     return Assets->levelLayouts.push(layout);
 
@@ -79,6 +82,13 @@ Texture *TEXTURE_LOAD(const char *path)
     std::string relpath = Assets->assetPrefix + path;
     Image img = LoadImage(relpath.c_str());
     return TEXTURE_LOAD(img);
+}
+
+Image *IMAGE_LOAD(const char *path)
+{
+    std::string relpath = Assets->assetPrefix + path;
+    Image img = LoadImage(relpath.c_str());
+    return Assets->images.push(img);
 }
 
 Model *MODEL_LOAD(Mesh *mesh)
@@ -134,11 +144,15 @@ void assets_load()
     Assets->floorModel = MODEL_LOAD(Assets->planeMesh);
     Assets->cubeModel = MODEL_LOAD(Assets->cubeMesh);
 
+    // Images
+    Assets->paletteImage = IMAGE_LOAD("palette.png");
+
     // Textures
     Assets->placeHolderTexture = TEXTURE_LOAD(GenImageChecked(32, 32, 4, 4, RED, WHITE));
     Assets->noiseTexture = TEXTURE_LOAD("gfx/noise.png");
 
     // Level Layouts
+    LAYOUT_LOAD("levels/level001.png", Assets->paletteImage);
 }
 
 void assets_dispose()

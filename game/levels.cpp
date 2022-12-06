@@ -47,6 +47,7 @@ int level_tile_id_get(int x, int y)
 
 extern "C" void level_load(void *data, void *feed)
 {
+    // TODO turn into macro? maybe?
     assert(data != nullptr);
     assert(feed != nullptr);
 
@@ -56,6 +57,9 @@ extern "C" void level_load(void *data, void *feed)
     Feed->blocks.clear();
 
     Feed->environment.skyColor = DARKGRAY;
+
+    assert(Layout->height > 0);
+    assert(Layout->width > 0);
 
     // read each pixel
     for (int y = 0; y < Layout->height; y++)
