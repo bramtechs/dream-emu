@@ -1,8 +1,3 @@
-// Raylib GPU draw functions cannot be called!
-
-static Color *palette = nullptr;
-static int paletteCount = 0;
-
 static LevelLayout *Layout;
 static LevelFeed *Feed;
 
@@ -28,9 +23,9 @@ int level_tile_id_get(int x, int y)
 
         // match color with database
         int match = TILE_NONE;
-        for (int i = 0; i < paletteCount; i++)
+        for (int i = 0; i < Layout->paletteColorCount; i++)
         {
-            if (color_equals(palette[i], color))
+            if (color_equals(Layout->paletteColors[i], color))
             {
                 match = i;
                 break;

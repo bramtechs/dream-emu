@@ -34,7 +34,9 @@ struct LevelLayout {
     int width;
     int height;
     Color *colors;
+
     Color* paletteColors;
+    int paletteColorCount;
 };
 
 struct LevelFeed {

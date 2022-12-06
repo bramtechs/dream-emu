@@ -15,6 +15,8 @@ struct GameAssets {
     Model *floorModel;
     Model *cubeModel;
 
+    Image *paletteImage;
+
     Texture *placeHolderTexture;
     Texture *noiseTexture;
 
@@ -27,6 +29,7 @@ struct GameAssets {
 
     // easier for cleaning everything up
     // or rendering everything at once
+    MemoryArray<Image> images;
     MemoryArray<Texture> textures;
     MemoryArray<Model> models;
     MemoryArray<Mesh> meshes;
@@ -39,7 +42,7 @@ struct GameAssets {
 static GameAssets *Assets = nullptr;
 
 // TODO make image another asset type
-LevelLayout *LAYOUT_LOAD(const char *levelPath, Image palette)
+LevelLayout *LAYOUT_LOAD(const char *levelPath)
 {
     std::string relpath = Assets->assetPrefix + levelPath;
     Image img = LoadImage(relpath.c_str());
@@ -48,7 +51,8 @@ LevelLayout *LAYOUT_LOAD(const char *levelPath, Image palette)
     layout.width = img.width;
     layout.height = img.height;
     layout.colors = LoadImageColors(img);
-    layout.paletteColors = LoadImageColors(palette);
+    layout.paletteColors = LoadImageColors(*Assets->paletteImage);
+    layout.paletteColorCount = Assets->paletteImage->width * Assets->paletteImage->height;
 
     return Assets->levelLayouts.push(layout);
 
@@ -79,6 +83,13 @@ Texture *TEXTURE_LOAD(const char *path)
     std::string relpath = Assets->assetPrefix + path;
     Image img = LoadImage(relpath.c_str());
     return TEXTURE_LOAD(img);
+}
+
+Image *IMAGE_LOAD(const char *path)
+{
+    std::string relpath = Assets->assetPrefix + path;
+    Image img = LoadImage(relpath.c_str());
+    return Assets->images.push(img);
 }
 
 Model *MODEL_LOAD(Mesh *mesh)
@@ -130,6 +141,9 @@ void assets_load()
     Assets->planeMesh = MESH_LOAD(GenMeshPlane(1, 1, 1, 1));
     Assets->cubeMesh = MESH_LOAD(GenMeshCube(1, 1, 1));
 
+    // Images
+    Assets->paletteImage = IMAGE_LOAD("palette.png");
+
     // Models
     Assets->floorModel = MODEL_LOAD(Assets->planeMesh);
     Assets->cubeModel = MODEL_LOAD(Assets->cubeMesh);
@@ -139,6 +153,7 @@ void assets_load()
     Assets->noiseTexture = TEXTURE_LOAD("gfx/noise.png");
 
     // Level Layouts
+    LAYOUT_LOAD("levels/level001.png");
 }
 
 void assets_dispose()
