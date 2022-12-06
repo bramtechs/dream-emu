@@ -15,6 +15,8 @@
 #define DIR_WEST 3
 
 #define TILE_NONE (-1)
+
+#define TILE_BILL_TREE 15
 #define TILE_FLOOR_GRASS 10
 #define TILE_FLOOR_WATER 17
 #define TILE_FLOOR_STONE 42
@@ -50,6 +52,11 @@ struct Lamp {
     bool disabled;
 };
 
+struct Billboard {
+    int id;
+    Vector3 pos;
+};
+
 struct Block {
     int id;
     Vector3 pos;
@@ -75,6 +82,10 @@ struct LevelLayout {
 
 struct LevelFeed {
     Environment environment;
+
+    // should be one
     MemoryArray<Block> blocks;
+    MemoryArray<Billboard> billboards;
     SmallMemoryArray<Lamp> lamps;
+    //
 };

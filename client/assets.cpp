@@ -11,6 +11,7 @@ struct GameAssets {
 
     Texture *placeHolderTexture;
     Texture *noiseTexture;
+    Texture *treeTexture;
 
     Shader *fogShader;
     int fogShaderDensityLoc;
@@ -136,6 +137,7 @@ void assets_load()
     // Textures
     Assets->placeHolderTexture = TEXTURE_LOAD(GenImageChecked(32, 32, 4, 4, RED, WHITE));
     Assets->noiseTexture = TEXTURE_LOAD("gfx/noise.png");
+    Assets->treeTexture = TEXTURE_LOAD("gfx/tree.png");
 
     // Level Layouts
     LAYOUT_LOAD("levels/level001.png");

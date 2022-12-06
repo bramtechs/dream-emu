@@ -65,8 +65,17 @@ extern "C" void level_load(void *data, void *feed)
             neighbors[DIR_SOUTH] = level_tile_id_get(x, y + 1);
             neighbors[DIR_WEST] = level_tile_id_get(x - 1, y);
 
-            Block block = blocks_spawn(x, y, match, neighbors);
-            Feed->blocks.push(block);
+            // TODO change
+            if (match == TILE_BILL_TREE)
+            {
+                Billboard billboard = billboard_spawn(x, y, match);
+                Feed->billboards.push(billboard);
+            } else
+            { // eww
+                Block block = blocks_spawn(x, y, match, neighbors);
+                Feed->blocks.push(block);
+            }
+
         }
     }
     logger_log("Loaded level!");

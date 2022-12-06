@@ -91,5 +91,11 @@ void session_update_and_render(float delta)
         drawing_draw(block);
     }
 
+    auto billboards = &CurrentFeed->billboards;
+    for (int i = 0; i < billboards->count; i++)
+    {
+        drawing_draw_billboard(billboards->get(i), Assets->treeTexture, &CurrentSession->camera);
+    }
+
     gizmos_draw(CurrentFeed);
 }

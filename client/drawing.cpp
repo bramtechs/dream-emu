@@ -16,6 +16,11 @@ void drawing_draw_block(Block *block, Texture *texture, Color color, Vector3 off
     DrawModel(*Assets->cubeModel, pos, 1.0f, color);
 }
 
+void drawing_draw_billboard(Billboard *billboard, Texture *texture, Camera *camera)
+{
+    DrawBillboard(*camera, *texture, billboard->pos, 3, WHITE);
+}
+
 void drawing_draw(Block *block)
 {
     Color tint;
