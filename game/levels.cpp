@@ -35,10 +35,6 @@ int level_tile_id_get(int x, int y)
                 break;
             }
         }
-        if (match == TILE_NONE)
-        {
-            logger_warn("Unknown level layout color!");
-        }
         return match;
     }
     return TILE_NONE;
@@ -50,6 +46,7 @@ extern "C" void level_load(void *layoutPtr, void *feedPtr)
     Feed = (LevelFeed *) feedPtr;
 
     Feed->environment.skyColor = {20, 20, 20, 255};
+    assert(!Layout->paletteColors.empty());
 
     // read each pixel
     for (int y = 0; y < Layout->height; y++)

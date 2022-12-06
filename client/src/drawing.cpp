@@ -1,6 +1,6 @@
 void drawing_draw_floor(Block *block, Texture *texture, Color tint, Vector3 offset = Vector3Zero())
 {
-    Model floorModel = *Assets->floorModel;
+    Model floorModel = Assets->models[Assets->floorModel];
     floorModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = *texture;
     Vector3 pos = Vector3Add(block->pos, offset);
     DrawModel(floorModel, pos, 1, tint);
@@ -8,15 +8,16 @@ void drawing_draw_floor(Block *block, Texture *texture, Color tint, Vector3 offs
 
 void drawing_draw_block(Block *block, Texture *texture, Color color, Vector3 offset = Vector3Zero())
 {
-    Model cubeModel = *Assets->cubeModel;
+    Model cubeModel = Assets->models[Assets->cubeModel];
     Vector3 pos = Vector3Add(Vector3Add(block->pos, {0, -0.50, 0}), offset);
     cubeModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = *texture;
-    DrawModel(*Assets->cubeModel, pos, 1.0f, color);
+    DrawModel(cubeModel, pos, 1.0f, color);
 }
 
 void drawing_draw(Block *block)
 {
     Color tint;
+    // TODO dont
     Texture *texture;
     Vector3 offset = Vector3Zero();
 
@@ -24,7 +25,7 @@ void drawing_draw(Block *block)
     {
         case TILE_FLOOR_GRASS:
             tint = GREEN;
-            texture = Assets->noiseTexture;
+            texture = Assets->textures[Assets->noiseTexture];
             break;
         case TILE_FLOOR_STONE:
             tint = GRAY;
@@ -62,12 +63,13 @@ void drawing_scene_draw(GameLevel *level)
 
     // Move playerlight
     Assets->playerLight.position = level->camera.position;
-    UpdateLightValues(fogShader,Assets->playerLight);
+    UpdateLightValues(fogShader, Assets->playerLight);
 
     // Update the light shader with the camera view position
     SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &level->camera.position.x, SHADER_UNIFORM_VEC3);
 
-    for (auto &block: level->feed.blocks){
+    for (auto &block: level->feed.blocks)
+    {
         drawing_draw(&block);
     }
 }

@@ -111,24 +111,24 @@ int main()
         if (isLoaded)
         {
             game_update_and_render();
-            if (!IsWindowFocused())
-            {
-                linker_lib_free();
-                isLoaded = false;
-                TraceLog(LOG_INFO, "FREED DLL");
-            }
+            //if (!IsWindowFocused())
+            //{
+            //    linker_lib_free();
+            //    isLoaded = false;
+            //    TraceLog(LOG_INFO, "FREED DLL");
+            //}
         } else
         {
             // TODO do not load every frame
-            if (IsWindowFocused())
-            {
-                if (linker_lib_link())
-                {
-                    load_or_reload();
-                    isLoaded = true;
-                    TraceLog(LOG_INFO, "LOCKED DLL");
-                }
-            }
+            //if (IsWindowFocused())
+            //{
+            //    if (linker_lib_link())
+            //    {
+            //        load_or_reload();
+            //        isLoaded = true;
+            //        TraceLog(LOG_INFO, "LOCKED DLL");
+            //    }
+            //}
         }
 
         EndTextureMode();

@@ -10,20 +10,22 @@
 
 const char *AssetPrefix = "assets/";
 
+// TODO this is a dumpster fire, use pointer array instead
+
 struct GameAssets {
-    Mesh *planeMesh;
-    Mesh *cubeMesh;
+    int planeMesh;
+    int cubeMesh;
 
-    Model *floorModel;
-    Model *cubeModel;
+    int floorModel;
+    int cubeModel;
 
-    Image *paletteImage;
+    int paletteImage;
 
-    Texture *placeHolderTexture;
-    Texture *noiseTexture;
+    int placeHolderTexture;
+    int noiseTexture;
 
-    Shader *lightShader;
-    Shader *fogShader;
+    int lightShader;
+    int fogShader;
     int fogShaderDensityLoc;
 
     // TODO NOT AN ASSET
@@ -41,85 +43,89 @@ struct GameAssets {
 
 static GameAssets *Assets = nullptr;
 
-Shader *SHADER_LOAD(const char *vsPath, const char *fsPath)
+int SHADER_LOAD(const char *vsPath, const char *fsPath)
 {
     const char *relVsPath = TextFormat("%s/shaders/glsl%i/%s.vs", AssetPrefix, GLSL_VERSION, vsPath);
     const char *relFsPath = TextFormat("%s/shaders/glsl%i/%s.fs", AssetPrefix, GLSL_VERSION, fsPath);
     Shader shader = LoadShader(relVsPath, relFsPath);
 
     Assets->shaders.push_back(shader);
-    return &Assets->shaders.back();
+    return Assets->shaders.size() - 1;
 
 }
 
-Texture *TEXTURE_LOAD(Image img)
+int TEXTURE_LOAD(Image img)
 {
     if (img.data != nullptr)
     {
         Texture texture = LoadTextureFromImage(img);
         UnloadImage(img);
         Assets->textures.push_back(texture);
-        return &Assets->textures.back();
+        return Assets->textures.size() - 1;
     }
     return Assets->placeHolderTexture;
 }
 
-Texture *TEXTURE_LOAD(const char *path)
+int TEXTURE_LOAD(const char *path)
 {
     const char *relpath = TextFormat("%s%s", AssetPrefix, path);
     Image img = LoadImage(relpath);
     return TEXTURE_LOAD(img);
 }
 
-Image *IMAGE_LOAD(const char *path)
+int IMAGE_LOAD(const char *path)
 {
     const char *relpath = TextFormat("%s%s", AssetPrefix, path);
     Image img = LoadImage(relpath);
     Assets->images.push_back(img);
-    return &Assets->images.back();
+    return Assets->images.size() - 1;
 }
 
-Model *MODEL_LOAD(Mesh *mesh)
+int MODEL_LOAD(int mesh)
 {
-    Model model = LoadModelFromMesh(*mesh);
+    Model model = LoadModelFromMesh(Assets->meshes[mesh]);
 
     // inject fog shader
-    model.materials[0].shader = *Assets->fogShader;
+    model.materials[0].shader = Assets->shaders[Assets->fogShader];
 
     Assets->models.push_back(model);
-    return &Assets->models.back();
+    return Assets->models.size() - 1;
 }
 
-Mesh *MESH_LOAD(Mesh mesh)
+int MESH_LOAD(Mesh mesh)
 {
     Assets->meshes.push_back(mesh);
-    return &Assets->meshes.back();
+    return Assets->meshes.size() - 1;
 }
 
-LevelLayout *LEVEL_LAYOUT_LOAD(const char *path)
+int LEVEL_LAYOUT_LOAD(const char *path)
 {
+    Image paletteImg = Assets->images[Assets->paletteImage];
+    Image levelImg = Assets->images[IMAGE_LOAD(path)];
+
     LevelLayout layout = {};
+    layout.width = levelImg.width;
+    layout.height = levelImg.height;
 
     int paletteCount;
-    Color *palColors = LoadImagePalette(*Assets->paletteImage, 512, &paletteCount);
+    Color *palColors = LoadImagePalette(paletteImg, 512, &paletteCount);
     for (int i = 0; i < paletteCount; i++)
-        layout.colors.push_back(palColors[i]);
+        layout.paletteColors.push_back(palColors[i]);
 
-    Image *levelImg = IMAGE_LOAD(path);
-    Color *colors = LoadImageColors(*levelImg);
-    for (int i = 0; i < levelImg->width * levelImg->height; i++)
+    Color *colors = LoadImageColors(levelImg);
+    for (int i = 0; i < levelImg.width * levelImg.height; i++)
         layout.colors.push_back(colors[i]);
 
     TraceLog(LOG_INFO, "Loaded %d palette indices...", paletteCount);
 
     Assets->levelLayouts.push_back(layout);
-    return &Assets->levelLayouts.back();
+    return Assets->levelLayouts.size() - 1;
 }
 
 void assets_load_shader_fog()
 {
     Assets->fogShader = SHADER_LOAD("lighting", "fog");
-    Shader shader = *Assets->fogShader;
+    Shader shader = Assets->shaders[Assets->fogShader];
 
     shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
     shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
