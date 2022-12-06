@@ -58,7 +58,9 @@ struct Block {
 
 struct Environment {
     Color skyColor;
+    Color sunColor;
     float fogDensity;
+    Vector3 sunDirection;
 };
 
 // TODO free memory!

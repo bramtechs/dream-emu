@@ -19,10 +19,16 @@ void session_reload()
 
     SetShaderValue(*Assets->fogShader, Assets->fogShaderDensityLoc, &CurrentFeed->environment.fogDensity,
                    SHADER_UNIFORM_FLOAT);
+
+    // add default lamps
+    Light sun = CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), CurrentFeed->environment.sunDirection, WHITE,
+                            *Assets->fogShader);
+    CurrentSession->lights.push(sun);
+
+    // import lamps
     for (int i = 0; i < CurrentFeed->lamps.count; i++)
     {
         Lamp *lamp = CurrentFeed->lamps.get(i);
-
         Light light = CreateLight(LIGHT_POINT, lamp->pos, lamp->pos, lamp->color, *Assets->fogShader);
         CurrentSession->lights.push(light);
     }
@@ -84,4 +90,6 @@ void session_update_and_render(float delta)
         Block *block = blocks->get(i);
         drawing_draw(block);
     }
+
+    gizmos_draw(CurrentFeed);
 }

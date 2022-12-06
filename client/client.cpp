@@ -12,6 +12,7 @@
 
 #include "assets.cpp"
 #include "drawing.cpp"
+#include "gizmos.cpp"
 #include "session.cpp"
 
 void client_update_and_render()

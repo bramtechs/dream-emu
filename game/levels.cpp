@@ -43,7 +43,10 @@ extern "C" void level_load(void *data, void *feed)
 
     Feed->blocks.clear();
 
-    Feed->environment.skyColor = DARKGRAY;
+    Feed->environment.sunDirection = Vector3Normalize({1, -1, 1});
+    Feed->environment.fogDensity = 0.0f;
+    Feed->environment.skyColor = SKYBLUE;
+    Feed->environment.sunColor = WHITE;
 
     // read each pixel
     for (int y = 0; y < POS(Layout->height); y++)
@@ -67,12 +70,6 @@ extern "C" void level_load(void *data, void *feed)
         }
     }
     logger_log("Loaded level!");
-
-    Lamp lamp = Lamp{};
-    lamp.pos = {20,20,30};
-    lamp.brightness = 5.f;
-    lamp.color = RED;
-    Feed->lamps.push(lamp);
 }
 
 extern "C" void level_update_and_stream(float delta)
