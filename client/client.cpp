@@ -11,8 +11,8 @@
 #include "shared.hpp"
 
 #include "assets.cpp"
-#include "session.cpp"
 #include "drawing.cpp"
+#include "session.cpp"
 
 void client_update_and_render()
 {
@@ -36,9 +36,9 @@ void client_update_and_render()
         BeginMode3D(CurrentSession->camera);
 
         assert(level_update_and_stream != nullptr);
-        level_update_and_stream(GetFrameTime());
 
-        drawing_update_and_draw(CurrentFeed, CurrentSession);
+        level_update_and_stream(GetFrameTime());
+        session_update_and_render(GetFrameTime());
 
         EndMode3D();
 

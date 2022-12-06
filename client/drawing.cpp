@@ -50,33 +50,4 @@ void drawing_draw(Block *block)
     {
         drawing_draw_floor(block, texture, tint, offset);
     }
-
-}
-
-// TODO nice naming man
-void drawing_update_and_draw(LevelFeed *feed, GameSession *session)
-{
-    ClearBackground(feed->environment.skyColor);
-
-    // TODO fog shader cleanup
-    float fogDensity = 0.2f;
-    Shader fogShader = *Assets->fogShader;
-    SetShaderValue(fogShader, Assets->fogShaderDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
-
-    // Update lighting
-    for (int i = 0; i < session->lights.count; i++)
-    {
-        Light light = *session->lights.get(i);
-        UpdateLightValues(fogShader, light);
-    }
-
-    // Update the light shader with the camera view position
-    SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &session->camera.position.x, SHADER_UNIFORM_VEC3);
-
-    auto blocks = &feed->blocks;
-    for (int i = 0; i < blocks->count; i++)
-    {
-        Block *block = blocks->get(i);
-        drawing_draw(block);
-    }
 }

@@ -8,11 +8,24 @@ struct GameSession {
 static GameSession *CurrentSession = nullptr;
 static LevelFeed *CurrentFeed = nullptr;
 
-void session_reload(){
-    level_load(Assets->levelLayouts.first(),CurrentFeed);
-    TraceLog(LOG_INFO,"Reloaded session");
-
+void session_reload()
+{
     // put level init in here
+
+    level_load(Assets->levelLayouts.first(), CurrentFeed);
+    TraceLog(LOG_INFO, "Reloaded session");
+
+    CurrentSession->lights.clear();
+
+    SetShaderValue(*Assets->fogShader, Assets->fogShaderDensityLoc, &CurrentFeed->environment.fogDensity,
+                   SHADER_UNIFORM_FLOAT);
+    for (int i = 0; i < CurrentFeed->lamps.count; i++)
+    {
+        Lamp *lamp = CurrentFeed->lamps.get(i);
+
+        Light light = CreateLight(LIGHT_POINT, lamp->pos, lamp->pos, lamp->color, *Assets->fogShader);
+        CurrentSession->lights.push(light);
+    }
 }
 
 void session_reset()
@@ -28,4 +41,47 @@ void session_reset()
     SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
 
     session_reload();
+}
+
+void session_update_lighting()
+{
+    Shader fogShader = *Assets->fogShader;
+    // TODO fog shader cleanup
+    SetShaderValue(fogShader, Assets->fogShaderDensityLoc, &CurrentFeed->environment.fogDensity,
+                   SHADER_UNIFORM_FLOAT);
+
+    // Update lighting
+    for (int i = 0; i < NN(CurrentSession)->lights.count; i++)
+    {
+        Light light = *CurrentSession->lights.get(i);
+        UpdateLightValues(*Assets->fogShader, light);
+    }
+
+    if (IsKeyPressed(KEY_PAGE_UP))
+    {
+        CurrentFeed->environment.fogDensity += GetFrameTime() * 0.2f;
+    }
+    if (IsKeyPressed(KEY_PAGE_DOWN))
+    {
+        CurrentFeed->environment.fogDensity -= GetFrameTime() * 0.2f;
+    }
+
+    // Update the light shader with the camera view position
+    SetShaderValue(fogShader, fogShader.locs[SHADER_LOC_VECTOR_VIEW], &CurrentSession->camera.position.x,
+                   SHADER_UNIFORM_VEC3);
+
+}
+
+void session_update_and_render(float delta)
+{
+    ClearBackground(NN(CurrentFeed)->environment.skyColor);
+
+    session_update_lighting();
+
+    auto blocks = &CurrentFeed->blocks;
+    for (int i = 0; i < blocks->count; i++)
+    {
+        Block *block = blocks->get(i);
+        drawing_draw(block);
+    }
 }

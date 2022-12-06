@@ -12,7 +12,6 @@ struct GameAssets {
     Texture *placeHolderTexture;
     Texture *noiseTexture;
 
-    Shader *lightShader;
     Shader *fogShader;
     int fogShaderDensityLoc;
 
@@ -110,9 +109,7 @@ void assets_load_shader_fog()
     float ambientLightLevel[] = {sunLight, sunLight, sunLight, 1.0f};
     SetShaderValue(shader, ambientLoc, &ambientLightLevel, SHADER_UNIFORM_VEC4);
 
-    float fogDensity = 0.15f;
     int fogDensityLoc = GetShaderLocation(shader, "fogDensity");
-    SetShaderValue(shader, fogDensityLoc, &fogDensity, SHADER_UNIFORM_FLOAT);
 
     Assets->fogShaderDensityLoc = GetShaderLocation(shader, "fogDensity");
 }
