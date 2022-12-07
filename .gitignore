@@ -6,5 +6,7 @@ cmake-build-debug-mingw/
 cmake-build-debug-visual-studio/
 bin/
 build/
+build-win/
 out/
 CMakeSettings.json
+.cache
