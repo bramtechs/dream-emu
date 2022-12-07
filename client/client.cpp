@@ -7,7 +7,9 @@
 #include "raylib.h"
 #include "rlights.h"
 
-#include "native/linker.hpp"
+//#include "native/linker.hpp"
+#include "game.cpp"
+
 #include "shared.hpp"
 
 #include "assets.cpp"
@@ -36,7 +38,7 @@ void client_update_and_render()
     {
         BeginMode3D(CurrentSession->camera);
 
-        assert(level_update_and_stream != nullptr);
+        //assert(level_update_and_stream != nullptr);
 
         level_update_and_stream(GetFrameTime());
         session_update_and_render(GetFrameTime());
@@ -70,8 +72,6 @@ int main()
 
     SetTargetFPS(60);
 
-    bool isLoaded = linker_lib_link();
-
     CurrentFeed = new LevelFeed();
 
     assets_load();
@@ -83,28 +83,7 @@ int main()
         BeginDrawing();
         BeginTextureMode(target);
 
-        if (isLoaded)
-        {
-            client_update_and_render();
-            if (!IsWindowFocused())
-            {
-                linker_lib_free();
-                isLoaded = false;
-                TraceLog(LOG_INFO, "FREED DLL");
-            }
-        } else
-        {
-            // TODO do not load every frame
-            if (IsWindowFocused())
-            {
-                if (linker_lib_link())
-                {
-                    session_reload();
-                    isLoaded = true;
-                    TraceLog(LOG_INFO, "LOCKED DLL");
-                }
-            }
-        }
+        client_update_and_render();
 
         EndTextureMode();
 
@@ -116,7 +95,6 @@ int main()
     }
 
     delete CurrentFeed;
-    linker_lib_free();
     // TODO assets_dispose();
     UnloadRenderTexture(target);
     CloseWindow();                  // Close window and OpenGL context

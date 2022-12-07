@@ -1,2 +1,3 @@
 #!/bin/bash
-cmake --build build -j${nproc}
+cmake --build build -j${nproc} && \
+    ./build/client/dreamemu_client
