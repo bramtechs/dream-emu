@@ -1,0 +1,6 @@
+[submodule "libs/entt"]
+	path = libs/entt
+	url = https://github.com/skypjack/entt.git
+[submodule "libs/raylib"]
+	path = libs/raylib
+	url = https://github.com/bramtechs/raylib.git
