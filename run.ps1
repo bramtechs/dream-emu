@@ -1,6 +1,3 @@
-$exe= ".\build\client\Debug\dreamemu_client.exe"
-
-rm -Force $exe | Out-Null
+rm .\build\space\Debug\space.exe
 cmake --build build -j $Env:NUMBER_OF_PROCESSORS
-Write-Host $exe
-.\build\client\Debug\dreamemu_client.exe
+.\build\space\Debug\space.exe

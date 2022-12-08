@@ -1,0 +1,3 @@
+- make player less huge
+- interaction with doors
+- fix float imprecision
