@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO move things out
+
 #include <iostream>
 #include <cassert>
 

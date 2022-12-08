@@ -3,4 +3,3 @@ project(dream_emu)
 
 add_subdirectory(c-raylib)
 add_subdirectory(client)
-add_subdirectory(game)
