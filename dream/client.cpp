@@ -1,59 +1,16 @@
-#define WIDTH 640
+#define WIDTH 639
 #define HEIGHT 480
 #define SCALE 2
 
 // TODO confusing filename
 
-#include "raylib.h"
-#include "rlights.h"
-
-//#include "native/linker.hpp"
-#include "game.cpp"
-
 #include "shared.hpp"
 
-#include "assets.cpp"
-#include "drawing.cpp"
-#include "gizmos.cpp"
-#include "session.cpp"
-
-void client_update_and_render()
-{
-    UpdateCamera(&CurrentSession->camera);
-
-    if (IsKeyPressed(KEY_F3))
-    {
-        bool *flying = &CurrentSession->isFlying;
-        *flying = !*flying;
-        if (*flying)
-        {
-            SetCameraMode(CurrentSession->camera, CAMERA_FREE);     // Set camera mode
-        } else
-        {
-            SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
-        }
-    }
-
-    if (CurrentFeed != nullptr)
-    {
-        BeginMode3D(CurrentSession->camera);
-
-        //assert(level_update_and_stream != nullptr);
-
-        level_update_and_stream(GetFrameTime());
-        session_update_and_render(GetFrameTime());
-
-        EndMode3D();
-
-        DrawFPS(10, 10);
-    } else
-    {
-        // no level
-        ClearBackground(PURPLE);
-        DrawText("No level, this is a bug... :(", 50, 50, 16, WHITE);
-    }
-
-}
+// #include "session.cpp"
+//
+// #include "assets.cpp"
+// #include "drawing.cpp"
+// #include "gizmos.cpp"
 
 int main()
 {
@@ -72,18 +29,40 @@ int main()
 
     SetTargetFPS(60);
 
-    CurrentFeed = new LevelFeed();
-
-    assets_load();
-    session_reset();
+    // assets_load();
+    // session_reset();
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
+    while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         BeginDrawing();
         BeginTextureMode(target);
 
-        client_update_and_render();
+        //        UpdateCamera(&CurrentSession->camera);
+        //
+        //        if (IsKeyPressed(KEY_F3))
+        //        {
+        //            bool *flying = &CurrentSession->isFlying;
+        //            *flying = !*flying;
+        //            if (*flying)
+        //            {
+        //                SetCameraMode(CurrentSession->camera, CAMERA_FREE);     // Set camera mode
+        //            } else
+        //            {
+        //                SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
+        //            }
+        //        }
+        //
+        //        BeginMode3D(CurrentSession->camera);
+        //
+        //        //assert(level_update_and_stream != nullptr);
+        //
+        //        level_update_and_stream(GetFrameTime());
+        //        session_update_and_render(GetFrameTime());
+        //
+        //        EndMode3D();
+        //
+        //        DrawFPS(10, 10);
 
         EndTextureMode();
 
@@ -94,10 +73,9 @@ int main()
         EndDrawing();
     }
 
-    delete CurrentFeed;
     // TODO assets_dispose();
     UnloadRenderTexture(target);
-    CloseWindow();                  // Close window and OpenGL context
+    CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
     return 0;

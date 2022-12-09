@@ -1,12 +1,42 @@
+struct Lamp {
+    Vector3 pos;
+    Color color;
+    float brightness;
+    bool disabled;
+};
+
+struct Billboard {
+    int id;
+    Vector3 pos;
+};
+
+struct Block {
+    int id;
+    Vector3 pos;
+    bool isBlock;
+};
+
+struct Environment {
+    Color skyColor;
+    Color sunColor;
+    float fogDensity;
+    Vector3 sunDirection;
+};
+
 struct GameSession {
     Camera camera;
     bool isFlying;
 
+    Environment environment;
     SmallMemoryArray<Light> lights;
+
+    // should be one
+    MemoryArray<Block> blocks;
+    MemoryArray<Billboard> billboards;
+    SmallMemoryArray<Lamp> lamps;
 };
 
 static GameSession *CurrentSession = nullptr;
-static LevelFeed *CurrentFeed = nullptr;
 
 void session_reload()
 {
@@ -19,6 +49,12 @@ void session_reload()
 
     SetShaderValue(*Assets->fogShader, Assets->fogShaderDensityLoc, &CurrentFeed->environment.fogDensity,
                    SHADER_UNIFORM_FLOAT);
+
+    // setup environment
+    CurrentSession->environment.sunDirection = Vector3Normalize({1, -1, 1});
+    CurrentSession->environment.fogDensity = 0.0f;
+    CurrentSession->environment.skyColor = SKYBLUE;
+    CurrentSession->environment.sunColor = WHITE;
 
     // add default lamps
     Light sun = CreateLight(LIGHT_DIRECTIONAL, Vector3Zero(), CurrentFeed->environment.sunDirection, WHITE,

@@ -7,15 +7,15 @@
 
 #define PAGE_SIZE 4095
 
-typedef struct arena {
+struct MemoryArena;
+struct MemoryArena {
   uint8_t *region;
   size_t size;
   size_t current;
-  struct arena *next;
-} MemoryArena;
+  struct MemoryArena *next;
+};
 
-static MemoryArena *
-_arena_create(size_t size) {
+static MemoryArena *_arena_create(size_t size) {
   MemoryArena *arena = (MemoryArena *) calloc(1, sizeof(MemoryArena));
   if(!arena) return NULL;
   arena->region = (uint8_t *) calloc(size, sizeof(uint8_t));
@@ -24,13 +24,11 @@ _arena_create(size_t size) {
   return arena;
 }
 
-MemoryArena *
-arena_create() {
+MemoryArena *arena_create() {
   return _arena_create(PAGE_SIZE);
 }
 
-void *
-arena_malloc(MemoryArena *arena, size_t size) {
+void *arena_malloc(MemoryArena *arena, size_t size) {
   MemoryArena *last = arena;
 
   do {
@@ -48,8 +46,28 @@ arena_malloc(MemoryArena *arena, size_t size) {
   return next->region;
 }
 
-void
-arena_destroy(MemoryArena *arena) {
+template<typename T>
+T *arena_reserve(MemoryArena *arena, T &obj) {
+  MemoryArena *last = arena;
+
+  size_t size = sizeof(obj);
+
+  do {
+    if((arena->size - arena->current) >= size){
+      arena->current += size;
+      return (T*) arena->region + (arena->current - size);
+    }
+    last = arena;
+  } while((arena = arena->next) != NULL);
+
+  size_t asize   = size > PAGE_SIZE ? size : PAGE_SIZE;
+  MemoryArena *next  = _arena_create(asize);
+  last->next     = next;
+  next->current += size;
+  return (T*) next->region;
+}
+
+void arena_destroy(MemoryArena *arena) {
   MemoryArena *next, *last = arena;
   do {
     next = last->next;

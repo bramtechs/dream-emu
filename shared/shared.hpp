@@ -5,25 +5,49 @@
 #include <iostream>
 #include <cassert>
 
+#include "raylib.h"
+#include "raymath.h"
+#include "rlights.h"
+
+#include "arena.cpp"
 #include "mem_array.cpp"
+
+#include "logger.cpp"
 
 #define IS_DEBUG true
 
-#define WATER_DEPTH 0.3f
+typedef unsigned int uint;
 
-#define DIR_NORTH 0
-#define DIR_EAST 1
-#define DIR_SOUTH 2
-#define DIR_WEST 3
+// TODO replace with more efficient solutions
 
-#define TILE_NONE (-1)
+static uint AllocationCount;
 
-#define TILE_BILL_TREE 15
-#define TILE_FLOOR_GRASS 10
-#define TILE_FLOOR_WATER 17
-#define TILE_FLOOR_STONE 42
+void* vmem_malloc(uint size){
+    void* ptr = malloc(size);
+    AllocationCount++;
+    return ptr;
+}
 
-#include "raymath.h"
+template<class T>
+T* vmem_malloc(T data){
+    T* ptr = malloc(sizeof(data));
+    AllocationCount++;
+    return ptr;
+}
+
+template<class T>
+void vmem_free(T* ptr){
+    free(ptr);
+    ptr = nullptr;
+    AllocationCount--;
+}
+
+void vmem_check(){
+    if (AllocationCount == 0){
+        // TODO write fancy macro
+        logger_warn(TextFormat("Things aren't %d freed properly!",AllocationCount));
+    }
+}
 
 template<class T>
 T *NN(T *ptr) // pointer passed was null
@@ -46,48 +70,3 @@ T POS(T val) // value passed was not positive
     }
     return val;
 }
-
-struct Lamp {
-    Vector3 pos;
-    Color color;
-    float brightness;
-    bool disabled;
-};
-
-struct Billboard {
-    int id;
-    Vector3 pos;
-};
-
-struct Block {
-    int id;
-    Vector3 pos;
-    bool isBlock;
-};
-
-struct Environment {
-    Color skyColor;
-    Color sunColor;
-    float fogDensity;
-    Vector3 sunDirection;
-};
-
-// TODO free memory!
-struct LevelLayout {
-    int width;
-    int height;
-    Color *colors;
-
-    Color *paletteColors;
-    int paletteColorCount;
-};
-
-struct LevelFeed {
-    Environment environment;
-
-    // should be one
-    MemoryArray<Block> blocks;
-    MemoryArray<Billboard> billboards;
-    SmallMemoryArray<Lamp> lamps;
-    //
-};
