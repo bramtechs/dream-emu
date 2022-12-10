@@ -2,15 +2,11 @@
 #define HEIGHT 480
 #define SCALE 2
 
-// TODO confusing filename
+#include "raylib.h"
 
-#include "shared.hpp"
-
-// #include "session.cpp"
-//
-// #include "assets.cpp"
-// #include "drawing.cpp"
-// #include "gizmos.cpp"
+#include <stdio.h>
+#include "logger.c"
+#include "assets.c"
 
 int main()
 {
@@ -23,13 +19,19 @@ int main()
 
     // Get map image data to be used for collision detection
 
-    TraceLog(LOG_INFO, "Launched at %s", GetWorkingDirectory());
+    INFO("Launched at %s", GetWorkingDirectory());
+
+    assets_load("assets");
+
+    Texture texture = assets_texture("palette");
+    for (int i = 0; i < 100; i++){
+        Texture texture2 = assets_texture("palette");
+    }
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
     SetTargetFPS(60);
 
-    // assets_load();
     // session_reset();
 
     // Main game loop
@@ -37,6 +39,8 @@ int main()
     {
         BeginDrawing();
         BeginTextureMode(target);
+
+        DrawTexture(texture,10,10,WHITE);
 
         //        UpdateCamera(&CurrentSession->camera);
         //
@@ -67,13 +71,14 @@ int main()
         EndTextureMode();
 
         // TODO fix scuffed
-        DrawTexturePro(target.texture, {0.0f, 0.0f, WIDTH, -HEIGHT}, {0.0f, 0.0f, WIDTH * SCALE, HEIGHT * SCALE},
-                       {0.0f, 0.0f}, 0.0f, WHITE);
+        DrawTexturePro(target.texture, (Rectangle) {0.0f, 0.0f, WIDTH, -HEIGHT},
+                       (Rectangle) {0.0f, 0.0f, WIDTH * SCALE, HEIGHT * SCALE},
+                       (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
 
         EndDrawing();
     }
 
-    // TODO assets_dispose();
+    assets_dispose();
     UnloadRenderTexture(target);
     CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------

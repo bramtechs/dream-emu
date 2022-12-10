@@ -12,7 +12,7 @@
 #include "arena.cpp"
 #include "mem_array.cpp"
 
-#include "logger.cpp"
+#include "logger.c"
 
 #define IS_DEBUG true
 
@@ -30,7 +30,7 @@ void* vmem_malloc(uint size){
 
 template<class T>
 T* vmem_malloc(T data){
-    T* ptr = malloc(sizeof(data));
+    T* ptr = (T*) malloc(sizeof(data));
     AllocationCount++;
     return ptr;
 }
