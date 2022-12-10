@@ -3,10 +3,12 @@
 #define SCALE 2
 
 #include "raylib.h"
+#include "raymath.h"
 
 #include <stdio.h>
 #include "logger.c"
 #include "assets.c"
+#include "session.c"
 
 int main()
 {
@@ -15,7 +17,7 @@ int main()
     InitWindow(WIDTH * SCALE, HEIGHT * SCALE, "DREAM_EMU");
     SetWindowPosition((GetMonitorWidth(0) - WIDTH * SCALE) / 2, (GetMonitorHeight(0) - HEIGHT * SCALE) / 2);
 
-    // Define the camera to look into our 3d world
+    // Define the cam to look into our 3d world
 
     // Get map image data to be used for collision detection
 
@@ -24,7 +26,8 @@ int main()
     assets_load("assets");
 
     Texture texture = assets_texture("palette");
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < 100; i++)
+    {
         Texture texture2 = assets_texture("palette");
     }
 
@@ -34,39 +37,32 @@ int main()
 
     // session_reset();
 
+    Camera cam = {};
+    cam.position = Vector3Zero();
+    cam.target = Vector3One();
+    cam.fovy = 90;
+    cam.projection = CAMERA_PERSPECTIVE;
+    cam.up = (Vector3) {0.0f, 1.0f, 0.f};
+    SetCameraMode(cam, CAMERA_FREE);
+
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         BeginDrawing();
         BeginTextureMode(target);
 
-        DrawTexture(texture,10,10,WHITE);
+        UpdateCamera(&cam);
 
-        //        UpdateCamera(&CurrentSession->camera);
-        //
-        //        if (IsKeyPressed(KEY_F3))
-        //        {
-        //            bool *flying = &CurrentSession->isFlying;
-        //            *flying = !*flying;
-        //            if (*flying)
-        //            {
-        //                SetCameraMode(CurrentSession->camera, CAMERA_FREE);     // Set camera mode
-        //            } else
-        //            {
-        //                SetCameraMode(CurrentSession->camera, CAMERA_FIRST_PERSON);     // Set camera mode
-        //            }
-        //        }
-        //
-        //        BeginMode3D(CurrentSession->camera);
-        //
-        //        //assert(level_update_and_stream != nullptr);
-        //
-        //        level_update_and_stream(GetFrameTime());
-        //        session_update_and_render(GetFrameTime());
-        //
-        //        EndMode3D();
-        //
-        //        DrawFPS(10, 10);
+        BeginMode3D(cam);
+
+        ClearBackground(BLACK);
+
+        float delta = GetFrameTime();
+        session_update_and_render(delta);
+
+        EndMode3D();
+
+        DrawFPS(10, 10);
 
         EndTextureMode();
 
