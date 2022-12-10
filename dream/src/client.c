@@ -41,7 +41,7 @@ int main()
 
     // session_reset();
 
-    Camera cam = {};
+    Camera cam = { 0 };
     cam.position = Vector3Zero();
     cam.target = Vector3One();
     cam.fovy = 90;

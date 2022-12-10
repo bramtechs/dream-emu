@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
-project(dream CXX C)
+project(dream C)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 11)
 
 # Adding Raylib
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
