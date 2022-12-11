@@ -14,9 +14,11 @@ Scene* session_init(void)
 {
     Scene *scene = MemAlloc(sizeof(Scene));
     scene->env = environment_default();
-    entity_clear(scene->root);
+    scene->root = entity_root(); // TODO try to get rid of root node
 
-    entity_block_create(scene->root,Vector3Zero(),"gfx/noise");
+    //entity_block_create(scene->root,Vector3Zero(),"gfx/noise");
+
+    return scene;
 }
 
 void session_update_and_render(Scene* scene, float delta)
@@ -26,6 +28,8 @@ void session_update_and_render(Scene* scene, float delta)
 
     entity_update_all(scene->root,delta);
     entity_draw_all(scene->root);
+
+    entity_block_create_rainbow(scene->root);
 }
 
 void session_update_and_render_gui(Scene* scene, float delta)

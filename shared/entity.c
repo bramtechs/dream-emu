@@ -31,31 +31,30 @@ Base base_random(){
     return base_create(pos,col);
 }
 
-void entity_clear(Entity* entity){
-    entity->updateFunc = NULL; 
-    entity->drawFunc = NULL; 
-    entity->next = NULL; 
-    entity->content = NULL; 
+Entity* entity_root(){
+    Entity *root = MemAlloc(sizeof(Entity));
+    return root;
 }
 
 void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
-    Entity *next = root->next;
-    while (next != NULL){
-        next = next->next;
+    assert(root != NULL);
+
+    if (root->next != NULL){
+        entity_add(root->next,data,size,updateFunc,drawFunc);
+        return;
     }
 
-    assert(next == NULL);
-    next = MemAlloc(sizeof(Entity));
-    next->updateFunc = updateFunc;
-    next->drawFunc = drawFunc;
+    root->next = MemAlloc(sizeof(Entity));
+    root->next->updateFunc = updateFunc;
+    root->next->drawFunc = drawFunc;
 
-    next->content = MemAlloc(size);
-    memcpy(next->content,data,size);
-
-    next->next = NULL;
+    root->next->content = MemAlloc(size);
+    memcpy(root->next->content,data,size);
 }
 
 size_t entity_update_all(Entity* root, float delta){
+    assert(root != NULL);
+
     Entity *next = root->next;
     size_t counter = 0;
     while (next != NULL){
@@ -70,6 +69,8 @@ size_t entity_update_all(Entity* root, float delta){
 }
 
 size_t entity_draw_all(Entity* root){
+    assert(root != NULL);
+
     Entity *next = root->next;
     size_t counter = 0;
     while (next != NULL){

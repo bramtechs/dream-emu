@@ -33,7 +33,7 @@ Base base_default();
 
 Base base_random();
 
-void entity_clear(Entity* entity);
+Entity* entity_root();
 
 void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc);
 
