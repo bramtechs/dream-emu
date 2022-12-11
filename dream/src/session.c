@@ -33,7 +33,8 @@ void session_init(void)
 
     for (int i = 0; i < 1000; i++){
         EntityContainer cont = {0};
-        cont.type = ENTITY_BLOCK;
+        cont.updateFunc = NULL;
+        cont.drawFunc = &entity_block_draw;
         cont.entity.block.base = base_random();
         // cont.entity.block.
         entity_add(&CurrentScene->entities,cont);

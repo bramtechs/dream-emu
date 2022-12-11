@@ -1,7 +1,5 @@
-typedef enum {
-    ENTITY_BLOCK,
-    ENTITY_FLOOR,
-} EntityType;
+// TODO standardize into reusable /shared c file
+//
 
 typedef struct {
     Vector3 pos;
@@ -62,9 +60,13 @@ typedef union {
     Block block;
 } Entity;
 
+typedef void(*UPDATE_FUNC)(Entity*,float);
+typedef void(*DRAW_FUNC)(Entity*);
+
 typedef struct {
-    EntityType type;
     Entity entity; 
+    UPDATE_FUNC updateFunc;
+    DRAW_FUNC drawFunc;
 } EntityContainer;
 
 typedef struct {
@@ -79,24 +81,18 @@ void entity_add(EntityGroup* group, EntityContainer entity){
 
 void entity_update_all(EntityGroup* group, float delta){
     for (int i = 0; i < group->count; i++){
-        EntityContainer *entity = &group->entities[i];
-
-        switch (entity->type) {
-            case ENTITY_BLOCK:
-               //entity_block_update(&entity->entity.block);
-               break;
+        UPDATE_FUNC func = group->entities[i].updateFunc;
+        if (func != NULL){
+            (*func)(&group->entities[i].entity,delta);
         }
     }
 }
 
 void entity_draw_all(EntityGroup* group){
     for (int i = 0; i < group->count; i++){
-        EntityContainer *entity = &group->entities[i];
-
-        switch (entity->type) {
-            case ENTITY_BLOCK:
-               entity_block_draw(&entity->entity.block);
-               break;
+        DRAW_FUNC func = group->entities[i].drawFunc;
+        if (func != NULL){
+            (*func)(&group->entities[i].entity);
         }
     }
 }
