@@ -14,7 +14,7 @@ inline Environment environment_default(){
     return env;
 }
 
-#include "entity.c"
+#include "dream_entity.c"
 
 typedef struct {
     Environment env;
