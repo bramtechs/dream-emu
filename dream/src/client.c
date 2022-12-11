@@ -23,14 +23,6 @@ int main()
 
     INFO("Launched at %s", GetWorkingDirectory());
 
-    assets_load("assets");
-
-    Texture texture = assets_texture("palette");
-    for (int i = 0; i < 100; i++)
-    {
-        Texture texture2 = assets_texture("palette");
-    }
-
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
     SetTargetFPS(60);
@@ -79,7 +71,6 @@ int main()
     }
 
     session_dispose(scene);
-    assets_dispose();
 
     UnloadRenderTexture(target);
     CloseWindow(); // Close window and OpenGL context

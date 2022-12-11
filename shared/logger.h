@@ -1,24 +1,17 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#pragma once
+
+#include "raylib.h"
 
 #ifdef __unix___
 
-#define INFO(X...) logger_log(TextFormat(X))
-#define WARN(X...) logger_warn(TextFormat(X))
-#define ERROR(X...) logger_error(TextFormat(X))
+#define INFO(X...) TraceLog(LOG_INFO,X)
+#define WARN(X...) TraceLog(LOG_WARNING,X)
+#define ERROR(X...) TraceLog(LOG_ERROR,X)
 
 #elif defined(_WIN32) || defined(WIN32)
 
-#define INFO(X, ...) logger_log(TextFormat(X,__VA_ARGS__))
-#define WARN(X, ...) logger_warn(TextFormat(X,__VA_ARGS__))
-#define ERROR(X, ...) logger_error(TextFormat(X,__VA_ARGS__))
-
-#endif
-
-void logger_log(const char *msg);
-
-void logger_warn(const char *msg);
-
-void logger_error(const char *msg);
+#define INFO(...) TraceLog(LOG_INFO,__VA_ARGS__)
+#define WARN(...) TraceLog(LOG_WARNING,__VA_ARGS__)
+#define ERROR(...) TraceLog(LOG_ERROR,__VA_ARGS__)
 
 #endif

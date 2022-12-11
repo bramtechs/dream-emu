@@ -8,7 +8,7 @@ set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example g
 
 # Declaring our executable
 
-FILE(GLOB THESAUCE src/*.c)
+FILE(GLOB THESAUCE src/*.c ../shared/*.c) # TODO put ./shared into own library
 add_executable(${PROJECT_NAME} ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})

@@ -2,7 +2,9 @@
 #define MG_ENTITY_H
 
 #include "raylib.h"
+#include "raymath.h"
 #include <stdio.h>
+#include <assert.h>
 
 typedef void(*UPDATE_FUNC)(void*,float);
 typedef void(*DRAW_FUNC)(void*);
@@ -25,11 +27,11 @@ typedef struct {
     Color tint;
 } Base;
 
-inline Base base_create(Vector3 pos, Color tint);
+Base base_create(Vector3 pos, Color tint);
 
-inline Base base_default();
+Base base_default();
 
-inline Base base_random();
+Base base_random();
 
 void entity_clear(Entity* entity);
 

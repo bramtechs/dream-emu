@@ -1,8 +1,8 @@
 #ifndef DREAM_ENTITY_H
 #define DREAM_ENTITY_H
 
-#include "entity.h"
 #include "raylib.h"
+#include "entity.h"
 
 typedef struct {
     Base base; 

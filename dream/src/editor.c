@@ -10,7 +10,8 @@ bool editor_update_and_draw(Scene* scene)
 
     Rectangle rect = {win_x, win_y, width, 700};
 
-    bool visible = !GuiWindowBox(rect, "Editor");
+    //bool visible = !GuiWindowBox(rect, "Editor");
+    bool visible = false;
 
     rect.x += UI_PADDING;
     rect.y += UI_PADDING+20;

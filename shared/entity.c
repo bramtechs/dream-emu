@@ -1,16 +1,18 @@
-inline Base base_create(Vector3 pos, Color tint){
+#include "entity.h"
+
+Base base_create(Vector3 pos, Color tint){
     return (Base) {
         pos, Vector3One(), Vector3One(), tint
     };
 }
 
-inline Base base_default(){
+Base base_default(){
     return (Base) {
         Vector3Zero(), Vector3One(), Vector3Zero(), WHITE
     };
 }
 
-inline Base base_random(){
+Base base_random(){
     int MAX_RANGE = 100;
 
     Vector3 pos = {
@@ -44,29 +46,39 @@ void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, D
 
     assert(next == NULL);
     next = MemAlloc(sizeof(Entity));
-    next.updateFunc = updateFunc;
-    next.drawFunc = drawFunc;
+    next->updateFunc = updateFunc;
+    next->drawFunc = drawFunc;
 
-    next.content = MemAlloc(size);
-    memcpy(next.content,data,size);
+    next->content = MemAlloc(size);
+    memcpy(next->content,data,size);
 
-    next.next = NULL;
+    next->next = NULL;
 }
 
 size_t entity_update_all(Entity* root, float delta){
     Entity *next = root->next;
+    size_t counter = 0;
     while (next != NULL){
-        UPDATE_FUNC func = next.drawFunc;
-        (*func)(next.content,delta);
+        UPDATE_FUNC func = next->drawFunc;
+        if (func != NULL){
+            (*func)(next->content,delta);
+        }
         next = next->next;
+        counter ++;
     }
+    return counter;
 }
 
-void entity_draw_all(Entity* root){
+size_t entity_draw_all(Entity* root){
     Entity *next = root->next;
+    size_t counter = 0;
     while (next != NULL){
-        DRAW_FUNC func = next.drawFunc;
-        (*func)(next.content);
+        DRAW_FUNC func = next->drawFunc;
+        if (func != NULL){
+            (*func)(next->content);
+        }
         next = next->next;
+        counter++;
     }
+    return counter;
 }
