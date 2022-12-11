@@ -5,14 +5,10 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#define RAYGUI_IMPLEMENTATION
-
-#include "raygui.h"
-
 #include <stdio.h>
 #include "logger.c"
-#include "assets.c"
-#include "session.c"
+#include "assets.h"
+#include "session.h"
 
 int main()
 {
@@ -49,7 +45,7 @@ int main()
     cam.up = (Vector3) {0.0f, 1.0f, 0.f};
     SetCameraMode(cam, CAMERA_FREE);
 
-    session_init();
+    Scene* scene = session_init();
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -64,7 +60,7 @@ int main()
         ClearBackground(BLACK);
 
         float delta = GetFrameTime();
-        session_update_and_render(delta);
+        session_update_and_render(scene,delta);
 
         EndMode3D();
 
@@ -77,12 +73,12 @@ int main()
                        (Rectangle) {0.0f, 0.0f, WIDTH * SCALE, HEIGHT * SCALE},
                        (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
 
-        session_update_and_render_gui(delta);
+        session_update_and_render_gui(scene,delta);
 
         EndDrawing();
     }
 
-    session_dispose();
+    session_dispose(scene);
     assets_dispose();
 
     UnloadRenderTexture(target);

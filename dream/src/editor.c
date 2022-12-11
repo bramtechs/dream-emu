@@ -1,8 +1,8 @@
 #define UI_PADDING 40
 
-static bool EditorVisible = true;
+#include "editor.h"
 
-void editor_update_and_draw(Scene* scene)
+bool editor_update_and_draw(Scene* scene)
 {
     int win_x = 10; 
     int win_y = 10; 
@@ -10,24 +10,20 @@ void editor_update_and_draw(Scene* scene)
 
     Rectangle rect = {win_x, win_y, width, 700};
 
-    if (EditorVisible){
-        EditorVisible = !GuiWindowBox(rect, "Editor");
+    bool visible = !GuiWindowBox(rect, "Editor");
 
-        rect.x += UI_PADDING;
-        rect.y += UI_PADDING+20;
-        rect.width = 150;
-        rect.height = 150;
+    rect.x += UI_PADDING;
+    rect.y += UI_PADDING+20;
+    rect.width = 150;
+    rect.height = 150;
 
-        scene->env.skyColor = GuiColorPicker(rect, "Sky color", scene->env.skyColor);
+    // scene->env.skyColor = GuiColorPicker(rect, "Sky color", scene->env.skyColor);
 
-        rect.y += 150+UI_PADDING;
-        rect.height = 20;
+    rect.y += 150+UI_PADDING;
+    rect.height = 20;
 
-        char* fogStr = TextFormat("%f",scene->env.fogDistance);
-        scene->env.fogDistance = GuiSlider(rect, "Fog", fogStr, scene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
-    }
+    char* fogStr = TextFormat("%f",scene->env.fogDistance);
+    // scene->env.fogDistance = GuiSlider(rect, "Fog", fogStr, scene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
 
-    if (IsKeyPressed(KEY_F3)){
-        EditorVisible = !EditorVisible;
-    }
+    return visible;
 }

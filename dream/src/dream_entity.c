@@ -1,29 +1,15 @@
-// TODO standardize into reusable /shared c file
-//
+#include "dream_entity.h"
 
-#include "entity.h"
-
-typedef struct {
-    Base base; 
-    Texture texture;
-} Floor;
-
-typedef struct {
-    Base base; 
-    Texture texture;
-} Block;
-
-union Entity {
-    Floor floor;
-    Block block;
-};
-
-#include "entity.c"
-
-void entity_block_draw(Block *block){
+void entity_block_draw(void *ptr){
+    Block *block = (Block*) ptr;
     Base *base = &block->base;
 
-    Vector3 size = Vector3Multiply(base->scale, Vector3One());
-    DrawCubeV(base->pos,size,base->tint);
+    DrawCubeV(base->pos,base->scale,base->tint);
 }
 
+void entity_block_create(Entity* root, Vector3 pos, const char* texture){
+    Block block = { 0 };
+    block.base = base_create(pos,WHITE);
+
+    entity_add(root,&block,sizeof(Block),NULL,&entity_block_draw);
+}

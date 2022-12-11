@@ -5,7 +5,6 @@
 #include <iostream>
 #include <cassert>
 #include <vector>
-#include "mem_array.cpp"
 
 #include "raylib.h"
 #include "raymath.h"

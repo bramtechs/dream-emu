@@ -1,11 +1,21 @@
-#ifndef MG_ENTITY
-#define MG_ENTITY
+#ifndef MG_ENTITY_H
+#define MG_ENTITY_H
 
-union Entity;
-typedef union Entity Entity;
+#include "raylib.h"
+#include <stdio.h>
 
-typedef void(*UPDATE_FUNC)(Entity*,float);
-typedef void(*DRAW_FUNC)(Entity*);
+typedef void(*UPDATE_FUNC)(void*,float);
+typedef void(*DRAW_FUNC)(void*);
+
+struct Entity;
+typedef struct Entity Entity;
+
+struct Entity {
+    UPDATE_FUNC updateFunc;
+    DRAW_FUNC drawFunc;
+    Entity* next;
+    void* content;
+};
 
 typedef struct {
     Vector3 pos;
@@ -21,15 +31,12 @@ inline Base base_default();
 
 inline Base base_random();
 
-struct EntityContainer;
-struct EntityGroup;
-typedef struct EntityContainer EntityContainer;
-typedef struct EntityGroup EntityGroup;
+void entity_clear(Entity* entity);
 
-void entity_add(EntityGroup* group, EntityContainer entity);
+void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc);
 
-void entity_update_all(EntityGroup* group, float delta);
+size_t entity_update_all(Entity* root, float delta);
 
-void entity_draw_all(EntityGroup* group);
+size_t entity_draw_all(Entity* root);
 
 #endif

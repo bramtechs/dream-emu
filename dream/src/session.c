@@ -1,10 +1,6 @@
 #define MAX_ENTITIES 1024
 
-typedef struct {
-    Color skyColor;
-    Color fogColor;
-    float fogDistance;
-} Environment;
+#include "session.h"
 
 inline Environment environment_default(){
     Environment env = { 0 };
@@ -14,49 +10,30 @@ inline Environment environment_default(){
     return env;
 }
 
-#include "dream_entity.c"
-
-typedef struct {
-    Environment env;
-    EntityGroup entities;
-} Scene;
-
-static Scene *CurrentScene;
-
-#include "editor.c"
-
-void session_init(void)
+Scene* session_init(void)
 {
-    CurrentScene = MemAlloc(sizeof(Scene));
-    CurrentScene->env = environment_default();
-    CurrentScene->entities.count = 0;
+    Scene *scene = MemAlloc(sizeof(Scene));
+    scene->env = environment_default();
+    entity_clear(scene->root);
 
-    for (int i = 0; i < 1000; i++){
-        EntityContainer cont = {0};
-        cont.updateFunc = NULL;
-        cont.drawFunc = &entity_block_draw;
-        cont.entity.block.base = base_random();
-        // cont.entity.block.
-        entity_add(&CurrentScene->entities,cont);
-    }
+    entity_block_create(scene->root,Vector3Zero(),"gfx/noise");
 }
 
-void session_update_and_render(float delta)
+void session_update_and_render(Scene* scene, float delta)
 {
-    ClearBackground(CurrentScene->env.skyColor);
+    ClearBackground(scene->env.skyColor);
     DrawGrid(10, 1);
 
-    entity_update_all(&CurrentScene->entities,delta);
-    entity_draw_all(&CurrentScene->entities);
+    entity_update_all(scene->root,delta);
+    entity_draw_all(scene->root);
 }
 
-void session_update_and_render_gui(float delta)
+void session_update_and_render_gui(Scene* scene, float delta)
 {
-    editor_update_and_draw(CurrentScene);
+    editor_update_and_draw(scene);
 }
 
-void session_dispose()
+void session_dispose(Scene *scene)
 {
-    MemFree(CurrentScene);
-    CurrentScene = NULL;
+    MemFree(scene);
 }

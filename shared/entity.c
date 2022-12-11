@@ -29,36 +29,44 @@ inline Base base_random(){
     return base_create(pos,col);
 }
 
-struct EntityContainer{
-    Entity entity; 
-    UPDATE_FUNC updateFunc;
-    DRAW_FUNC drawFunc;
-};
-
-struct EntityGroup {
-    EntityContainer entities[MAX_ENTITIES];
-    int count;
-};
-
-void entity_add(EntityGroup* group, EntityContainer entity){
-    group->entities[group->count] = entity;
-    group->count++; 
+void entity_clear(Entity* entity){
+    entity->updateFunc = NULL; 
+    entity->drawFunc = NULL; 
+    entity->next = NULL; 
+    entity->content = NULL; 
 }
 
-void entity_update_all(EntityGroup* group, float delta){
-    for (int i = 0; i < group->count; i++){
-        UPDATE_FUNC func = group->entities[i].updateFunc;
-        if (func != NULL){
-            (*func)(&group->entities[i].entity,delta);
-        }
+void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
+    Entity *next = root->next;
+    while (next != NULL){
+        next = next->next;
+    }
+
+    assert(next == NULL);
+    next = MemAlloc(sizeof(Entity));
+    next.updateFunc = updateFunc;
+    next.drawFunc = drawFunc;
+
+    next.content = MemAlloc(size);
+    memcpy(next.content,data,size);
+
+    next.next = NULL;
+}
+
+size_t entity_update_all(Entity* root, float delta){
+    Entity *next = root->next;
+    while (next != NULL){
+        UPDATE_FUNC func = next.drawFunc;
+        (*func)(next.content,delta);
+        next = next->next;
     }
 }
 
-void entity_draw_all(EntityGroup* group){
-    for (int i = 0; i < group->count; i++){
-        DRAW_FUNC func = group->entities[i].drawFunc;
-        if (func != NULL){
-            (*func)(&group->entities[i].entity);
-        }
+void entity_draw_all(Entity* root){
+    Entity *next = root->next;
+    while (next != NULL){
+        DRAW_FUNC func = next.drawFunc;
+        (*func)(next.content);
+        next = next->next;
     }
 }
