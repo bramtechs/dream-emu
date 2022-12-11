@@ -1,14 +1,18 @@
 #define UI_PADDING 40
 
+static bool EditorVisible = true;
+
 void editor_update_and_draw(Scene* scene)
 {
     int win_x = 10; 
     int win_y = 10; 
-    int width = 480;
+    int width = 300;
 
     Rectangle rect = {win_x, win_y, width, 700};
-    if (!GuiWindowBox(rect, "Editor"))
-    {
+
+    if (EditorVisible){
+        EditorVisible = !GuiWindowBox(rect, "Editor");
+
         rect.x += UI_PADDING;
         rect.y += UI_PADDING+20;
         rect.width = 150;
@@ -21,5 +25,9 @@ void editor_update_and_draw(Scene* scene)
 
         char* fogStr = TextFormat("%f",scene->env.fogDistance);
         scene->env.fogDistance = GuiSlider(rect, "Fog", fogStr, scene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
+    }
+
+    if (IsKeyPressed(KEY_F3)){
+        EditorVisible = !EditorVisible;
     }
 }
