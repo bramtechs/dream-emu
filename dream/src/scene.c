@@ -1,6 +1,4 @@
-#define MAX_ENTITIES 1024
-
-#include "session.h"
+#include "scene.h"
 
 inline Environment environment_default(){
     Environment env = { 0 };
@@ -10,7 +8,7 @@ inline Environment environment_default(){
     return env;
 }
 
-Scene* session_init(void)
+Scene* scene_init(void)
 {
     Scene *scene = MemAlloc(sizeof(Scene));
     scene->env = environment_default();
@@ -21,23 +19,21 @@ Scene* session_init(void)
     return scene;
 }
 
-void session_update_and_render(Scene* scene, float delta)
+void scene_update_and_render(Scene* scene, float delta)
 {
     ClearBackground(scene->env.skyColor);
     DrawGrid(10, 1);
 
     entity_update_all(scene->root,delta);
     entity_draw_all(scene->root);
-
-    entity_block_create_rainbow(scene->root);
 }
 
-void session_update_and_render_gui(Scene* scene, float delta)
+void scene_update_and_render_gui(Scene* scene, float delta)
 {
     editor_update_and_draw(scene);
 }
 
-void session_dispose(Scene *scene)
+void scene_dispose(Scene *scene)
 {
     MemFree(scene);
 }

@@ -1,5 +1,4 @@
-#ifndef SESSION_H
-#define SESSION_H
+#pragma once
 
 // TODO rename to scene.h
 
@@ -22,12 +21,10 @@ typedef struct {
 
 #include "editor.h"
 
-Scene* session_init(void);
+Scene* scene_init(void);
 
-void session_update_and_render(Scene* scene, float delta);
+void scene_update_and_render(Scene* scene, float delta);
 
-void session_update_and_render_gui(Scene* scene, float delta);
+void scene_update_and_render_gui(Scene* scene, float delta);
 
-void session_dispose();
-
-#endif
+void scene_dispose();
