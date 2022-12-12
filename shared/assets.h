@@ -8,9 +8,5 @@ typedef struct {
     int count;
 } Assets;
 
-Assets* Assets_INIT(Assets* ptr);
-
-
-Assets* assets_load();
-
-void assets_dispose(Assets* assets);
+constructor(Assets);
+destructor(Assets);

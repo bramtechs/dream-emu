@@ -8,6 +8,12 @@ void* M_MemAlloc(size_t size){
     return ptr;
 }
 
+void* M_MemFree(void* ptr)
+{
+    MemFree(ptr);
+    Allocations--;
+}
+
 void CheckAllocations(){
     if (Allocations == 0){
         INFO("All allocations got freed!");
