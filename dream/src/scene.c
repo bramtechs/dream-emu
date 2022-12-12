@@ -1,3 +1,5 @@
+#define MAX_ENTITIES 1024
+
 #include "scene.h"
 
 inline Environment environment_default(){
@@ -14,7 +16,7 @@ Scene* scene_init(void)
     scene->env = environment_default();
     scene->root = entity_root(); // TODO try to get rid of root node
 
-    //entity_block_create(scene->root,Vector3Zero(),"gfx/noise");
+    entity_block_create(scene->root,Vector3Zero(),"gfx/noise");
 
     return scene;
 }

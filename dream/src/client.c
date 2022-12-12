@@ -35,6 +35,11 @@ int main()
     cam.up = (Vector3) {0.0f, 1.0f, 0.f};
     SetCameraMode(cam, CAMERA_FREE);
 
+    Assets* assets = assets_load();
+    INFO("%d",assets->count);
+    WARN("work");
+
+    SetTraceLogLevel(LOG_ALL);
     Scene* scene = scene_init();
 
     // Main game loop
@@ -54,7 +59,7 @@ int main()
 
         EndMode3D();
 
-        DrawFPS(10, 10);
+        //DrawFPS(10, 10);
 
         EndTextureMode();
 

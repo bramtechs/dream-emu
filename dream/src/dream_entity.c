@@ -10,6 +10,7 @@ void entity_block_draw(void *ptr){
 void entity_block_create(Entity* root, Vector3 pos, const char* texture){
     Block block = { 0 };
     block.base = base_create(pos,WHITE);
+    // block.texture = 
 
     entity_add(root,&block,sizeof(Block),NULL,&entity_block_draw);
 }
