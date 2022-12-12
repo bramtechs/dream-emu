@@ -35,7 +35,8 @@ int main()
     cam.up = (Vector3) {0.0f, 1.0f, 0.f};
     SetCameraMode(cam, CAMERA_FREE);
 
-    Assets* assets = new(Assets);
+    Assets* assets = LoadAssets("assets");
+    AssetList list = GetLoadedAssetList(assets);
 
     SetTraceLogLevel(LOG_ALL);
     Scene* scene = scene_init();
@@ -67,14 +68,20 @@ int main()
                        (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
 
         scene_update_and_render_gui(scene,delta);
+        int size = 18;
+        for (int i = 0; i < list.count; i++){
+            DrawText(list.names[i],10,50+i*(size+2),size,YELLOW);
+        }
 
         EndDrawing();
     }
 
-    delete(Assets,assets);
+    UnloadAssets(assets);
+    UnloadAssetList(list);
 
     scene_dispose(scene);
 
+    CheckAllocations();
     UnloadRenderTexture(target);
     CloseWindow(); // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
