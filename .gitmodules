@@ -1,9 +1,0 @@
-[submodule "raylib"]
-	path = raylib
-	url = https://github.com/raysan5/raylib.git
-[submodule "c-raylib"]
-	path = c-raylib
-	url = https://github.com/bramtechs/raylib.git
-[submodule "c-raygui"]
-	path = c-raygui
-	url = https://github.com/bramtechs/raygui.git
