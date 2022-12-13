@@ -1,5 +1,6 @@
 #include "magma.h"
 
+
 static size_t Allocations = 0;
 
 void* M_MemAlloc(size_t size){

@@ -17,6 +17,8 @@ inline Environment environment_default();
 typedef struct {
     Environment env;
     Entity *root;
+
+    bool editorVisible;
 } Scene;
 
 #include "editor.h"

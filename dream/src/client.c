@@ -2,13 +2,10 @@
 #define HEIGHT 480
 #define SCALE 2
 
-#include "raylib.h"
-#include "raymath.h"
-
-#include <stdio.h>
-#include "logger.h"
-#include "assets.h"
+#include "magma.h"
 #include "scene.h"
+
+#define RAYGUI_IMPLEMENTATION
 
 int main()
 {
@@ -36,7 +33,7 @@ int main()
     SetCameraMode(cam, CAMERA_FREE);
 
     Assets* assets = LoadAssets("assets");
-    AssetList list = GetLoadedAssetList(assets);
+    editor_init(assets);
 
     SetTraceLogLevel(LOG_ALL);
     Scene* scene = scene_init();
@@ -68,16 +65,13 @@ int main()
                        (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
 
         scene_update_and_render_gui(scene,delta);
-        int size = 18;
-        for (int i = 0; i < list.count; i++){
-            DrawText(list.names[i],10,50+i*(size+2),size,YELLOW);
-        }
 
         EndDrawing();
     }
 
+    editor_dispose();
+
     UnloadAssets(assets);
-    UnloadAssetList(list);
 
     scene_dispose(scene);
 

@@ -32,7 +32,12 @@ void scene_update_and_render(Scene* scene, float delta)
 
 void scene_update_and_render_gui(Scene* scene, float delta)
 {
-    editor_update_and_draw(scene);
+    if (scene->editorVisible){
+        scene->editorVisible = editor_update_and_draw(scene);
+    }
+    if (IsKeyPressed(KEY_F3)){
+        scene->editorVisible = !scene->editorVisible;
+    }
 }
 
 void scene_dispose(Scene *scene)

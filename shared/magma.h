@@ -2,6 +2,9 @@
 
 #include "raylib.h"
 #include "raymath.h"
+
+#include "raygui.h"
+
 #include "logger.h"
 #include "assets.h"
 #include "entity.h"
