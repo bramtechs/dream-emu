@@ -17,13 +17,14 @@ inline Environment environment_default();
 typedef struct {
     Environment env;
     Entity *root;
+    Camera *camera;
 
     bool editorVisible;
 } Scene;
 
 #include "editor.h"
 
-Scene* scene_init(void);
+Scene* scene_init(Camera *camera);
 
 void scene_update_and_render(Scene* scene, float delta);
 

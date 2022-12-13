@@ -31,12 +31,28 @@ Base base_random(){
     return base_create(pos,col);
 }
 
-Entity* entity_root(){
-    Entity *root = MemAlloc(sizeof(Entity));
-    return root;
+BoundingBox base_bounds(Base *base){
+    Vector3 halfSize = Vector3Scale(base->size, 0.5f);
+    Vector3 startCorner = Vector3Subtract(base->pos, halfSize);
+    return (BoundingBox) {
+        startCorner,
+        Vector3Add(startCorner,base->size)
+    };
 }
 
-void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
+RayCollision base_hits_ray(Base *base, Ray ray){
+    BoundingBox box = base_bounds(base);
+    return GetRayCollisionBox(ray, box);
+}
+
+Group* entity_root(Camera* camera){
+    Group *g = new(Group);
+    g->camera = camera;
+    g->root = new(Entity);
+    return g;
+}
+
+void entity_add_child(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
     assert(root != NULL);
 
     if (root->next != NULL){
@@ -52,13 +68,19 @@ void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, D
     memcpy(root->next->content,data,size);
 }
 
-size_t entity_update_all(Entity* root, float delta){
-    assert(root != NULL);
+void entity_add(Group* group, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
+    assert(group != NULL);
 
-    Entity *next = root->next;
+    entity_add_child(group->root,data,size,updateFunc,drawFunc);
+}
+
+size_t entity_update_all(Group* group, float delta){
+    assert(group != NULL);
+
+    Entity *next = group->root->next;
     size_t counter = 0;
     while (next != NULL){
-        UPDATE_FUNC func = next->drawFunc;
+        UPDATE_FUNC func = next->updateFunc;
         if (func != NULL){
             (*func)(next->content,delta);
         }
@@ -68,10 +90,10 @@ size_t entity_update_all(Entity* root, float delta){
     return counter;
 }
 
-size_t entity_draw_all(Entity* root){
-    assert(root != NULL);
+size_t entity_draw_all(Group* group){
+    assert(group != NULL);
 
-    Entity *next = root->next;
+    Entity *next = group->root->next;
     size_t counter = 0;
     while (next != NULL){
         DRAW_FUNC func = next->drawFunc;

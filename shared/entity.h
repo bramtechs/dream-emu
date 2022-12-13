@@ -1,16 +1,15 @@
 #ifndef MG_ENTITY_H
 #define MG_ENTITY_H
 
-#include "raylib.h"
-#include "raymath.h"
-#include <stdio.h>
-#include <assert.h>
+#include "magma.h"
 
 typedef void(*UPDATE_FUNC)(void*,float);
 typedef void(*DRAW_FUNC)(void*);
 
 struct Entity;
 typedef struct Entity Entity;
+
+// TODO maybe all components should have update and draw function?
 
 struct Entity {
     UPDATE_FUNC updateFunc;
@@ -20,8 +19,13 @@ struct Entity {
 };
 
 typedef struct {
+    Camera* camera;
+    Entity* root;
+} Group;
+
+typedef struct {
     Vector3 pos;
-    Vector3 scale;
+    Vector3 size;
     Vector3 rotation;
 
     Color tint;
@@ -33,12 +37,16 @@ Base base_default();
 
 Base base_random();
 
-Entity* entity_root();
+BoundingBox base_bounds(Base *base);
 
-void entity_add(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc);
+RayCollision base_hits_ray(Base *base, Ray ray);
 
-size_t entity_update_all(Entity* root, float delta);
+Group* entity_root(Camera* camera);
 
-size_t entity_draw_all(Entity* root);
+void entity_add(Group* group, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc);
+
+size_t entity_update_all(Group* group, float delta);
+
+size_t entity_draw_all(Group* group);
 
 #endif

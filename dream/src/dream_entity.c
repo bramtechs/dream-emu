@@ -4,15 +4,30 @@ void entity_block_draw(void *ptr){
     Block *block = (Block*) ptr;
     Base *base = &block->base;
 
-    DrawCubeV(base->pos,base->scale,base->tint);
+    DrawCubeV(base->pos,base->size,base->tint);
 }
 
-void entity_block_create(Entity* root, Vector3 pos, const char* texture){
+// TODO put into a Pickable3D component?!
+void entity_block_update(void* ptr, float delta){
+    Block *block = (Block*) ptr;
+    Base *base = &block->base;
+    
+    Vector2 mouse = GetMousePosition();
+    Camera cam = *block->camera;
+    Ray ray = GetMouseRay(mouse,cam);
+    RayCollision hit = base_hits_ray(base,ray);
+    if (hit.hit){
+        DrawSphere(hit.point, 0.1f, GREEN);
+    }
+
+}
+
+void entity_block_create(Entity* root, Vector3 pos, Camera* camera){
     Block block = { 0 };
     block.base = base_create(pos,WHITE);
-    // block.texture = 
+    block.camera = camera;
 
-    entity_add(root,&block,sizeof(Block),NULL,&entity_block_draw);
+    entity_add(root,&block,sizeof(Block),&entity_block_update,&entity_block_draw);
 }
 
 void entity_block_create_rainbow(Entity* root)
