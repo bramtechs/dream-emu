@@ -12,9 +12,9 @@ jobs:
           - amd64
     steps:
       - name: Checkout the sauce 
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
       - name: MSVC setup
-      - uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
       - name: MSVC compilation 
