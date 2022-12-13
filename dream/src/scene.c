@@ -50,6 +50,7 @@ void scene_update_and_render_gui(Scene* scene, float delta)
     if (IsKeyPressed(KEY_F3)){
         scene->editorVisible = !scene->editorVisible;
     }
+    DrawText("Press F3 for editor",10,HEIGHT-20,16,PURPLE);
 }
 
 void scene_dispose(Scene *scene)

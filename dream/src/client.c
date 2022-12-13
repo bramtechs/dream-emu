@@ -1,8 +1,5 @@
-#define WIDTH 639
-#define HEIGHT 480
-#define SCALE 1
-
 #include "magma.h"
+#include "client.h"
 #include "scene.h"
 
 #define RAYGUI_IMPLEMENTATION

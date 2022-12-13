@@ -12,10 +12,7 @@ void entity_block_update(void* ptr, float delta){
     Block *block = (Block*) ptr;
     Base *base = &block->base;
     
-    Vector2 mouse = GetMousePosition();
-    Camera cam = *block->camera;
-    Ray ray = GetMouseRay(mouse,cam);
-    RayCollision hit = GetRayCollisionBase(base,ray);
+    RayCollision hit = GetMouseRayCollisionBase(*base,*block->camera);
     if (hit.hit){
         DrawSphere(hit.point, 0.1f, GREEN);
     }

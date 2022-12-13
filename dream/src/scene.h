@@ -4,6 +4,7 @@
 
 #include "magma.h"
 #include "dream_entity.h"
+#include "client.h"
 
 typedef struct {
     Color skyColor;
