@@ -2,8 +2,7 @@
 
 // TODO rename to scene.h
 
-#include "raylib.h"
-#include "raymath.h"
+#include "magma.h"
 #include "dream_entity.h"
 
 typedef struct {

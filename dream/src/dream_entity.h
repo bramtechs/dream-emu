@@ -1,7 +1,7 @@
 #ifndef DREAM_ENTITY_H
 #define DREAM_ENTITY_H
 
-#include "raylib.h"
+#include "magma.h"
 #include "entity.h"
 
 typedef struct {
