@@ -1,18 +1,18 @@
 #include "entity.h"
 
-Base base_create(Vector3 pos, Color tint){
+Base CreateBase(Vector3 pos, Color tint){
     return (Base) {
         pos, Vector3One(), Vector3One(), tint
     };
 }
 
-Base base_default(){
+Base CreateDefaultBase(){
     return (Base) {
         Vector3Zero(), Vector3One(), Vector3Zero(), WHITE
     };
 }
 
-Base base_random(){
+Base CreateRandomBase(){
     int MAX_RANGE = 100;
 
     Vector3 pos = {
@@ -28,10 +28,10 @@ Base base_random(){
         255
     };
 
-    return base_create(pos,col);
+    return CreateBase(pos,col);
 }
 
-BoundingBox base_bounds(Base *base){
+BoundingBox GetBaseBounds(Base *base){
     Vector3 halfSize = Vector3Scale(base->size, 0.5f);
     Vector3 startCorner = Vector3Subtract(base->pos, halfSize);
     return (BoundingBox) {
@@ -40,23 +40,24 @@ BoundingBox base_bounds(Base *base){
     };
 }
 
-RayCollision base_hits_ray(Base *base, Ray ray){
-    BoundingBox box = base_bounds(base);
+RayCollision GetRayCollisionBase(Base *base, Ray ray){
+    BoundingBox box = GetBaseBounds(base);
     return GetRayCollisionBox(ray, box);
 }
 
-Group* entity_root(Camera* camera){
-    Group *g = new(Group);
+EntityGroup* CreateEntityGroup(Camera* camera){
+    EntityGroup *g = new(EntityGroup);
     g->camera = camera;
     g->root = new(Entity);
     return g;
 }
 
-void entity_add_child(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
+// TODO horrible name
+void add_group_entity_child(Entity* root, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
     assert(root != NULL);
 
     if (root->next != NULL){
-        entity_add(root->next,data,size,updateFunc,drawFunc);
+        add_group_entity_child(root->next,data,size,updateFunc,drawFunc);
         return;
     }
 
@@ -68,13 +69,13 @@ void entity_add_child(Entity* root, void* data, size_t size, UPDATE_FUNC updateF
     memcpy(root->next->content,data,size);
 }
 
-void entity_add(Group* group, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
+void AddGroupEntity(EntityGroup* group, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc){
     assert(group != NULL);
 
-    entity_add_child(group->root,data,size,updateFunc,drawFunc);
+    add_group_entity_child(group->root,data,size,updateFunc,drawFunc);
 }
 
-size_t entity_update_all(Group* group, float delta){
+size_t UpdateGroup(EntityGroup* group, float delta){
     assert(group != NULL);
 
     Entity *next = group->root->next;
@@ -90,7 +91,7 @@ size_t entity_update_all(Group* group, float delta){
     return counter;
 }
 
-size_t entity_draw_all(Group* group){
+size_t DrawGroup(EntityGroup* group){
     assert(group != NULL);
 
     Entity *next = group->root->next;

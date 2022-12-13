@@ -15,22 +15,22 @@ void entity_block_update(void* ptr, float delta){
     Vector2 mouse = GetMousePosition();
     Camera cam = *block->camera;
     Ray ray = GetMouseRay(mouse,cam);
-    RayCollision hit = base_hits_ray(base,ray);
+    RayCollision hit = GetRayCollisionBase(base,ray);
     if (hit.hit){
         DrawSphere(hit.point, 0.1f, GREEN);
     }
 
 }
 
-void entity_block_create(Entity* root, Vector3 pos, Camera* camera){
+void entity_block_create(EntityGroup* group, Vector3 pos, Camera* camera){
     Block block = { 0 };
-    block.base = base_create(pos,WHITE);
+    block.base = CreateBase(pos,WHITE);
     block.camera = camera;
 
-    entity_add(root,&block,sizeof(Block),&entity_block_update,&entity_block_draw);
+    AddGroupEntity(group,&block,sizeof(Block),&entity_block_update,&entity_block_draw);
 }
 
-void entity_block_create_rainbow(Entity* root)
+void entity_block_create_rainbow(EntityGroup* group)
 {
     Block block = { 0 };
     Color col = {
@@ -46,7 +46,7 @@ void entity_block_create_rainbow(Entity* root)
         GetRandomValue(-BOUNDS,BOUNDS),
     };
 
-    block.base = base_create(pos,col);
+    block.base = CreateBase(pos,col);
 
-    entity_add(root,&block,sizeof(Block),NULL,&entity_block_draw);
+    AddGroupEntity(group,&block,sizeof(Block),NULL,&entity_block_draw);
 }

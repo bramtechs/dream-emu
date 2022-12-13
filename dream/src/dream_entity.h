@@ -19,7 +19,7 @@ typedef struct {
 void entity_block_draw(void *ptr);
 
 // TODO make scene
-void entity_block_create(Entity *root, Vector3 pos, Camera *camera);
+void entity_block_create(EntityGroup *group, Vector3 pos, Camera *camera);
 void entity_block_create_rainbow(Entity *root);
 
 #endif

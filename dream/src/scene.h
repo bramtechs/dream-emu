@@ -16,7 +16,7 @@ inline Environment environment_default();
 
 typedef struct {
     Environment env;
-    Entity *root;
+    EntityGroup *group;
     Camera *camera;
 
     bool editorVisible;

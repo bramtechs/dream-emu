@@ -19,10 +19,10 @@ Scene* scene_init(Camera* camera)
 {
     Scene *scene = MemAlloc(sizeof(Scene));
     scene->env = environment_default();
-    scene->root = entity_root(camera); // TODO try to get rid of root node
+    scene->group = CreateEntityGroup(camera);
     scene->camera = camera;
 
-    entity_block_create(scene->root,Vector3Zero(),camera);
+    entity_block_create(scene->group,Vector3Zero(),camera);
 
     return scene;
 }
@@ -38,8 +38,8 @@ void scene_update_and_render(Scene* scene, float delta)
         DrawSphere(col.point, 0.1f, YELLOW);
     }
 
-    entity_update_all(scene->root,delta);
-    entity_draw_all(scene->root);
+    UpdateGroup(scene->group,delta);
+    DrawGroup(scene->group);
 }
 
 void scene_update_and_render_gui(Scene* scene, float delta)

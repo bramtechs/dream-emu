@@ -9,8 +9,6 @@ typedef void(*DRAW_FUNC)(void*);
 struct Entity;
 typedef struct Entity Entity;
 
-// TODO maybe all components should have update and draw function?
-
 struct Entity {
     UPDATE_FUNC updateFunc;
     DRAW_FUNC drawFunc;
@@ -21,7 +19,7 @@ struct Entity {
 typedef struct {
     Camera* camera;
     Entity* root;
-} Group;
+} EntityGroup;
 
 typedef struct {
     Vector3 pos;
@@ -31,22 +29,22 @@ typedef struct {
     Color tint;
 } Base;
 
-Base base_create(Vector3 pos, Color tint);
+Base CreateBase(Vector3 pos, Color tint);
 
-Base base_default();
+Base CreateDefaultBase();
 
-Base base_random();
+Base CreateRandomBase();
 
-BoundingBox base_bounds(Base *base);
+BoundingBox GetBaseBounds(Base *base);
 
-RayCollision base_hits_ray(Base *base, Ray ray);
+RayCollision GetRayCollisionBase(Base *base, Ray ray);
 
-Group* entity_root(Camera* camera);
+EntityGroup* CreateEntityGroup(Camera* camera);
 
-void entity_add(Group* group, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc);
+void AddGroupEntity(EntityGroup* group, void* data, size_t size, UPDATE_FUNC updateFunc, DRAW_FUNC drawFunc);
 
-size_t entity_update_all(Group* group, float delta);
+size_t UpdateGroup(EntityGroup* group, float delta);
 
-size_t entity_draw_all(Group* group);
+size_t DrawGroup(EntityGroup* group);
 
 #endif
