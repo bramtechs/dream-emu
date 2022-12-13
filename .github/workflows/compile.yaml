@@ -6,10 +6,7 @@ on:
 jobs:
   build:
     # Run a job for each of the specified target architectures:
-    strategy:
-      matrix:
-        arch:
-          - amd64
+    runs-on: 'windows-latest'
     steps:
       - name: Checkout the sauce 
         uses: actions/checkout@v2
