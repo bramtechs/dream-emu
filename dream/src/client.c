@@ -30,10 +30,11 @@ int main()
     SetCameraMode(cam, CAMERA_FREE);
 
     Assets* assets = LoadAssets("assets");
-    editor_init(assets);
+
+    // TODO move camera into scene
 
     SetTraceLogLevel(LOG_ALL);
-    Scene* scene = scene_init(&cam);
+    Scene* scene = scene_init(assets, &cam);
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -63,11 +64,10 @@ int main()
 
         scene_update_and_render_gui(scene,delta);
 
+        DrawFPS(820, HEIGHT* SCALE - 20);
 
         EndDrawing();
     }
-
-    editor_dispose();
 
     UnloadAssets(assets);
 

@@ -11,29 +11,25 @@ void entity_block_draw(void *ptr){
 void entity_block_update(void* ptr, float delta){
     Block *block = (Block*) ptr;
     Base *base = &block->base;
-    
-    RayCollision hit = GetMouseRayCollisionBase(*base,*block->camera);
-    if (hit.hit){
-        DrawSphere(hit.point, 0.1f, GREEN);
-    }
 
+    base->pos = Vector3Lerp(base->pos,Vector3Zero(), 0.001);
 }
 
-void entity_block_create(EntityGroup* group, Vector3 pos, Camera* camera){
+void entity_block_create(EntityGroup* group, Vector3 pos){
     Block block = { 0 };
     block.base = CreateBase(pos,WHITE);
-    block.camera = camera;
 
-    AddGroupEntity(group,&block,sizeof(Block),&entity_block_update,&entity_block_draw);
+    Components comps = COMP_BASE | COMP_BLOCK | COMP_PICKABLE;
+    AddGroupEntity(group,&block,sizeof(Block),comps,entity_block_update,entity_block_draw);
 }
 
 void entity_block_create_rainbow(EntityGroup* group)
 {
     Block block = { 0 };
     Color col = {
-        GetRandomValue(200,255),
-        GetRandomValue(200,255),
-        GetRandomValue(200,255),
+        GetRandomValue(100,255),
+        GetRandomValue(100,255),
+        GetRandomValue(100,255),
         255
     };
     int BOUNDS = 100;
@@ -45,5 +41,6 @@ void entity_block_create_rainbow(EntityGroup* group)
 
     block.base = CreateBase(pos,col);
 
-    AddGroupEntity(group,&block,sizeof(Block),NULL,&entity_block_draw);
+    Components comps = COMP_BASE | COMP_BLOCK | COMP_PICKABLE;
+    AddGroupEntity(group,&block,sizeof(Block),comps,entity_block_update,entity_block_draw);
 }
