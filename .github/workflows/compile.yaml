@@ -1,0 +1,30 @@
+on:
+  push:
+    branch:
+      - "rewrite"
+
+jobs:
+  build:
+    # Run a job for each of the specified target architectures:
+    strategy:
+      matrix:
+        arch:
+          - amd64
+    steps:
+      - name: Checkout the sauce 
+      - uses: actions/checkout@v2
+      - name: MSVC setup
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+      - name: MSVC compilation 
+        run: |
+          powershell -file dist.ps1
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/DREAM_EMU.ZIP
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true

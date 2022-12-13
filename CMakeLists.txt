@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
 project(dream_emu)
 
-add_subdirectory(c-raylib)
-add_subdirectory(c-raygui/projects/CMake)
+add_subdirectory(magma)
 add_subdirectory(dream)
-#add_subdirectory(space)
