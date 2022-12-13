@@ -25,7 +25,7 @@ Scene* scene_init(Assets* assets, Camera* camera)
     scene->editorVisible = true;
     ActiveScene = scene;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10000; i++) {
         entity_block_create_rainbow(scene->group,Vector3Zero(),camera);
     }
 
@@ -121,7 +121,7 @@ bool editor_update_and_draw_gui(Editor* editor)
         GuiLabel(LAYOUT(20,100,10), editor->assetList.names[i]);                                            // Label control, shows text
     }
 
-    GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel\nClose this window for free FPS.");
+    GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
 
     return visible;
 }
