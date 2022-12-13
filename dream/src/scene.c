@@ -25,7 +25,7 @@ Scene* scene_init(Assets* assets, Camera* camera)
     scene->editorVisible = true;
     ActiveScene = scene;
 
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 100; i++) {
         entity_block_create_rainbow(scene->group,Vector3Zero(),camera);
     }
 
