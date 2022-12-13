@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout the sauce 
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: MSVC setup
         uses: ilammy/msvc-dev-cmd@v1
         with:
