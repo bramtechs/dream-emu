@@ -1,5 +1,3 @@
-#define UI_PADDING 40
-
 #define RAYGUI_IMPLEMENTATION
 #include "editor.h"
 
@@ -8,6 +6,18 @@ typedef struct {
 } EditorInstance;
 
 static EditorInstance* Editor = NULL;
+
+static int LayoutY = 0;
+
+static Rectangle LAYOUT(int x, int w, int h){
+
+    Rectangle rect = {
+        x,LayoutY,w,h
+    };
+    LayoutY += h + 20;
+
+    return rect;
+}
 
 void editor_init(Assets* assets){
     assert(!Editor);
@@ -25,33 +35,23 @@ bool editor_update_and_draw(Scene* scene)
 {
     assert(Editor);
 
-    int win_x = 10; 
-    int win_y = 10; 
-    int width = 300;
+    int WIN_X = 10;
+    int WIN_Y = 10;
+    int WIN_W = 300;
+    int WIN_H = 700;
 
-    Rectangle rect = {win_x, win_y, width, 700};
+    LayoutY = WIN_Y + 40;
 
+    Rectangle rect = {WIN_X, WIN_Y, WIN_W, WIN_H};
     bool visible = !GuiWindowBox(rect, "Editor");
 
-    rect.x += UI_PADDING;
-    rect.y += UI_PADDING+20;
-    rect.width = 150;
-    rect.height = 150;
-
-    scene->env.skyColor = GuiColorPicker(rect, "Sky color", scene->env.skyColor);
-
-    rect.y += 150+UI_PADDING;
-    rect.height = 20;
+    scene->env.skyColor = GuiColorPicker(LAYOUT(20,250,200), "Sky color", scene->env.skyColor);
 
     char* fogStr = TextFormat("%f",scene->env.fogDistance);
-    scene->env.fogDistance = GuiSlider(rect, "Fog", fogStr, scene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
+    scene->env.fogDistance = GuiSlider(LAYOUT(40,100,20), "Fog", fogStr, scene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
 
-   
-    rect.y += 50;
-    rect.height = 14;
     for (int i = 0; i < Editor->assetList.count; i++){
-        GuiLabel(rect, Editor->assetList.names[i]);                                            // Label control, shows text
-        rect.y += 20;
+        GuiLabel(LAYOUT(20,100,10), Editor->assetList.names[i]);                                            // Label control, shows text
     }
 
     return visible;
