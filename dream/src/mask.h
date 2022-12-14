@@ -1,21 +1,16 @@
 #pragma once
 
-#define MAX_VERTICES 256;
-
 #define COMP_MASK   (1 << 13)
 
 #include "magma.h"
 #include "dream_entity.h"
 
 typedef struct {
-    Vector3 vertices;
-    size_t vertexCount;
+    Base base;
 
-    // TODO way to dispose these
+    // TODO add a way to dispose these
     Model model;
     Mesh mesh;
-
-    Base base;
 } Mask;
 
 

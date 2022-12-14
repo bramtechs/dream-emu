@@ -20,6 +20,7 @@ Scene* scene_init(Assets* assets, Camera* camera)
     scene->editor = editor_init(assets,scene);
     scene->editorVisible = true;
 
+    entity_block_create(scene->group,(Vector3){3,0,0});
     entity_mask_create(scene->group, Vector3Zero());
 
     return scene;

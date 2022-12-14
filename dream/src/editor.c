@@ -29,13 +29,43 @@ void editor_dispose(Editor* editor){
    M_MemFree(editor);
 }
 
-void editor_entity_polled(void *ptr, EntityGroup* group){
-    Base *base = (Base*)ptr;
-    RayCollision col = GetMouseRayCollisionBase(*base,*ActiveScene->camera);
+// TODO split this into relevant files
+// TODO this won't scale, make some kind of ECS system instead idk
+void editor_entity_polled(Entity entity, EntityGroup* group){
+    if (entity.components & COMP_BLOCK){
+        Base *base = &((Block*) entity.content)->base; // woah! how ugly
 
-    if (col.hit && col.distance < 50) {
-        DrawCubeWiresV(base->pos, base->size, GREEN);
+        RayCollision col = GetMouseRayCollisionBase(*base,*ActiveScene->camera);
+        if (col.hit && col.distance < 50) {
+            DrawCubeWiresV(base->pos, base->size, GREEN);
+        }
     }
+    if (entity.components & COMP_MASK){
+        Mask* mask = (Mask*) entity.content;
+        Base *base = &mask->base;
+
+        Mesh* mesh = &mask->mesh;
+        // assert(mesh->vertexCount == 0);
+
+        // draw vertices
+        for (int i = 0; i < mesh->vertexCount; i += 3){
+            Vector3 pos = {
+                    mesh->vertices[i+0],
+                    mesh->vertices[i+1],
+                    mesh->vertices[i+2],
+            };
+            Vector3 vertex = Vector3Add(pos,base->pos);
+            DrawSphere(vertex,0.1f,RED);
+        }
+
+        RayCollision col = GetMouseRayCollisionBase(*base,*ActiveScene->camera);
+        if (col.hit && col.distance < 50) {
+            BoundingBox box = GetMeshBoundingBox(*mesh);
+            DrawBoundingBox(box, GREEN);
+        }
+    }
+
+
 }
 
 void editor_update_and_draw(Editor* editor, float delta)
