@@ -1,0 +1,78 @@
+#include "editor.h"
+
+
+static Scene* ActiveScene = NULL;
+
+static int LayoutY = 0;
+
+static Rectangle LAYOUT(int x, int w, int h){
+
+    Rectangle rect = {
+        x,LayoutY,w,h
+    };
+    LayoutY += h + 20;
+
+    return rect;
+}
+
+Editor* editor_init(Assets* assets, SCENE* scene){
+    Editor *editor = new(Editor);
+    editor->assetList = GetLoadedAssetList(assets);
+
+    ActiveScene = (Scene*) scene;
+
+    return editor;
+}
+
+void editor_dispose(Editor* editor){
+   UnloadAssetList(editor->assetList);
+   M_MemFree(editor);
+}
+
+void editor_entity_polled(void *ptr, EntityGroup* group){
+    Base *base = (Base*)ptr;
+    RayCollision col = GetMouseRayCollisionBase(*base,*ActiveScene->camera);
+
+    if (col.hit && col.distance < 50) {
+        DrawCubeWiresV(base->pos, base->size, GREEN);
+    }
+}
+
+void editor_update_and_draw(Editor* editor, float delta)
+{
+    assert(editor);
+
+    // poll all the entities
+    PollEntities(ActiveScene->group, COMP_BASE, editor_entity_polled);
+}
+
+bool editor_update_and_draw_gui(Editor* editor)
+{
+    assert(editor);
+    assert(ActiveScene);
+
+    int WIN_X = 10;
+    int WIN_Y = 10;
+    int WIN_W = 300;
+    int WIN_H = 700;
+
+    LayoutY = WIN_Y + 40;
+
+    Rectangle rect = {WIN_X, WIN_Y, WIN_W, WIN_H};
+    bool visible = !GuiWindowBox(rect, "Editor");
+
+    ActiveScene->env.skyColor.r = GuiSlider(LAYOUT(40,100,20),"Red","255",ActiveScene->env.skyColor.r,0.f,255.f);
+    ActiveScene->env.skyColor.g = GuiSlider(LAYOUT(40,100,20),"Green","255",ActiveScene->env.skyColor.g,0.f,255.f);
+    ActiveScene->env.skyColor.b = GuiSlider(LAYOUT(40,100,20),"Blue","255",ActiveScene->env.skyColor.b,0.f,255.f);
+
+    char* fogStr = TextFormat("%f",ActiveScene->env.fogDistance);
+    ActiveScene->env.fogDistance = GuiSlider(LAYOUT(40,100,20), "Fog", fogStr, ActiveScene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
+
+    for (int i = 0; i < editor->assetList.count; i++){
+        GuiLabel(LAYOUT(20,100,10), editor->assetList.names[i]);                                            // Label control, shows text
+    }
+
+    GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
+
+    return visible;
+}
