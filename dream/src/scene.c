@@ -20,9 +20,7 @@ Scene* scene_init(Assets* assets, Camera* camera)
     scene->editor = editor_init(assets,scene);
     scene->editorVisible = true;
 
-    for (int i = 0; i < 10000; i++) {
-        entity_block_create_rainbow(scene->group,Vector3Zero(),camera);
-    }
+    entity_mask_create(scene->group, Vector3Zero());
 
     return scene;
 }
@@ -36,6 +34,7 @@ void scene_update_and_render(Scene* scene, float delta)
 
     if (scene->editorVisible){
         editor_update_and_draw(scene->editor,delta);
+        DrawGrid(100,1);
     }
 }
 
