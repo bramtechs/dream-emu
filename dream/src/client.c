@@ -8,12 +8,7 @@ int main()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    InitWindow(WIDTH * SCALE, HEIGHT * SCALE, "DREAM_EMU");
-    SetWindowPosition((GetMonitorWidth(0) - WIDTH * SCALE) / 2, (GetMonitorHeight(0) - HEIGHT * SCALE) / 2);
-
-    // Define the cam to look into our 3d world
-
-    // Get map image data to be used for collision detection
+    InitMagmaWindow(WIDTH, HEIGHT, WIDTH*SCALE, HEIGHT*SCALE, "DREAM_EMU");
 
     INFO("Launched at %s", GetWorkingDirectory());
 
@@ -39,32 +34,28 @@ int main()
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        BeginDrawing();
-        BeginTextureMode(target);
+        BeginMagmaDrawing();
 
-        UpdateCamera(&cam);
+            UpdateCamera(&cam);
 
-        BeginMode3D(cam);
+            BeginMode3D(cam);
 
-        ClearBackground(BLACK);
+            ClearBackground(BLACK);
 
-        float delta = GetFrameTime();
-        scene_update_and_render(scene,delta);
+            float delta = GetFrameTime();
+            scene_update_and_render(scene,delta);
 
-        EndMode3D();
+            EndMode3D();
 
-        //DrawFPS(10, 10);
+            // ui drawing
+            //DrawCircleV(GetScaledMousePosition(), 4.f, RED);                              // Draw a color-filled circle
 
-        EndTextureMode();
+        EndMagmaDrawing();
 
-        // TODO fix scuffed
-        DrawTexturePro(target.texture, (Rectangle) {0.0f, 0.0f, WIDTH, -HEIGHT},
-                       (Rectangle) {0.0f, 0.0f, WIDTH * SCALE, HEIGHT * SCALE},
-                       (Vector2) {0.0f, 0.0f}, 0.0f, WHITE);
+        // fullscreen debug ui here
 
         scene_update_and_render_gui(scene,delta);
-
-        DrawFPS(820, HEIGHT* SCALE - 20);
+        DrawFPS(10, GetScreenHeight() - 50);
 
         EndDrawing();
     }
@@ -74,9 +65,8 @@ int main()
     scene_dispose(scene);
 
     CheckAllocations();
-    UnloadRenderTexture(target);
-    CloseWindow(); // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+
+    CloseMagmaWindow();
 
     return 0;
 }

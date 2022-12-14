@@ -12,7 +12,7 @@ void entity_block_update(void* ptr, float delta){
     Block *block = (Block*) ptr;
     Base *base = &block->base;
 
-    base->pos = Vector3Lerp(base->pos,Vector3Zero(), 0.001);
+    base->pos = Vector3Lerp(base->pos,Vector3Zero(), 0.0001);
 }
 
 void entity_block_create(EntityGroup* group, Vector3 pos){

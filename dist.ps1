@@ -1,4 +1,5 @@
 $BUILD_DIR= ".\build\dream\Release"
+$ErrorActionPreference = "Stop"
 
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022"
 cmake --build build -j $Env:NUMBER_OF_PROCESSORS --config Release
