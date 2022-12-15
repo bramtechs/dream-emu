@@ -1,6 +1,7 @@
 #define MAX_ENTITIES 1024
 #include "scene.h"
 
+static Model TestModel = {0};
 
 inline Environment environment_default(){
     Environment env = { 0 };
@@ -10,18 +11,17 @@ inline Environment environment_default(){
     return env;
 }
 
-Scene* scene_init(Assets* assets, Camera* camera)
+Scene* scene_init(Camera* camera)
 {
     Scene *scene = MemAlloc(sizeof(Scene));
     scene->env = environment_default();
     scene->group = CreateEntityGroup(camera);
     scene->camera = camera;
 
-    scene->editor = editor_init(assets,scene);
+    scene->editor = editor_init(scene);
     scene->editorVisible = true;
 
-    entity_block_create(scene->group,(Vector3){3,0,0});
-    entity_mask_create(scene->group, Vector3Zero());
+    TestModel = LoadModel("assets/levels/garden/garden_start.obj");
 
     return scene;
 }
@@ -37,6 +37,10 @@ void scene_update_and_render(Scene* scene, float delta)
         editor_update_and_draw(scene->editor,delta);
         DrawGrid(100,1);
     }
+
+    if (TestModel.materials != NULL) {
+        DrawModel(TestModel, Vector3Zero(), 1.f, WHITE);
+    }
 }
 
 void scene_update_and_render_gui(Scene* scene, float delta)
@@ -48,6 +52,10 @@ void scene_update_and_render_gui(Scene* scene, float delta)
         scene->editorVisible = !scene->editorVisible;
     }
     DrawText("Press F3 for editor",10,HEIGHT*SCALE-20,16,PURPLE);
+
+    if (TestModel.materials == NULL){
+        DrawText("I need my assets you dummy!\nHow am I supposed to load my stuff if you don't unzip the folder... sadge",100,60,48,RED);
+    }
 }
 
 void scene_dispose(Scene *scene)

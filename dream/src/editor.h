@@ -11,7 +11,7 @@ typedef struct {
     AssetList assetList;
 } Editor;
 
-Editor* editor_init(Assets* assets, SCENE* scene);
+Editor* editor_init(SCENE* scene);
 
 void editor_dispose(Editor* editor);
 

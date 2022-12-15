@@ -23,7 +23,7 @@ typedef struct {
     bool editorVisible;
 } Scene;
 
-Scene* scene_init(Assets* assets, Camera *camera);
+Scene* scene_init(Camera *camera);
 
 void scene_update_and_render(Scene* scene, float delta);
 

@@ -24,12 +24,12 @@ int main()
     cam.up = (Vector3) {0.0f, 1.0f, 0.f};
     SetCameraMode(cam, CAMERA_FREE);
 
-    Assets* assets = LoadAssets("assets");
+    LoadAssets("assets");
 
     // TODO move camera into scene
 
     SetTraceLogLevel(LOG_ALL);
-    Scene* scene = scene_init(assets, &cam);
+    Scene* scene = scene_init(&cam);
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -60,7 +60,7 @@ int main()
         EndDrawing();
     }
 
-    UnloadAssets(assets);
+    UnloadAssets();
 
     scene_dispose(scene);
 

@@ -10,14 +10,14 @@ static Rectangle LAYOUT(int x, int w, int h){
     Rectangle rect = {
         x,LayoutY,w,h
     };
-    LayoutY += h + 20;
+    LayoutY += h + 10;
 
     return rect;
 }
 
-Editor* editor_init(Assets* assets, SCENE* scene){
+Editor* editor_init(SCENE* scene){
     Editor *editor = new(Editor);
-    editor->assetList = GetLoadedAssetList(assets);
+    editor->assetList = GetLoadedAssetList();
 
     ActiveScene = (Scene*) scene;
 
@@ -99,7 +99,7 @@ bool editor_update_and_draw_gui(Editor* editor)
     ActiveScene->env.fogDistance = GuiSlider(LAYOUT(40,100,20), "Fog", fogStr, ActiveScene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
 
     for (int i = 0; i < editor->assetList.count; i++){
-        GuiLabel(LAYOUT(20,100,10), editor->assetList.names[i]);                                            // Label control, shows text
+        GuiLabel(LAYOUT(20,WIN_W,5), editor->assetList.names[i]);                                            // Label control, shows text
     }
 
     GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
