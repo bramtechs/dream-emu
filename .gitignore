@@ -10,3 +10,4 @@ build-win/
 out/
 CMakeSettings.json
 .cache
+build-web/

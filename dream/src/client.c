@@ -24,7 +24,7 @@ int main()
     cam.up = (Vector3) {0.0f, 1.0f, 0.f};
     SetCameraMode(cam, CAMERA_FREE);
 
-    LoadAssets("assets");
+    InitAssets("assets");
 
     // TODO move camera into scene
 
@@ -50,12 +50,17 @@ int main()
             // ui drawing
             //DrawCircleV(GetScaledMousePosition(), 4.f, RED);                              // Draw a color-filled circle
 
+            DrawFPS(10, 10);
+
+            if (((int)GetTime()) % 2 == 0) {
+                DrawText("DEMO DISC", WIDTH - MeasureText("DEMO DISC ", 20), HEIGHT - 20, 20, WHITE);
+            }
+
         EndMagmaDrawing();
 
         // fullscreen debug ui here
 
         scene_update_and_render_gui(scene,delta);
-        DrawFPS(10, GetScreenHeight() - 50);
 
         EndDrawing();
     }
