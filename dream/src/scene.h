@@ -12,7 +12,7 @@ typedef struct {
     float fogDistance;
 } Environment;
 
-inline Environment environment_default();
+Environment environment_default();
 
 typedef struct {
     Environment env;

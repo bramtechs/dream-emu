@@ -8,7 +8,7 @@
 typedef void SCENE;
 
 typedef struct {
-    AssetList assetList;
+    int placeholder;
 } Editor;
 
 Editor* editor_init(SCENE* scene);

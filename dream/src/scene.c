@@ -3,7 +3,7 @@
 
 static Model TestModel = {0};
 
-inline Environment environment_default(){
+Environment environment_default(){
     Environment env = { 0 };
     env.skyColor = SKYBLUE;
     env.fogColor = GRAY;
