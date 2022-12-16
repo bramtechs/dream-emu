@@ -6,6 +6,7 @@
 
 int main()
 {
+
     // Initialization
     //--------------------------------------------------------------------------------------
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH*SCALE, HEIGHT*SCALE, "DREAM_EMU");
@@ -30,6 +31,8 @@ int main()
 
     SetTraceLogLevel(LOG_ALL);
     Scene* scene = scene_init(&cam);
+
+    TestArrays();
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key

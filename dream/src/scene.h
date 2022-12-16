@@ -4,7 +4,6 @@
 #include "dream_entity.h"
 #include "client.h"
 #include "editor.h"
-#include "mask.h"
 
 typedef struct {
     Color skyColor;

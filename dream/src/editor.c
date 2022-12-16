@@ -38,32 +38,6 @@ void editor_entity_polled(Entity entity, EntityGroup* group){
             DrawCubeWiresV(base->pos, base->size, GREEN);
         }
     }
-    if (entity.components & COMP_MASK){
-        Mask* mask = (Mask*) entity.content;
-        Base *base = &mask->base;
-
-        Mesh* mesh = &mask->mesh;
-        // assert(mesh->vertexCount == 0);
-
-        // draw vertices
-        for (int i = 0; i < mesh->vertexCount; i += 3){
-            Vector3 pos = {
-                    mesh->vertices[i+0],
-                    mesh->vertices[i+1],
-                    mesh->vertices[i+2],
-            };
-            Vector3 vertex = Vector3Add(pos,base->pos);
-            DrawSphere(vertex,0.1f,RED);
-        }
-
-        RayCollision col = GetMouseRayCollisionBase(*base,*ActiveScene->camera);
-        if (col.hit && col.distance < 50) {
-            BoundingBox box = GetMeshBoundingBox(*mesh);
-            DrawBoundingBox(box, GREEN);
-        }
-    }
-
-
 }
 
 void editor_update_and_draw(Editor* editor, float delta)
