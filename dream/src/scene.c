@@ -23,7 +23,13 @@ Scene* scene_init(Camera* camera)
 
     // GARDEN LEVEL: TODO refactor
 
-    TestModel = RequestModel("levels/garden/garden_start.obj");
+    EntityID id = AddEntity(scene->group);
+
+    Base base = CreateDefaultBase();
+    AddEntityComponent(scene->group, Base, &base, id);
+
+    ModelRenderer renderer = CreateModelRenderer("levels/garden/garden_start.obj",&base);
+    AddEntityComponent(scene->group, ModelRenderer, &renderer, id);
 
     return scene;
 }
