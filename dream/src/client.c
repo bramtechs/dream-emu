@@ -27,12 +27,12 @@ int main()
 
     InitAssets("assets");
 
+    SetTraceLogLevel(LOG_ALL);
+
+    //TestArrays();
     // TODO move camera into scene
 
-    SetTraceLogLevel(LOG_ALL);
     Scene* scene = scene_init(&cam);
-
-    TestArrays();
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
