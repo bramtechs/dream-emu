@@ -4,6 +4,8 @@
 
 #define RAYGUI_IMPLEMENTATION
 
+bool LockFramerate = true;
+
 int main()
 {
 
@@ -15,7 +17,7 @@ int main()
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
-    SetTargetFPS(1000);
+    SetTargetFPS(60);
 
     Camera cam = { 0 };
     cam.position = Vector3Zero();
@@ -27,8 +29,6 @@ int main()
 
     InitAssets("assets");
 
-    SetTraceLogLevel(LOG_ALL);
-
     //TestArrays();
     // TODO move camera into scene
 
@@ -37,6 +37,8 @@ int main()
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
+        SetTargetFPS(LockFramerate ? 60:3000);
+
         BeginMagmaDrawing();
 
             UpdateCamera(&cam);
@@ -47,6 +49,8 @@ int main()
 
             float delta = GetFrameTime();
             scene_update_and_render(scene,delta);
+
+            //DrawSphere(Vector3Zero(), 3.f, PURPLE);
 
             EndMode3D();
 

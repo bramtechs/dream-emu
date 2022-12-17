@@ -5,6 +5,8 @@
 #include "client.h"
 #include "editor.h"
 
+extern bool DoDrawGrid;
+
 typedef struct {
     Color skyColor;
     Color fogColor;

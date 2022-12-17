@@ -1,7 +1,7 @@
 #define MAX_ENTITIES 1024
 #include "scene.h"
 
-static Model TestModel = {0};
+bool DoDrawGrid = false; // TODO replace
 
 inline Environment environment_default(){
     Environment env = { 0 };
@@ -19,17 +19,17 @@ Scene* scene_init(Camera* camera)
     scene->camera = camera;
 
     scene->editor = editor_init(scene);
-    scene->editorVisible = false;
+    scene->editorVisible = true;
 
     // GARDEN LEVEL: TODO refactor
 
     EntityID id = AddEntity(scene->group);
 
     Base base = CreateDefaultBase();
-    AddEntityComponent(scene->group, Base, &base, id);
-
     ModelRenderer renderer = CreateModelRenderer("levels/garden/garden_start.obj",&base);
-    AddEntityComponent(scene->group, ModelRenderer, &renderer, id);
+
+    AddEntityComponent(scene->group->bases, Base, &base, id);
+    AddEntityComponent(scene->group->modelRenderers, ModelRenderer, &renderer, id);
 
     return scene;
 }
@@ -43,11 +43,9 @@ void scene_update_and_render(Scene* scene, float delta)
 
     if (scene->editorVisible){
         editor_update_and_draw(scene->editor,delta);
-        DrawGrid(100,1);
-    }
-
-    if (TestModel.materials != NULL) {
-        DrawModel(TestModel, Vector3Zero(), 1.f, WHITE);
+        if (DoDrawGrid) {
+			DrawGrid(1000,1);
+        }
     }
 }
 

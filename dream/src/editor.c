@@ -1,6 +1,5 @@
 #include "editor.h"
 
-
 static Scene* ActiveScene = NULL;
 
 static int LayoutY = 0;
@@ -68,6 +67,10 @@ bool editor_update_and_draw_gui(Editor* editor)
     ActiveScene->env.fogDistance = GuiSlider(LAYOUT(40,100,20), "Fog", fogStr, ActiveScene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
 
     GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
+
+    LockFramerate = GuiCheckBox(LAYOUT(20, 30, 30), "Lock framerate (recommended)", LockFramerate);
+    DrawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", DrawOutlines);
+    DoDrawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", DoDrawGrid);
 
     return visible;
 }
