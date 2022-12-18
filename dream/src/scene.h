@@ -1,7 +1,6 @@
 #pragma once
 
 #include "magma.h"
-#include "dream_entity.h"
 #include "client.h"
 #include "editor.h"
 
@@ -19,13 +18,13 @@ inline Environment environment_default();
 typedef struct {
     Environment env;
     EntityGroup *group;
-    Camera *camera;
+    Camera camera;
 
     void* editor;
     bool editorVisible;
 } Scene;
 
-Scene* scene_init(Camera *camera);
+Scene* scene_init();
 
 void scene_update_and_render(Scene* scene, float delta);
 

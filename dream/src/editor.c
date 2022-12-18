@@ -48,7 +48,7 @@ void editor_update_and_draw(Editor* editor, float delta)
 
     if (PrevFPSMode != FPSMode){
         PrevFPSMode = FPSMode;
-        SetCameraMode(*ActiveScene->camera,FPSMode ? CAMERA_FIRST_PERSON : CAMERA_FREE);
+        SetCameraMode(ActiveScene->camera,FPSMode ? CAMERA_FIRST_PERSON : CAMERA_FREE);
     }
 }
 

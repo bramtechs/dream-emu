@@ -1,6 +1,7 @@
 #include "magma.h"
 #include "client.h"
 #include "scene.h"
+#include "dreams.h"
 
 #define RAYGUI_IMPLEMENTATION
 
@@ -20,13 +21,6 @@ int main()
 
     SetTargetFPS(60);
 
-    Camera cam = { 0 };
-    cam.position = Vector3Zero();
-    cam.target = Vector3One();
-    cam.fovy = 80;
-    cam.projection = CAMERA_PERSPECTIVE;
-    cam.up = (Vector3) {0.0f, 1.0f, 0.f};
-    SetCameraMode(cam, CAMERA_FREE);
 
     SetTraceLogLevel(LOG_INFO);
 
@@ -35,7 +29,7 @@ int main()
     //TestArrays();
     // TODO move camera into scene
 
-    Scene* scene = scene_init(&cam);
+    Scene* scene = dream_init_hub();
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -45,37 +39,8 @@ int main()
             LastLockFramerate = LockFramerate;
         }
 
-        BeginMagmaDrawing();
-
-            UpdateCamera(&cam);
-
-            BeginMode3D(cam);
-
-            ClearBackground(BLACK);
-
-            float delta = GetFrameTime();
-            scene_update_and_render(scene,delta);
-
-            //DrawSphere(Vector3Zero(), 3.f, PURPLE);
-
-            EndMode3D();
-
-            // ui drawing
-            //DrawCircleV(GetScaledMousePosition(), 4.f, RED);                              // Draw a color-filled circle
-
-            DrawFPS(10, 10);
-
-            if (((int)GetTime()) % 2 == 0) {
-                DrawText("DEMO DISC", WIDTH - MeasureText("DEMO DISC ", 20), HEIGHT - 20, 20, WHITE);
-            }
-
-        EndMagmaDrawing();
-
-        // fullscreen debug ui here
-
-        scene_update_and_render_gui(scene,delta);
-
-        EndDrawing();
+        float delta = GetFrameTime();
+        scene_update_and_render(scene,delta);
     }
 
     UnloadAssets();
