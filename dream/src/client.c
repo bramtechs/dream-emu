@@ -5,6 +5,7 @@
 #define RAYGUI_IMPLEMENTATION
 
 bool LockFramerate = true;
+bool LastLockFramerate = true;
 
 int main()
 {
@@ -27,6 +28,8 @@ int main()
     cam.up = (Vector3) {0.0f, 1.0f, 0.f};
     SetCameraMode(cam, CAMERA_FREE);
 
+    SetTraceLogLevel(LOG_INFO);
+
     InitAssets("assets");
 
     //TestArrays();
@@ -37,7 +40,10 @@ int main()
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        SetTargetFPS(LockFramerate ? 60:3000);
+        if (LastLockFramerate != LockFramerate){
+            SetTargetFPS(LockFramerate ? 60:3000);
+            LastLockFramerate = LockFramerate;
+        }
 
         BeginMagmaDrawing();
 
