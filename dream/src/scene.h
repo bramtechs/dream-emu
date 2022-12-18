@@ -11,6 +11,7 @@ typedef struct {
     Color skyColor;
     Color fogColor;
     float fogDistance;
+    char skyboxName[128];
 } Environment;
 
 inline Environment environment_default();

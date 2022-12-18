@@ -4,6 +4,9 @@ static Scene* ActiveScene = NULL;
 
 static int LayoutY = 0;
 
+static bool FPSMode = false;
+static bool PrevFPSMode = false;
+
 static Rectangle LAYOUT(int x, int w, int h){
 
     Rectangle rect = {
@@ -42,6 +45,11 @@ void editor_dispose(Editor* editor){
 void editor_update_and_draw(Editor* editor, float delta)
 {
     assert(editor);
+
+    if (PrevFPSMode != FPSMode){
+        PrevFPSMode = FPSMode;
+        SetCameraMode(*ActiveScene->camera,FPSMode ? CAMERA_FIRST_PERSON : CAMERA_FREE);
+    }
 }
 
 bool editor_update_and_draw_gui(Editor* editor)
@@ -71,6 +79,7 @@ bool editor_update_and_draw_gui(Editor* editor)
     LockFramerate = GuiCheckBox(LAYOUT(20, 30, 30), "Lock framerate (recommended)", LockFramerate);
     DrawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", DrawOutlines);
     DoDrawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", DoDrawGrid);
+    FPSMode = GuiCheckBox(LAYOUT(20, 30, 30), "FPS mode", FPSMode);
 
     return visible;
 }

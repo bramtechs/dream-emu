@@ -8,7 +8,31 @@ inline Environment environment_default(){
     env.skyColor = SKYBLUE;
     env.fogColor = GRAY;
     env.fogDistance = 0.2f;
+
+    const char* def = "sky/sky.png";
+    strcpy(env.skyboxName,def);
+
     return env;
+}
+
+Model scene_gen_skybox_model(const char* skybox){
+    // TODO put skybox in struct, and dispose properly
+    Mesh mesh = GenMeshSphere(-150, 10, 10);
+    Model model = LoadModelFromMesh(mesh);
+    Texture texture = RequestTexture(skybox);
+
+    // Happy little accident, looks really cool, might use later
+//    Image img = LoadImageFromTexture(texture);
+//    ImageFlipVertical(&img);
+//    ImageRotateCW(&img);
+
+    Image img = LoadImageFromTexture(texture);
+    ImageRotateCCW(&img);
+
+    Texture textureFlipped = LoadTextureFromImage(img);
+    model.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = textureFlipped;
+
+    return model;
 }
 
 Scene* scene_init(Camera* camera)
@@ -21,12 +45,24 @@ Scene* scene_init(Camera* camera)
     scene->editor = editor_init(scene);
     scene->editorVisible = true;
 
+    // for aLL levels
+    //{
+    //    Model sky = scene_gen_skybox_model(scene->env.skyboxName);
+    //    EntityID id = AddEntity(scene->group);
+
+    //    Base base = CreateDefaultBase();
+    //    ModelRenderer renderer = CreateModelRenderer(sky);
+
+    //    AddEntityComponent(scene->group->bases, Base, &base, id);
+    //    AddEntityComponent(scene->group->modelRenderers, ModelRenderer, &renderer, id);
+    //}
+
     // GARDEN LEVEL: TODO refactor
 
     EntityID id = AddEntity(scene->group);
 
     Base base = CreateDefaultBase();
-    ModelRenderer renderer = CreateModelRenderer("levels/garden/garden_start.obj",&base);
+    ModelRenderer renderer = CreateModelRendererFromFile("levels/garden/garden_start.obj",&base);
 
     AddEntityComponent(scene->group->bases, Base, &base, id);
     AddEntityComponent(scene->group->modelRenderers, ModelRenderer, &renderer, id);
@@ -37,6 +73,10 @@ Scene* scene_init(Camera* camera)
 void scene_update_and_render(Scene* scene, float delta)
 {
     ClearBackground(scene->env.skyColor);
+
+    // move skybox around
+    Base *skyBase = GetArrayItem(scene->group->bases,0,Base);
+    //skyBase->pos = scene->camera->position;
 
     UpdateGroup(scene->group,delta);
     DrawGroup(scene->group);

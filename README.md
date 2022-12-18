@@ -3,7 +3,7 @@
 
 Just renders a blender scene for now....
 
-In order to prevent re-inventing the wheel too much, I use [Raylib](https://github.com/raysan5/raylib).
+In order to prevent re-inventing the wheel too much, [Raylib](https://github.com/raysan5/raylib) is used.
 
 ### Screenshots
 
