@@ -9,9 +9,8 @@ jobs:
     runs-on: 'windows-latest'
     steps:
       - name: Checkout the sauce 
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
+        run: |
+          git clone --recursive https://github.com/bramtechs/dream-emu; git submodule update --force --recursive --init --remote
       - name: MSVC setup
         uses: ilammy/msvc-dev-cmd@v1
         with:
