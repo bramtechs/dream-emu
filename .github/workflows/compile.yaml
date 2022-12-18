@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout the sauce 
         run: |
-          git clone --recursive https://github.com/bramtechs/dream-emu; git submodule update --force --recursive --init --remote
+          git clone --recursive https://github.com/bramtechs/dream-emu .; git submodule update --force --recursive --init --remote
       - name: MSVC setup
         uses: ilammy/msvc-dev-cmd@v1
         with:
