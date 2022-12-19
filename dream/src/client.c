@@ -10,7 +10,6 @@ bool LastLockFramerate = true;
 
 int main()
 {
-
     // Initialization
     //--------------------------------------------------------------------------------------
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH*SCALE, HEIGHT*SCALE, "DREAM_EMU");
