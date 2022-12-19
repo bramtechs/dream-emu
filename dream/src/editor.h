@@ -2,6 +2,7 @@
 
 #define RAYGUI_IMPLEMENTATION
 #include "magma.h"
+#include "settings.h"
 #include "scene.h"
 
 // bandaid fix to avoid circular dependencies

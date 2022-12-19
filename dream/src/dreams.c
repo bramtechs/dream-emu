@@ -33,7 +33,7 @@ void dream_update_hub(Scene* scene, float delta){
     // move skybox around
     Base *skyBase = GetArrayItem(scene->group->bases,0,Base);
     skyBase->pos = scene->camera.position;
-    skyBase->rotation.z += delta*2;
+    //skyBase->rotation.z += 2*delta; TODO fix weird glitch
 }
 
 // garden? more like an empty wasteland for now

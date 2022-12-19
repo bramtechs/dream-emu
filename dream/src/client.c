@@ -2,10 +2,10 @@
 #include "client.h"
 #include "scene.h"
 #include "dreams.h"
+#include "settings.h"
 
 #define RAYGUI_IMPLEMENTATION
 
-bool LockFramerate = true;
 bool LastLockFramerate = true;
 
 int main()
@@ -21,7 +21,6 @@ int main()
 
     SetTargetFPS(60);
 
-
     SetTraceLogLevel(LOG_INFO);
 
     InitAssets("assets");
@@ -34,9 +33,9 @@ int main()
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        if (LastLockFramerate != LockFramerate){
-            SetTargetFPS(LockFramerate ? 60:3000);
-            LastLockFramerate = LockFramerate;
+        if (LastLockFramerate != Settings.unlockFrameRate){
+            SetTargetFPS(Settings.unlockFrameRate ? 1000:60);
+            LastLockFramerate = Settings.unlockFrameRate;
         }
 
         float delta = GetFrameTime();

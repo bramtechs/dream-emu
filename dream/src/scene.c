@@ -1,8 +1,6 @@
 #define MAX_ENTITIES 1024
 #include "scene.h"
 
-bool DoDrawGrid = false; // TODO replace
-
 inline Environment environment_default() {
     Environment env = { 0 };
     env.skyColor = SKYBLUE;
@@ -16,11 +14,6 @@ Model scene_gen_skybox_model(const char* skybox) {
     Mesh mesh = GenMeshSphere(-150, 10, 10);
     Model model = LoadModelFromMesh(mesh);
     Texture texture = RequestTexture(skybox);
-
-    // Happy little accident, looks really cool, might use later
-//    Image img = LoadImageFromTexture(texture);
-//    ImageFlipVertical(&img);
-//    ImageRotateCW(&img);
 
     Image img = LoadImageFromTexture(texture);
     ImageRotateCCW(&img);
@@ -75,7 +68,7 @@ void scene_update_and_render(Scene* scene, float delta)
 
     if (scene->editorVisible) {
         editor_update_and_draw(scene->editor, delta);
-        if (DoDrawGrid) {
+        if (Settings.drawGrid) {
             DrawGrid(1000, 1);
         }
     }
