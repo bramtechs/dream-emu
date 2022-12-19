@@ -6,25 +6,33 @@
 
 extern bool DoDrawGrid;
 
+struct Scene;
+typedef struct Scene Scene;
+
+typedef void(*UPDATE_FUNC)(Scene*,float);
+
 typedef struct {
     Color skyColor;
     Color fogColor;
     float fogDistance;
-    char skyboxName[128];
 } Environment;
 
 inline Environment environment_default();
 
-typedef struct {
+struct Scene {
     Environment env;
     EntityGroup *group;
     Camera camera;
 
+    UPDATE_FUNC updateFunc;
+
     void* editor;
     bool editorVisible;
-} Scene;
+};
 
-Scene* scene_init();
+Model scene_gen_skybox_model(const char* skybox);
+
+Scene* scene_init(UPDATE_FUNC updateFunc);
 
 void scene_update_and_render(Scene* scene, float delta);
 
