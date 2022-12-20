@@ -41,7 +41,7 @@ int main()
         scene_update_and_render(scene,delta);
     }
 
-    UnloadAssets();
+    DisposeAssets();
 
     scene_dispose(scene);
 

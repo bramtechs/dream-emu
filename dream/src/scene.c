@@ -102,6 +102,6 @@ void scene_update_and_render_gui(Scene* scene, float delta)
 
 void scene_dispose(Scene* scene)
 {
+    DisposeEntityGroup(scene->group);
     MemFree(scene);
 }
-
