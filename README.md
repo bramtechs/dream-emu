@@ -6,5 +6,5 @@ In order to prevent re-inventing the wheel too much, [Raylib](https://github.com
 
 ### Screenshots
 
-![002](/screenshots/index002.png)
+![002](/screenshots/indev002.png)
 ![001](/screenshots/indev001.png)
