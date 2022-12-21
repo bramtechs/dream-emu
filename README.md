@@ -1,5 +1,4 @@
 # LSD Dream Emulator- type game
-## "Let's write video games in plain C because I got redpilled by [Handmade Hero](https://handmadehero.org)" edition
 
 Just renders a blender scene for now....
 
