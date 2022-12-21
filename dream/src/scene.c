@@ -1,6 +1,8 @@
 #define MAX_ENTITIES 1024
 #include "scene.h"
 
+static Vector3 Feet; // lol
+
 inline Environment environment_default() {
     Environment env = { 0 };
     env.skyColor = SKYBLUE;
@@ -31,7 +33,7 @@ Scene* scene_init(UPDATE_FUNC updateFunc)
     scene->group = CreateEntityGroup();
 
     scene->updateFunc = updateFunc;
-    scene->player = SpawnPlayerFPS(scene->group, 10.f);
+    scene->player = SpawnPlayerFPS(10.f);
     TeleportPlayerFPS(&scene->player,(Vector3) {10,2,3} );
 
     scene->editor = editor_init(scene);
@@ -57,9 +59,14 @@ void scene_update_and_render(Scene* scene, float delta)
     }
 
     UpdateGroup(scene->group, delta);
+    Feet = UpdatePlayerFPS(&scene->player,scene->group,delta);
     DrawGroup(scene->group);
+    
+		DrawSphere(scene->player.camera.position, 0.2f, GREEN);
+		DrawSphere(Feet, 0.3f, PURPLE);
 
     if (Settings.editorVisible) {
+
         editor_update_and_draw(scene->editor, delta);
         if (Settings.drawGrid) {
             DrawGrid(1000, 1);
