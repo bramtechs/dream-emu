@@ -25,9 +25,9 @@ int main()
     InitAssets("assets");
 
     //TestArrays();
-    // TODO move camera into scene
 
-    Scene* scene = dream_init_hub();
+    //Scene* scene = dream_init_hub();
+    Scene* scene = dream_init_garden();
 
     SetWindowState(FLAG_WINDOW_MAXIMIZED);
 

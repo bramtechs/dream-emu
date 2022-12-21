@@ -33,7 +33,7 @@ Scene* scene_init(UPDATE_FUNC updateFunc)
     scene->group = CreateEntityGroup();
 
     scene->updateFunc = updateFunc;
-    scene->player = SpawnPlayerFPS(10.f);
+    scene->player = SpawnPlayerFPS(1.8f);
     TeleportPlayerFPS(&scene->player,(Vector3) {10,2,3} );
 
     scene->editor = editor_init(scene);
@@ -59,11 +59,10 @@ void scene_update_and_render(Scene* scene, float delta)
     }
 
     UpdateGroup(scene->group, delta);
-    Feet = UpdatePlayerFPS(&scene->player,scene->group,delta);
     DrawGroup(scene->group);
-    
-		DrawSphere(scene->player.camera.position, 0.2f, GREEN);
-		DrawSphere(Feet, 0.3f, PURPLE);
+
+    DrawSphere(scene->player.camera.position, 0.2f, GREEN);
+    DrawSphere(Feet, 0.3f, PURPLE);
 
     if (Settings.editorVisible) {
 
@@ -78,6 +77,8 @@ void scene_update_and_render(Scene* scene, float delta)
             //DrawCircleV(GetScaledMousePosition(), 4.f, RED);                              // Draw a color-filled circle
 
     DrawFPS(10, 10);
+
+    Feet = UpdatePlayerFPS(&scene->player,scene->group,delta);
 
     if (((int)GetTime()) % 2 == 0) {
         DrawText("DEMO DISC", WIDTH - MeasureText("DEMO DISC ", 20), HEIGHT - 20, 20, WHITE);

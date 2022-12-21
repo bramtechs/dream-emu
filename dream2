@@ -13,25 +13,30 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1 dream/src/client.c
+badd +29 dream/src/client.c
 badd +5 dream/src/client.h
 badd +1 space/client.c
-badd +1 magma/src/window.c
+badd +25 magma/src/window.c
 badd +1155 magma/raylib/src/raylib.h
-badd +47 dream/src/scene.c
+badd +65 dream/src/scene.c
 badd +11 dream/src/settings.h
 badd +37 dream/src/editor.c
 badd +42 dream/src/scene.h
-badd +27 magma/src/player_fps.c
-badd +1 magma/src/player_fps.h
+badd +36 magma/src/player_fps.c
+badd +9 magma/src/player_fps.h
 badd +147 Users/bramb/AppData/Local/nvim/init.vim
-badd +35 dream/src/dreams.c
+badd +21 dream/src/dreams.c
 badd +22 magma/src/magma.h
 badd +3 magma/src/magma.c
-badd +1 term://X://13116:C:/Windows/system32/cmd.exe
+badd +38 magma/src/entity.c
+badd +45 magma/src/entity.h
+badd +0 term://X://1020:C:/Windows/system32/cmd.exe
+badd +0 magma/src/array.h
 argglobal
 %argdel
 set stal=2
+tabnew +setlocal\ bufhidden=wipe
+tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
@@ -55,8 +60,8 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 126 + 96) / 193)
-exe 'vert 2resize ' . ((&columns * 66 + 96) / 193)
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
 argglobal
 balt dream/src/client.c
 setlocal fdm=manual
@@ -69,12 +74,12 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 24 - ((21 * winheight(0) + 35) / 70)
+let s:l = 29 - ((26 * winheight(0) + 35) / 71)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 24
-normal! 042|
+keepjumps 29
+normal! 027|
 lcd X:/
 wincmd w
 argglobal
@@ -93,7 +98,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 4 - ((3 * winheight(0) + 35) / 70)
+let s:l = 4 - ((3 * winheight(0) + 35) / 71)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -101,53 +106,11 @@ keepjumps 4
 normal! 017|
 lcd X:/
 wincmd w
-exe 'vert 1resize ' . ((&columns * 126 + 96) / 193)
-exe 'vert 2resize ' . ((&columns * 66 + 96) / 193)
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
 tabnext
-edit X:/dream/src/client.c
-let s:save_splitbelow = &splitbelow
-let s:save_splitright = &splitright
-set splitbelow splitright
-wincmd _ | wincmd |
-vsplit
-1wincmd h
-wincmd w
-let &splitbelow = s:save_splitbelow
-let &splitright = s:save_splitright
-wincmd t
-let s:save_winminheight = &winminheight
-let s:save_winminwidth = &winminwidth
-set winminheight=0
-set winheight=1
-set winminwidth=0
-set winwidth=1
-exe 'vert 1resize ' . ((&columns * 96 + 96) / 193)
-exe 'vert 2resize ' . ((&columns * 96 + 96) / 193)
+edit X:/dream/src/scene.c
 argglobal
-balt X:/dream/src/editor.c
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 29 - ((28 * winheight(0) + 35) / 70)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 29
-normal! 0
-lcd X:/
-wincmd w
-argglobal
-if bufexists(fnamemodify("X:/dream/src/scene.c", ":p")) | buffer X:/dream/src/scene.c | else | edit X:/dream/src/scene.c | endif
-if &buftype ==# 'terminal'
-  silent file X:/dream/src/scene.c
-endif
 balt X:/dream/src/scene.h
 setlocal fdm=manual
 setlocal fde=0
@@ -159,16 +122,13 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 35 - ((30 * winheight(0) + 35) / 70)
+let s:l = 66 - ((30 * winheight(0) + 35) / 71)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 35
+keepjumps 66
 normal! 0
 lcd X:/
-wincmd w
-exe 'vert 1resize ' . ((&columns * 96 + 96) / 193)
-exe 'vert 2resize ' . ((&columns * 96 + 96) / 193)
 tabnext
 edit X:/magma/src/player_fps.h
 let s:save_splitbelow = &splitbelow
@@ -191,11 +151,11 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe '1resize ' . ((&lines * 25 + 36) / 73)
-exe 'vert 1resize ' . ((&columns * 118 + 96) / 193)
-exe '2resize ' . ((&lines * 44 + 36) / 73)
-exe 'vert 2resize ' . ((&columns * 118 + 96) / 193)
-exe 'vert 3resize ' . ((&columns * 74 + 96) / 193)
+exe '1resize ' . ((&lines * 25 + 37) / 74)
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
+exe '2resize ' . ((&lines * 45 + 37) / 74)
+exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
 argglobal
 balt X:/magma/src/player_fps.c
 setlocal fdm=manual
@@ -208,20 +168,20 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 13 - ((12 * winheight(0) + 12) / 25)
+let s:l = 9 - ((8 * winheight(0) + 12) / 25)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 13
-normal! 052|
+keepjumps 9
+normal! 011|
 lcd X:/
 wincmd w
 argglobal
-if bufexists(fnamemodify("X:/dream/src/dreams.c", ":p")) | buffer X:/dream/src/dreams.c | else | edit X:/dream/src/dreams.c | endif
+if bufexists(fnamemodify("X:/magma/src/player_fps.c", ":p")) | buffer X:/magma/src/player_fps.c | else | edit X:/magma/src/player_fps.c | endif
 if &buftype ==# 'terminal'
-  silent file X:/dream/src/dreams.c
+  silent file X:/magma/src/player_fps.c
 endif
-balt X:/dream/src/editor.c
+balt X:/dream/src/dreams.c
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -232,20 +192,20 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 13 - ((12 * winheight(0) + 22) / 44)
+let s:l = 36 - ((35 * winheight(0) + 22) / 45)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 13
-normal! 058|
+keepjumps 36
+normal! 030|
 lcd X:/
 wincmd w
 argglobal
-if bufexists(fnamemodify("X:/dream/src/scene.c", ":p")) | buffer X:/dream/src/scene.c | else | edit X:/dream/src/scene.c | endif
+if bufexists(fnamemodify("X:/magma/src/entity.c", ":p")) | buffer X:/magma/src/entity.c | else | edit X:/magma/src/entity.c | endif
 if &buftype ==# 'terminal'
-  silent file X:/dream/src/scene.c
+  silent file X:/magma/src/entity.c
 endif
-balt X:/dream/src/scene.h
+balt X:/magma/src/entity.h
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -256,20 +216,107 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 37 - ((36 * winheight(0) + 35) / 70)
+let s:l = 38 - ((37 * winheight(0) + 35) / 71)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 38
+normal! 08|
+lcd X:/
+wincmd w
+2wincmd w
+exe '1resize ' . ((&lines * 25 + 37) / 74)
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
+exe '2resize ' . ((&lines * 45 + 37) / 74)
+exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
+tabnext
+edit X:/magma/src/array.h
+argglobal
+balt X:/magma/src/entity.c
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 1 - ((0 * winheight(0) + 35) / 71)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 1
+normal! 0
+lcd X:/
+tabnext
+edit X:/magma/src/entity.c
+let s:save_splitbelow = &splitbelow
+let s:save_splitright = &splitright
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd w
+let &splitbelow = s:save_splitbelow
+let &splitright = s:save_splitright
+wincmd t
+let s:save_winminheight = &winminheight
+let s:save_winminwidth = &winminwidth
+set winminheight=0
+set winheight=1
+set winminwidth=0
+set winwidth=1
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
+argglobal
+balt X:/dream/src/scene.c
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 39 - ((28 * winheight(0) + 35) / 71)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 39
+normal! 014|
+lcd X:/
+wincmd w
+argglobal
+if bufexists(fnamemodify("X:/magma/src/entity.h", ":p")) | buffer X:/magma/src/entity.h | else | edit X:/magma/src/entity.h | endif
+if &buftype ==# 'terminal'
+  silent file X:/magma/src/entity.h
+endif
+balt X:/magma/src/entity.c
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 37 - ((36 * winheight(0) + 35) / 71)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 37
-normal! 0
+normal! 024|
 lcd X:/
 wincmd w
-2wincmd w
-exe '1resize ' . ((&lines * 25 + 36) / 73)
-exe 'vert 1resize ' . ((&columns * 118 + 96) / 193)
-exe '2resize ' . ((&lines * 44 + 36) / 73)
-exe 'vert 2resize ' . ((&columns * 118 + 96) / 193)
-exe 'vert 3resize ' . ((&columns * 74 + 96) / 193)
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
 tabnext
 edit X:/magma/src/window.c
 argglobal
@@ -283,12 +330,12 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 38 - ((35 * winheight(0) + 34) / 69)
+let s:l = 2 - ((1 * winheight(0) + 35) / 70)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 38
-normal! 057|
+keepjumps 2
+normal! 0
 lcd X:/
 tabnext
 edit X:/magma/raylib/src/raylib.h
@@ -304,18 +351,18 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1155 - ((34 * winheight(0) + 34) / 69)
+let s:l = 1418 - ((34 * winheight(0) + 35) / 70)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1155
+keepjumps 1418
 normal! 012|
 lcd X:/
 tabnext
 argglobal
-if bufexists(fnamemodify("term://X://13116:C:/Windows/system32/cmd.exe", ":p")) | buffer term://X://13116:C:/Windows/system32/cmd.exe | else | edit term://X://13116:C:/Windows/system32/cmd.exe | endif
+if bufexists(fnamemodify("term://X://1020:C:/Windows/system32/cmd.exe", ":p")) | buffer term://X://1020:C:/Windows/system32/cmd.exe | else | edit term://X://1020:C:/Windows/system32/cmd.exe | endif
 if &buftype ==# 'terminal'
-  silent file term://X://13116:C:/Windows/system32/cmd.exe
+  silent file term://X://1020:C:/Windows/system32/cmd.exe
 endif
 balt X:/magma/raylib/src/raylib.h
 setlocal fdm=manual
@@ -326,12 +373,12 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 24 - ((21 * winheight(0) + 34) / 69)
+let s:l = 301 - ((69 * winheight(0) + 35) / 70)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 24
-normal! 0
+keepjumps 301
+normal! 08|
 lcd X:/
 tabnext 3
 set stal=1
@@ -346,7 +393,6 @@ if filereadable(s:sx)
   exe "source " . fnameescape(s:sx)
 endif
 let &g:so = s:so_save | let &g:siso = s:siso_save
-nohlsearch
 doautoall SessionLoadPost
 unlet SessionLoad
 " vim: set ft=vim :
