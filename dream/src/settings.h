@@ -8,6 +8,7 @@ typedef struct {
     bool freeCam;
     bool drawGrid;
     bool drawOutlines;
+    bool editorVisible;
 } UserSettings;
 
 extern UserSettings Settings;

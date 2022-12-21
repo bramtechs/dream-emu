@@ -29,6 +29,8 @@ int main()
 
     Scene* scene = dream_init_hub();
 
+    SetWindowState(FLAG_WINDOW_MAXIMIZED);
+
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {

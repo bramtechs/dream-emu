@@ -32,7 +32,7 @@ Scene* dream_init_hub(){
 void dream_update_hub(Scene* scene, float delta){
     // move skybox around
     Base *skyBase = GetArrayItem(scene->group->bases,0,Base);
-    skyBase->pos = scene->camera.position;
+    skyBase->pos = scene->player.camera.position;
     skyBase->rotation.z += 2.0f * delta;
 }
 

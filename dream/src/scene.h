@@ -23,12 +23,11 @@ inline Environment environment_default();
 struct Scene {
     Environment env;
     EntityGroup *group;
-    Camera camera;
+    PlayerFPS player;
 
     UPDATE_FUNC updateFunc;
 
     void* editor;
-    bool editorVisible;
 };
 
 Model scene_gen_skybox_model(const char* skybox);

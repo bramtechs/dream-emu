@@ -29,26 +29,13 @@ void editor_dispose(Editor* editor){
    M_MemFree(editor);
 }
 
-// TODO split this into relevant files
-// TODO this won't scale, make some kind of ECS system instead idk
-// void editor_entity_polled(Entity entity, EntityGroup* group){
-//     if (entity.components & COMP_BLOCK){
-//         Base *base = &((Block*) entity.content)->base; // woah! how ugly
-// 
-//         RayCollision col = GetMouseRayCollisionBase(*base,*ActiveScene->camera);
-//         if (col.hit && col.distance < 50) {
-//             DrawCubeWiresV(base->pos, base->size, GREEN);
-//         }
-//     }
-// }
-
 void editor_update_and_draw(Editor* editor, float delta)
 {
     assert(editor);
 
     if (PrevFPSMode != FPSMode){
         PrevFPSMode = FPSMode;
-        SetCameraMode(ActiveScene->camera,FPSMode ? CAMERA_FIRST_PERSON : CAMERA_FREE);
+        SetCameraMode(ActiveScene->player.camera,FPSMode ? CAMERA_FIRST_PERSON : CAMERA_FREE);
     }
 }
 

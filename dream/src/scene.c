@@ -31,18 +31,10 @@ Scene* scene_init(UPDATE_FUNC updateFunc)
     scene->group = CreateEntityGroup();
 
     scene->updateFunc = updateFunc;
-
-    Camera cam = { 0 };
-    cam.position = Vector3Zero();
-    cam.target = Vector3One();
-    cam.fovy = 80;
-    cam.projection = CAMERA_PERSPECTIVE;
-    cam.up = (Vector3){ 0.0f, 1.0f, 0.f };
-    SetCameraMode(cam, CAMERA_FREE);
-    scene->camera = cam;
+    scene->player = SpawnPlayerFPS(scene->group, 10.f);
+    TeleportPlayerFPS(&scene->player,(Vector3) {10,2,3} );
 
     scene->editor = editor_init(scene);
-    scene->editorVisible = true;
 
     return scene;
 }
@@ -53,9 +45,10 @@ void scene_update_and_render(Scene* scene, float delta)
 
     BeginMagmaDrawing();
 
-    UpdateCamera(&scene->camera);
+    Camera* cam = &scene->player.camera;
+    UpdateCamera(cam);
 
-    BeginMode3D(scene->camera);
+    BeginMode3D(scene->player.camera);
 
     ClearBackground(scene->env.skyColor);
 
@@ -66,7 +59,7 @@ void scene_update_and_render(Scene* scene, float delta)
     UpdateGroup(scene->group, delta);
     DrawGroup(scene->group);
 
-    if (scene->editorVisible) {
+    if (Settings.editorVisible) {
         editor_update_and_draw(scene->editor, delta);
         if (Settings.drawGrid) {
             DrawGrid(1000, 1);
@@ -92,11 +85,19 @@ void scene_update_and_render(Scene* scene, float delta)
 
 void scene_update_and_render_gui(Scene* scene, float delta)
 {
-    if (scene->editorVisible) {
-        scene->editorVisible = editor_update_and_draw_gui(scene->editor);
+    if (Settings.editorVisible) {
+        Settings.editorVisible = editor_update_and_draw_gui(scene->editor);
     }
     if (IsKeyPressed(KEY_F3)) {
-        scene->editorVisible = !scene->editorVisible;
+        Settings.editorVisible = !Settings.editorVisible;
+        if (Settings.editorVisible){
+            UnfocusPlayerFPS(&scene->player);
+        }else{
+            FocusPlayerFPS(&scene->player);
+        }
+    }
+    if (IsKeyPressed(KEY_HOME)) {
+        TeleportPlayerFPS(&scene->player, Vector3Zero());
     }
 }
 
