@@ -73,8 +73,6 @@ void scene_update_and_render(Scene* scene, float delta)
     }
     EndMode3D();
 
-    // ui drawing
-            //DrawCircleV(GetScaledMousePosition(), 4.f, RED);                              // Draw a color-filled circle
 
     DrawFPS(10, 10);
 
