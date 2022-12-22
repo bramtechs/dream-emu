@@ -1,3 +1,0 @@
-rm ./build/client/dreamemu_client
-cmake --build build -j${nproc}
-& ./build/client/dreamemu_client

@@ -1,0 +1,35 @@
+[remap]
+
+importer="texture"
+type="StreamTexture"
+path="res://.import/Tile_17-128x128.png-569cb50a8fcccea5e97c0bc3e0b9aae3.stex"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://assets/tile/Tile_17-128x128.png"
+dest_files=[ "res://.import/Tile_17-128x128.png-569cb50a8fcccea5e97c0bc3e0b9aae3.stex" ]
+
+[params]
+
+compress/mode=1
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=0
+flags/repeat=1
+flags/filter=false
+flags/mipmaps=false
+flags/anisotropic=false
+flags/srgb=2
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=false
+svg/scale=1.0

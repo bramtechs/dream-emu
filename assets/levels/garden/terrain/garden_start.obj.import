@@ -1,0 +1,20 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/garden_start.obj-6a360dca56970cb8dbe3a975bb21301e.mesh"
+
+[deps]
+
+files=[ "res://.import/garden_start.obj-6a360dca56970cb8dbe3a975bb21301e.mesh" ]
+
+source_file="res://assets/levels/garden/terrain/garden_start.obj"
+dest_files=[ "res://.import/garden_start.obj-6a360dca56970cb8dbe3a975bb21301e.mesh", "res://.import/garden_start.obj-6a360dca56970cb8dbe3a975bb21301e.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+octahedral_compression=true
+optimize_mesh_flags=4286

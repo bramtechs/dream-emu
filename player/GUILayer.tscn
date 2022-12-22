@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://assets/GUITheme.tres" type="Theme" id=1]
+[ext_resource path="res://player/player_gui.gd" type="Script" id=2]
+
+[node name="GUILayer" type="CanvasLayer"]
+script = ExtResource( 2 )
+
+[node name="FPSLabel" type="Label" parent="."]
+margin_left = 9.0
+margin_top = 10.0
+margin_right = 178.0
+margin_bottom = 49.0
+theme = ExtResource( 1 )
+text = "FPS 0"
