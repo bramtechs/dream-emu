@@ -60,6 +60,9 @@ void scene_update_and_render(Scene* scene, float delta)
 
     UpdateGroup(scene->group, delta);
     DrawGroup(scene->group);
+    if (Settings.drawOutlines){
+        DrawGroupOutlines(scene->group, cam);
+    }
 
     DrawSphere(scene->player.camera.position, 0.2f, GREEN);
     DrawSphere(Feet, 0.3f, PURPLE);
@@ -98,7 +101,8 @@ void scene_update_and_render_gui(Scene* scene, float delta)
         Settings.editorVisible = !Settings.editorVisible;
         if (Settings.editorVisible){
             UnfocusPlayerFPS(&scene->player);
-        }else{
+            SetCameraMode(scene->player.camera,CAMERA_FREE);
+        } else {
             FocusPlayerFPS(&scene->player);
         }
     }

@@ -4,3 +4,6 @@
 [submodule "emsdk"]
 	path = emsdk
 	url = https://github.com/emscripten-core/emsdk.git
+[submodule "dream-emu/godot-headers"]
+	path = dream-emu/godot-headers
+	url = https://github.com/godotengine/godot-headers.git
