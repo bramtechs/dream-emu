@@ -10,6 +10,7 @@ bool LastLockFramerate = true;
 
 int main()
 {
+
     // Initialization
     //--------------------------------------------------------------------------------------
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH*SCALE, HEIGHT*SCALE, "DREAM_EMU");
@@ -20,7 +21,7 @@ int main()
 
     SetTargetFPS(60);
 
-    SetTraceLogLevel(LOG_INFO);
+    SetTraceLogLevel(LOG_DEBUG);
 
     InitAssets("assets");
 
@@ -31,11 +32,13 @@ int main()
 
     SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
+    TestList();
+
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         if (LastLockFramerate != Settings.unlockFrameRate){
-            SetTargetFPS(Settings.unlockFrameRate ? 1000:60);
+            SetTargetFPS(Settings.unlockFrameRate ? 6969:60);
             LastLockFramerate = Settings.unlockFrameRate;
         }
 

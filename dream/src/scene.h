@@ -20,13 +20,19 @@ typedef struct {
 
 inline Environment environment_default();
 
-struct Scene {
+typedef struct {
     Environment env;
-    EntityGroup *group;
+    PlayerFPS player;
+} SceneConfig;
+
+struct Scene {
+
+    Environment env;
     PlayerFPS player;
 
     UPDATE_FUNC updateFunc;
 
+    EntityGroup *group;
     void* editor;
 };
 
