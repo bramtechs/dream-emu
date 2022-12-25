@@ -32,8 +32,6 @@ int main()
 
     SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
-    TestList();
-
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
