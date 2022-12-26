@@ -10,7 +10,8 @@ static bool FPSMode = false;
 static bool PrevFPSMode = false;
 
 static Model Models[MAX_MODELS];
-static int ModelCount = 1;
+static int ModelCount = 10;
+static int SelectedModel = 0;
 
 static float ElapsedTime;
 
@@ -90,22 +91,35 @@ bool editor_update_and_draw_gui(Editor* editor)
     DrawLog(700,50,24);
 
     int SIZE = 256;
-    if (((int)ElapsedTime) % 2 == 1){
-        DrawText("SPAWN MENU", 650, 250, 36, YELLOW);
-        DrawRectangle(GetScreenWidth()/2-SIZE/2,GetScreenHeight()/2-SIZE/2,SIZE,SIZE,GRAY);
-    }
+	if (((int)ElapsedTime) % 2 == 1){
+		DrawText(TextFormat("SPAWN MENU (%d)",SelectedModel), 650, 250, 36, YELLOW);
+		DrawRectangleLines(GetScreenWidth()/2-SIZE/2,GetScreenHeight()/2-SIZE/2,SIZE,SIZE,RED);
+	}
 
     BeginMode3D(cam);
 
     // draw catalog preview
-    Vector3 pos = { 0, 0, 0 };
+    Vector3 pos = { -ModelCount/2, 0, 0 };
+    pos.x = SelectedModel;
     for (int i = 0; i < ModelCount; i++){
         Model model = Models[i];
         BoundingBox box = GetModelBoundingBox(model);
         float diameter = Vector3Length(Vector3Subtract(box.max,box.min));
         float scale = 1 / diameter;
-        DrawModelEx(model, pos, (Vector3) { 1,0.5f,0.3f } , ElapsedTime*40.f, (Vector3) { scale, scale, scale}, WHITE);
+        DrawModelEx(model, pos, (Vector3) { 1,0.5f,0.3f } , (i*10.f)+ElapsedTime*40.f, (Vector3) { scale, scale, scale }, WHITE);
+
+        pos.x--;
     }
+
+    if (IsKeyPressed(KEY_LEFT)) {
+        SelectedModel--;
+    }
+
+    if (IsKeyPressed(KEY_RIGHT)) {
+        SelectedModel++;
+    }
+
+    SelectedModel = Clamp(SelectedModel,0, ModelCount-1);
 
     ElapsedTime += GetFrameTime();
 
