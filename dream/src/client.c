@@ -25,7 +25,7 @@ int main()
 
     InitAssets("assets");
 
-    //TestArrays();
+    TestList();
 
     //Scene* scene = dream_init_hub();
     Scene* scene = dream_init_garden();
