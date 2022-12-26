@@ -16,8 +16,8 @@ Scene* dream_init_hub(){
         Model sky = scene_gen_skybox_model("sky/sky.png");
         EntityID id = AddEntity(scene->group);
 
-        Base base = CreateDefaultBase();
-        ModelRenderer renderer = CreateModelRenderer(sky, &base);
+        Base base = CreateDefaultBase(id);
+        ModelRenderer renderer = CreateModelRenderer(id, sky, &base);
 
         AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
         AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
@@ -25,9 +25,9 @@ Scene* dream_init_hub(){
 
     {
         EntityID id = AddEntity(scene->group);
-        Base base = CreateBase(Vector3Zero(), RAYWHITE);
+        Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
 
-        ModelRenderer renderer = CreateModelRendererFromFile("levels/hub/hub.obj",&base);
+        ModelRenderer renderer = CreateModelRendererFromFile(id,"levels/hub/hub.obj",&base);
 
         AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
         AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
@@ -45,11 +45,11 @@ Scene* dream_init_garden(){
 
     EntityID id = AddEntity(scene->group);
 
-    Base base = CreateDefaultBase();
-    ModelRenderer renderer = CreateModelRendererFromFile("levels/garden/garden_start.obj",&base);
+    Base base = CreateDefaultBase(id);
+    ModelRenderer renderer = CreateModelRendererFromFile(id,"levels/garden/garden_start.obj",&base);
 
-	AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
-	AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+	AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base));
+	AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer));
 
     return scene;
 }
