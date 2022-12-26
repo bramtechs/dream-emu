@@ -1,11 +1,18 @@
 #include "editor.h"
 
+#define MAX_MODELS 128
+
 static Scene* ActiveScene = NULL;
 
 static int LayoutY = 0;
 
 static bool FPSMode = false;
 static bool PrevFPSMode = false;
+
+static Model Models[MAX_MODELS];
+static int ModelCount = 1;
+
+static float ElapsedTime;
 
 static Rectangle LAYOUT(int x, int w, int h){
 
@@ -19,8 +26,13 @@ static Rectangle LAYOUT(int x, int w, int h){
 
 Editor* editor_init(SCENE* scene){
     Editor *editor = new(Editor);
-
     ActiveScene = (Scene*) scene;
+
+    FilePathList models = IndexModels("");
+    for (int i = 0; i < ModelCount; i++){
+        const char* path = models.paths[i];
+        Models[i] = LoadModel(path);
+    }
 
     return editor;
 }
@@ -67,6 +79,37 @@ bool editor_update_and_draw_gui(Editor* editor)
     Settings.drawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", Settings.drawOutlines);
     Settings.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Settings.drawGrid);
     Settings.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Settings.freeCam);
+
+    Camera cam = { 0 };
+    cam.position = (Vector3){ 0, 0, -10 };
+    cam.up = (Vector3){ 0, 1, 1 };
+    cam.fovy = 45;
+    cam.projection = CAMERA_PERSPECTIVE;
+
+    // vomit out log
+    DrawLog(700,50,24);
+
+    int SIZE = 256;
+    if (((int)ElapsedTime) % 2 == 1){
+        DrawText("SPAWN MENU", 650, 250, 36, YELLOW);
+        DrawRectangle(GetScreenWidth()/2-SIZE/2,GetScreenHeight()/2-SIZE/2,SIZE,SIZE,GRAY);
+    }
+
+    BeginMode3D(cam);
+
+    // draw catalog preview
+    Vector3 pos = { 0, 0, 0 };
+    for (int i = 0; i < ModelCount; i++){
+        Model model = Models[i];
+        BoundingBox box = GetModelBoundingBox(model);
+        float diameter = Vector3Length(Vector3Subtract(box.max,box.min));
+        float scale = 1 / diameter;
+        DrawModelEx(model, pos, (Vector3) { 1,0.5f,0.3f } , ElapsedTime*40.f, (Vector3) { scale, scale, scale}, WHITE);
+    }
+
+    ElapsedTime += GetFrameTime();
+
+    EndMode3D();
 
     return visible;
 }

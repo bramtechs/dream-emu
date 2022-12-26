@@ -82,7 +82,7 @@ void scene_update_and_render(Scene* scene, float delta)
     Feet = UpdatePlayerFPS(&scene->player,scene->group,delta);
 
     if (((int)GetTime()) % 2 == 0) {
-        DrawText("DEMO DISC", WIDTH - MeasureText("DEMO DISC ", 20), HEIGHT - 20, 20, WHITE);
+        DrawText("DEV-DISC", WIDTH - MeasureText("DEV-DISC ", 20), HEIGHT - 20, 20, WHITE);
     }
 
     EndMagmaDrawing();
