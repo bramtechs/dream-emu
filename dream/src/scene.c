@@ -59,7 +59,7 @@ void scene_update_and_render(Scene* scene, float delta)
     }
 
     UpdateGroup(scene->group, delta);
-    DrawGroup(scene->group);
+    DrawGroup(scene->group,&scene->player.camera,false);
     if (Settings.drawOutlines){
         DrawGroupOutlines(scene->group, cam);
     }
