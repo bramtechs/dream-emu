@@ -1,0 +1,13 @@
+# Blender MTL File: 'Japanese_Temple.blend'
+# Material Count: 1
+
+newmtl Japanese_Shrine_Mat
+Ns 179.999996
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Kd X:\\assets\\meshes\\Japanese_Temple_Model\\Textures\\Japanese_Temple_Paint2_Japanese_Shrine_Mat_AlbedoTransparency.png

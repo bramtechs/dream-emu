@@ -2,6 +2,39 @@
 
 static Scene* ActiveScene = NULL;
 
+static EditorMode Modes[EDITOR_MODE_COUNT] = {
+    {
+        EDITOR_NORMAL,
+        "Normal Mode",
+        KEY_ESCAPE,
+        { 255, 255, 255, 255 },
+    },
+    {
+        EDITOR_SPAWN,
+        "Spawn Mode",
+        KEY_I,
+        { 0, 228, 48, 255 },
+    },
+    {
+        EDITOR_MOVE,
+        "Move Mode",
+        KEY_G,
+        { 230, 41, 55, 255 },
+    },
+    {
+        EDITOR_ROTATE,
+        "Rotation Mode",
+        KEY_R,
+        { 255, 109, 194, 255 },
+    },
+    {
+        EDITOR_SCALE,
+        "Scale Mode",
+        KEY_S,
+        { 200, 122, 255, 255 },
+    },
+};
+
 static int LayoutY = 0;
 
 static Rectangle LAYOUT(int x, int w, int h){
@@ -31,53 +64,12 @@ void editor_dispose(Editor* editor){
    M_MemFree(editor);
 }
 
-void editor_update_and_draw(Editor* editor, float delta)
-{
-    assert(editor);
-
-    if (editor->prevFreecamMode != Settings.freeCam){
-        editor->prevFreecamMode = Settings.freeCam;
-        SetCameraMode(ActiveScene->player.camera,Settings.freeCam ? CAMERA_FIRST_PERSON : CAMERA_FREE);
-    }
-}
-
-bool editor_update_and_draw_gui(Editor* e)
-{
-    assert(e);
-    assert(ActiveScene);
-
-    int WIN_X = 10;
-    int WIN_Y = 10;
-    int WIN_W = 300;
-    int WIN_H = 700;
-
-    LayoutY = WIN_Y + 40;
-
-    Rectangle rect = {WIN_X, WIN_Y, WIN_W, WIN_H};
-    bool visible = !GuiWindowBox(rect, "Editor");
-
-    ActiveScene->env.skyColor.r = GuiSlider(LAYOUT(40,100,20),"Red","255",ActiveScene->env.skyColor.r,0.f,255.f);
-    ActiveScene->env.skyColor.g = GuiSlider(LAYOUT(40,100,20),"Green","255",ActiveScene->env.skyColor.g,0.f,255.f);
-    ActiveScene->env.skyColor.b = GuiSlider(LAYOUT(40,100,20),"Blue","255",ActiveScene->env.skyColor.b,0.f,255.f);
-
-    char* fogStr = TextFormat("%f",ActiveScene->env.fogDistance);
-    ActiveScene->env.fogDistance = GuiSlider(LAYOUT(40,100,20), "Fog", fogStr, ActiveScene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
-
-    GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
-
-    Settings.unlockFrameRate = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock framerate (not recommended)", Settings.unlockFrameRate);
-    Settings.drawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", Settings.drawOutlines);
-    Settings.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Settings.drawGrid);
-    Settings.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Settings.freeCam);
-
+void editor_update_and_draw_spawner(Editor* e){
     Camera cam = { 0 };
     cam.position = (Vector3){ 0, 0, -10 };
     cam.up = (Vector3){ 0, 1, 1 };
     cam.fovy = 45;
     cam.projection = CAMERA_PERSPECTIVE;
-
-    // vomit out log
-    DrawLog(700,50,24);
 
     int SIZE = 256;
     if (((int)e->elapsedTime) % 2 == 1){
@@ -100,18 +92,104 @@ bool editor_update_and_draw_gui(Editor* e)
         pos.x--;
     }
 
-    if (IsKeyPressed(KEY_LEFT)) {
+    if (IsKeyPressed(KEY_LEFT) && e->selectedModel > 0) {
         e->selectedModel--;
     }
 
-    if (IsKeyPressed(KEY_RIGHT)) {
+    if (IsKeyPressed(KEY_RIGHT) && e->selectedModel < e->modelCount-1) {
         e->selectedModel++;
     }
 
-    e->selectedModel = Clamp(e->selectedModel,0, e->modelCount-1);
+    if (IsKeyPressed(KEY_ENTER)){
+        Model model = e->models[e->selectedModel];
+
+        // spawn new entity
+        EntityID id = AddEntity(ActiveScene->group);
+        Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
+
+        ModelRenderer renderer = CreateModelRenderer(id,model,&base);
+
+        AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
+        AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+
+        e->mode = EDITOR_MOVE;
+    }
+
     e->elapsedTime += GetFrameTime();
 
     EndMode3D();
+}
+
+void editor_update_and_draw(Editor* editor, float delta)
+{
+    assert(editor);
+
+    if (editor->prevFreecamMode != Settings.freeCam){
+        editor->prevFreecamMode = Settings.freeCam;
+        SetCameraMode(ActiveScene->player.camera,Settings.freeCam ? CAMERA_FIRST_PERSON : CAMERA_FREE);
+    }
+}
+
+bool editor_update_and_draw_gui(Editor* e)
+{
+    assert(e);
+    assert(ActiveScene);
+
+    int WIN_X = 10;
+    int WIN_Y = 10;
+    int WIN_W = 300;
+    int WIN_H = 700;
+
+    LayoutY = WIN_Y + 40;
+
+    EditorMode curMode = Modes[e->mode];
+
+    Rectangle rect = {WIN_X, WIN_Y, WIN_W, WIN_H};
+    bool visible = !GuiWindowBox(rect, curMode.name);
+
+    ActiveScene->env.skyColor.r = GuiSlider(LAYOUT(40,100,20),"Red","255",ActiveScene->env.skyColor.r,0.f,255.f);
+    ActiveScene->env.skyColor.g = GuiSlider(LAYOUT(40,100,20),"Green","255",ActiveScene->env.skyColor.g,0.f,255.f);
+    ActiveScene->env.skyColor.b = GuiSlider(LAYOUT(40,100,20),"Blue","255",ActiveScene->env.skyColor.b,0.f,255.f);
+
+    char* fogStr = TextFormat("%f",ActiveScene->env.fogDistance);
+    ActiveScene->env.fogDistance = GuiSlider(LAYOUT(40,100,20), "Fog", fogStr, ActiveScene->env.fogDistance, 0.f, 1.f);       // Slider control, returns selected value
+
+    GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
+
+    Settings.unlockFrameRate = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock framerate (not recommended)", Settings.unlockFrameRate);
+    Settings.drawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", Settings.drawOutlines);
+    Settings.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Settings.drawGrid);
+    Settings.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Settings.freeCam);
+
+    // vomit out log
+    DrawLog(350,80,24);
+
+    DrawText(curMode.name,350,HEIGHT-50,36,curMode.color);
+
+    // check keys
+    for (int i = 0; i < EDITOR_MODE_COUNT; i++){
+        if (IsKeyPressed(Modes[i].key)){
+            e->mode = i;
+            break;
+        }
+    }
+
+    switch (e->mode){
+        case EDITOR_NORMAL:
+            break;
+        case EDITOR_MOVE:
+            break;
+        case EDITOR_ROTATE:
+            break;
+        case EDITOR_SCALE:
+            break;
+        case EDITOR_SPAWN:
+            editor_update_and_draw_spawner(e);
+            break;
+
+        default:
+            assert(false);
+    }
 
     return visible;
 }

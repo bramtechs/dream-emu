@@ -8,20 +8,25 @@
 
 #define MAX_MODELS 128
 
+#define EDITOR_NORMAL      0
+#define EDITOR_SPAWN       1
+#define EDITOR_MOVE        2
+#define EDITOR_ROTATE      3
+#define EDITOR_SCALE       4
+#define EDITOR_MODE_COUNT  5
+
 // bandaid fix to avoid circular dependencies
 typedef void SCENE;
 
-typedef enum {
-    EDITOR_NORMAL,
-    EDITOR_SPAWN,
-    EDITOR_MOVE,
-    EDITOR_ROTATE,
-    EDITOR_SCALE
+typedef struct {
+    size_t id;
+    const char name[40];
+    KeyboardKey key;
+    Color color;
 } EditorMode;
 
 typedef struct {
-    int id;
-    EditorMode mode;
+    size_t mode;
     EntityID subject;
 
     float elapsedTime;
