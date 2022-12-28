@@ -1,22 +1,10 @@
 #include "editor.h"
 
-#define MAX_MODELS 128
-
 static Scene* ActiveScene = NULL;
 
 static int LayoutY = 0;
 
-static bool FPSMode = false;
-static bool PrevFPSMode = false;
-
-static Model Models[MAX_MODELS];
-static int ModelCount = 10;
-static int SelectedModel = 0;
-
-static float ElapsedTime;
-
 static Rectangle LAYOUT(int x, int w, int h){
-
     Rectangle rect = {
         x,LayoutY,w,h
     };
@@ -30,9 +18,10 @@ Editor* editor_init(SCENE* scene){
     ActiveScene = (Scene*) scene;
 
     FilePathList models = IndexModels("");
-    for (int i = 0; i < ModelCount; i++){
+    editor->modelCount = models.count;
+    for (int i = 0; i < editor->modelCount; i++){
         const char* path = models.paths[i];
-        Models[i] = LoadModel(path);
+        editor->models[i] = LoadModel(path);
     }
 
     return editor;
@@ -46,15 +35,15 @@ void editor_update_and_draw(Editor* editor, float delta)
 {
     assert(editor);
 
-    if (PrevFPSMode != FPSMode){
-        PrevFPSMode = FPSMode;
-        SetCameraMode(ActiveScene->player.camera,FPSMode ? CAMERA_FIRST_PERSON : CAMERA_FREE);
+    if (editor->prevFreecamMode != Settings.freeCam){
+        editor->prevFreecamMode = Settings.freeCam;
+        SetCameraMode(ActiveScene->player.camera,Settings.freeCam ? CAMERA_FIRST_PERSON : CAMERA_FREE);
     }
 }
 
-bool editor_update_and_draw_gui(Editor* editor)
+bool editor_update_and_draw_gui(Editor* e)
 {
-    assert(editor);
+    assert(e);
     assert(ActiveScene);
 
     int WIN_X = 10;
@@ -91,37 +80,36 @@ bool editor_update_and_draw_gui(Editor* editor)
     DrawLog(700,50,24);
 
     int SIZE = 256;
-	if (((int)ElapsedTime) % 2 == 1){
-		DrawText(TextFormat("SPAWN MENU (%d)",SelectedModel), 650, 250, 36, YELLOW);
-		DrawRectangleLines(GetScreenWidth()/2-SIZE/2,GetScreenHeight()/2-SIZE/2,SIZE,SIZE,RED);
-	}
+    if (((int)e->elapsedTime) % 2 == 1){
+        DrawText(TextFormat("SPAWN MENU (%d)",e->selectedModel), 650, 250, 36, YELLOW);
+        DrawRectangleLines(GetScreenWidth()/2-SIZE/2,GetScreenHeight()/2-SIZE/2,SIZE,SIZE,RED);
+    }
 
     BeginMode3D(cam);
 
     // draw catalog preview
-    Vector3 pos = { -ModelCount/2, 0, 0 };
-    pos.x = SelectedModel;
-    for (int i = 0; i < ModelCount; i++){
-        Model model = Models[i];
+    Vector3 pos = { -e->modelCount/2, 0, 0 };
+    pos.x = e->selectedModel;
+    for (int i = 0; i < e->modelCount; i++){
+        Model model = e->models[i];
         BoundingBox box = GetModelBoundingBox(model);
         float diameter = Vector3Length(Vector3Subtract(box.max,box.min));
         float scale = 1 / diameter;
-        DrawModelEx(model, pos, (Vector3) { 1,0.5f,0.3f } , (i*10.f)+ElapsedTime*40.f, (Vector3) { scale, scale, scale }, WHITE);
+        DrawModelEx(model, pos, (Vector3) { 1,0.5f,0.3f } , (i*10.f)+e->elapsedTime*40.f, (Vector3) { scale, scale, scale }, WHITE);
 
         pos.x--;
     }
 
     if (IsKeyPressed(KEY_LEFT)) {
-        SelectedModel--;
+        e->selectedModel--;
     }
 
     if (IsKeyPressed(KEY_RIGHT)) {
-        SelectedModel++;
+        e->selectedModel++;
     }
 
-    SelectedModel = Clamp(SelectedModel,0, ModelCount-1);
-
-    ElapsedTime += GetFrameTime();
+    e->selectedModel = Clamp(e->selectedModel,0, e->modelCount-1);
+    e->elapsedTime += GetFrameTime();
 
     EndMode3D();
 
