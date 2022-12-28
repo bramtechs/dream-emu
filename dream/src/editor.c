@@ -60,11 +60,49 @@ Editor* editor_init(SCENE* scene){
     return editor;
 }
 
+void editor_print_transform(Editor* e, Base* base){
+    Color color = Modes[e->mode].color;
+    DrawText(TextFormat("x %f\ny %f\nz %f",base->pos.x,base->pos.y,base->pos.z), 150, 550, 16, color);
+}
+
 void editor_dispose(Editor* editor){
    M_MemFree(editor);
 }
 
-void editor_update_and_draw_spawner(Editor* e){
+void editor_move_gui(Editor* e, Base* base){
+    editor_print_transform(e, base);
+}
+
+void editor_move(Editor* e, Base* base){
+
+    Vector2 delta = Vector2Scale(GetMouseDelta(),0.5f);
+    if (IsKeyDown(KEY_G)){
+        base->pos = ActiveScene->player.feet;
+    }
+    if (IsKeyDown(KEY_ENTER)){
+        Ray ray = { 0 };
+        ray.position = Vector3Add(base->pos, (Vector3) { 0.f, -0.01f, 0.f });
+		ray.direction = (Vector3) {0,-1,0};
+
+		RayCollision col = GetRayCollisionGroup(ActiveScene->group, ray);
+        if (col.hit) {
+            base->pos = col.point;
+        }
+    }
+
+    if (IsKeyDown(KEY_X)){
+        base->pos.x += delta.x;
+    }
+    if (IsKeyDown(KEY_Y)){
+        base->pos.y -= delta.y;
+    }
+    if (IsKeyDown(KEY_Z)){
+        base->pos.z += delta.x;
+    }
+
+}
+
+void editor_spawner_gui(Editor* e){
     Camera cam = { 0 };
     cam.position = (Vector3){ 0, 0, -10 };
     cam.up = (Vector3){ 0, 1, 1 };
@@ -113,6 +151,7 @@ void editor_update_and_draw_spawner(Editor* e){
         AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
 
         e->mode = EDITOR_MOVE;
+        e->subject = id;
     }
 
     e->elapsedTime += GetFrameTime();
@@ -120,14 +159,19 @@ void editor_update_and_draw_spawner(Editor* e){
     EndMode3D();
 }
 
-void editor_update_and_draw(Editor* editor, float delta)
+void editor_update_and_draw(Editor* e, float delta)
 {
-    assert(editor);
+    assert(e);
 
-    if (editor->prevFreecamMode != Settings.freeCam){
-        editor->prevFreecamMode = Settings.freeCam;
+    if (e->prevFreecamMode != Settings.freeCam){
+        e->prevFreecamMode = Settings.freeCam;
         SetCameraMode(ActiveScene->player.camera,Settings.freeCam ? CAMERA_FIRST_PERSON : CAMERA_FREE);
     }
+
+    // highlight selected
+    Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);
+    BoundingBox box = GetBaseBounds(*subjectBase);
+    DrawBoundingBox(box, Modes[e->mode].color);
 }
 
 bool editor_update_and_draw_gui(Editor* e)
@@ -161,11 +205,15 @@ bool editor_update_and_draw_gui(Editor* e)
     Settings.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Settings.drawGrid);
     Settings.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Settings.freeCam);
 
+    // get current selected base
+    Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);
+    BoundingBox box = GetBaseBounds(*subjectBase);
+
     // vomit out log
     DrawLog(350,80,24);
 
     DrawText(curMode.name,350,HEIGHT-50,36,curMode.color);
-
+    
     // check keys
     for (int i = 0; i < EDITOR_MODE_COUNT; i++){
         if (IsKeyPressed(Modes[i].key)){
@@ -178,13 +226,15 @@ bool editor_update_and_draw_gui(Editor* e)
         case EDITOR_NORMAL:
             break;
         case EDITOR_MOVE:
+            editor_move(e,subjectBase);
+            editor_move_gui(e,subjectBase);
             break;
         case EDITOR_ROTATE:
             break;
         case EDITOR_SCALE:
             break;
         case EDITOR_SPAWN:
-            editor_update_and_draw_spawner(e);
+            editor_spawner_gui(e);
             break;
 
         default:

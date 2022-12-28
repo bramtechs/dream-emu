@@ -26,7 +26,6 @@ typedef struct {
 } SceneConfig;
 
 struct Scene {
-
     Environment env;
     PlayerFPS player;
 
