@@ -62,7 +62,8 @@ Editor* editor_init(SCENE* scene){
 
 void editor_print_transform(Editor* e, Base* base){
     Color color = Modes[e->mode].color;
-    DrawText(TextFormat("x %f\ny %f\nz %f",base->pos.x,base->pos.y,base->pos.z), 150, 550, 16, color);
+    Vector3 center = base->center;
+    DrawText(TextFormat("center\nx %f\ny %f\nz %f",center.x,center.y,center.z), 150, 550, 16, color);
 }
 
 void editor_dispose(Editor* editor){
@@ -77,35 +78,39 @@ void editor_move(Editor* e, Base* base){
 
     Vector2 delta = Vector2Scale(GetMouseDelta(),0.5f);
     if (IsKeyDown(KEY_F)){
-        base->pos = ActiveScene->player.feet;
+        SetBaseCenter(base, ActiveScene->player.feet);
     }
+
     if (IsKeyDown(KEY_ENTER)){
         Ray ray = { 0 };
-        ray.position = Vector3Add(base->pos, (Vector3) { 0.f, -0.01f, 0.f });
+        ray.position = Vector3Add(base->center, (Vector3) { 0.f, -0.01f, 0.f });
         ray.direction = (Vector3) {0,-1,0};
 
         RayCollision col = GetRayCollisionGroup(ActiveScene->group, ray);
         if (col.hit) {
-            base->pos = col.point;
+            SetBaseCenter(base,col.point);
         }
     }
 
     if (IsKeyDown(KEY_X)){
-        base->pos.x += delta.x;
+        TranslateBaseX(base,delta.x);
     }
     if (IsKeyDown(KEY_Y)){
-        base->pos.y -= delta.y;
+        TranslateBaseX(base,-delta.y);
     }
     if (IsKeyDown(KEY_Z)){
-        base->pos.z += delta.x;
+        TranslateBaseZ(base,delta.x);
     }
     if (IsKeyDown(KEY_ZERO)){
-        base->pos = Vector3Zero();
+        TranslateBaseZero(base);
     }
     if (IsKeyDown(KEY_TAB)){
-        base->pos.x = floorf(base->pos.x);
-        base->pos.y = floorf(base->pos.y);
-        base->pos.z = floorf(base->pos.z);
+        Vector3 pos = {
+            floorf(base->center.x),
+            floorf(base->center.y),
+            floorf(base->center.z),
+        };
+        SetBaseCenter(base,pos);
     }
 
 }
@@ -178,8 +183,7 @@ void editor_update_and_draw(Editor* e, float delta)
 
     // highlight selected
     Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);
-    BoundingBox box = GetBaseBounds(*subjectBase);
-    DrawBoundingBox(box, Modes[e->mode].color);
+    DrawBoundingBox(subjectBase->bounds, Modes[e->mode].color);
 
     // change selected subject on clicking it
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
@@ -226,7 +230,6 @@ bool editor_update_and_draw_gui(Editor* e)
 
     // get current selected base
     Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);
-    BoundingBox box = GetBaseBounds(*subjectBase);
 
     // vomit out log
     DrawLog(350,80,24);

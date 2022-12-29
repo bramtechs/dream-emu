@@ -3,8 +3,8 @@
 void dream_update_hub(Scene* scene, float delta){
     // move skybox around
     Base *skyBase = GetEntityComponent(scene->group,0,COMP_BASE);
-    skyBase->pos = scene->player.camera.position;
-    skyBase->rotation.z += 2.0f * delta;
+    SetBaseCenter(skyBase,scene->player.camera.position);
+    // skyBase->rotation.z += 2.0f * delta;
 }
 
 Scene* dream_init_hub(){
@@ -47,6 +47,7 @@ Scene* dream_init_garden(){
 
     Base base = CreateDefaultBase(id);
     ModelRenderer renderer = CreateModelRendererFromFile(id,"levels/garden/garden_start.obj",&base);
+    renderer.accurate = true;
 
 	AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base));
 	AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer));
