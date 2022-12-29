@@ -76,15 +76,15 @@ void editor_move_gui(Editor* e, Base* base){
 void editor_move(Editor* e, Base* base){
 
     Vector2 delta = Vector2Scale(GetMouseDelta(),0.5f);
-    if (IsKeyDown(KEY_G)){
+    if (IsKeyDown(KEY_F)){
         base->pos = ActiveScene->player.feet;
     }
     if (IsKeyDown(KEY_ENTER)){
         Ray ray = { 0 };
         ray.position = Vector3Add(base->pos, (Vector3) { 0.f, -0.01f, 0.f });
-		ray.direction = (Vector3) {0,-1,0};
+        ray.direction = (Vector3) {0,-1,0};
 
-		RayCollision col = GetRayCollisionGroup(ActiveScene->group, ray);
+        RayCollision col = GetRayCollisionGroup(ActiveScene->group, ray);
         if (col.hit) {
             base->pos = col.point;
         }
@@ -98,6 +98,14 @@ void editor_move(Editor* e, Base* base){
     }
     if (IsKeyDown(KEY_Z)){
         base->pos.z += delta.x;
+    }
+    if (IsKeyDown(KEY_ZERO)){
+        base->pos = Vector3Zero();
+    }
+    if (IsKeyDown(KEY_TAB)){
+        base->pos.x = floorf(base->pos.x);
+        base->pos.y = floorf(base->pos.y);
+        base->pos.z = floorf(base->pos.z);
     }
 
 }
@@ -172,6 +180,17 @@ void editor_update_and_draw(Editor* e, float delta)
     Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);
     BoundingBox box = GetBaseBounds(*subjectBase);
     DrawBoundingBox(box, Modes[e->mode].color);
+
+    // change selected subject on clicking it
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+        Base* base = NULL;
+        if (GetMousePickedBase(ActiveScene->group,ActiveScene->player.camera,&base)){
+            EntityID id = base->id;
+
+            e->subject = id;
+            DEBUG("Changed editor subject to %d",id);
+        }
+    }
 }
 
 bool editor_update_and_draw_gui(Editor* e)
