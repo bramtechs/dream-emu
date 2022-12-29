@@ -96,13 +96,13 @@ void editor_move(Editor* e, Base* base){
         TranslateBaseX(base,delta.x);
     }
     if (IsKeyDown(KEY_Y)){
-        TranslateBaseX(base,-delta.y);
+        TranslateBaseY(base,-delta.y);
     }
     if (IsKeyDown(KEY_Z)){
         TranslateBaseZ(base,delta.x);
     }
     if (IsKeyDown(KEY_ZERO)){
-        TranslateBaseZero(base);
+        ResetBaseTranslation(base);
     }
     if (IsKeyDown(KEY_TAB)){
         Vector3 pos = {
