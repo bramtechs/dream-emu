@@ -13,6 +13,7 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
+badd +0 X:/
 badd +1 ~/TODO.md
 badd +1 X:/run
 badd +126 ~/AppData/Local/nvim/init.vim
@@ -20,15 +21,15 @@ badd +10 X:/dream/src/client.c
 badd +34 X:/magma/src/window.c
 badd +1 X:/magma/src/window.h
 badd +1494 X:/magma/raylib/src/raylib.h
-badd +48 X:/dream/src/editor.c
+badd +1 X:/dream/src/editor.c
 badd +50 X:/dream/src/editor.h
 badd +44 X:/magma/src/entity.h
-badd +170 X:/magma/src/entity.c
-badd +0 term://X://11604:C:/Windows/system32/cmd.exe
-badd +0 term://X://18752:C:/Windows/system32/cmd.exe
+badd +1 X:/magma/src/entity.c
+badd +1 term://X://11604:C:/Windows/system32/cmd.exe
+badd +1 term://X://18752:C:/Windows/system32/cmd.exe
 badd +44 X:/magma/src/player_fps.c
 badd +7 X:/dream/src/dreams.c
-badd +0 term://X://16644:C:/Windows/system32/cmd.exe
+badd +1 term://X://16644:C:/Windows/system32/cmd.exe
 argglobal
 %argdel
 set stal=2
@@ -122,12 +123,12 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 51 - ((23 * winheight(0) + 18) / 37)
+let s:l = 37 - ((9 * winheight(0) + 18) / 37)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 51
-normal! 08|
+keepjumps 37
+normal! 0
 lcd X:/
 wincmd w
 exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
@@ -324,12 +325,12 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 726 - ((24 * winheight(0) + 12) / 25)
+let s:l = 25 - ((0 * winheight(0) + 12) / 25)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 726
-normal! 07|
+keepjumps 25
+normal! 0
 lcd X:/
 wincmd w
 argglobal
@@ -424,12 +425,12 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 162 - ((73 * winheight(0) + 37) / 74)
+let s:l = 74 - ((0 * winheight(0) + 37) / 74)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 162
-normal! 08|
+keepjumps 74
+normal! 0
 lcd X:/
 tabnext 4
 set stal=1

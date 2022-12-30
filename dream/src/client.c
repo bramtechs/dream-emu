@@ -3,6 +3,7 @@
 #include "scene.h"
 #include "dreams.h"
 #include "settings.h"
+#include "main_menu.h"
 
 #define RAYGUI_IMPLEMENTATION
 
@@ -30,16 +31,26 @@ int main()
 
     // SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
+    MainMenuConfig config = { 0 };
+    config.width = WIDTH;
+    config.height = HEIGHT;
+    config.splashCount = 0;
+
+    BootMainMenu(config,false);
+
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
         if (LastLockFramerate != Settings.unlockFrameRate){
-            SetTargetFPS(Settings.unlockFrameRate ? 6969:60);
+            SetTargetFPS(Settings.unlockFrameRate ? 1000:60);
             LastLockFramerate = Settings.unlockFrameRate;
         }
 
         float delta = GetFrameTime();
-        scene_update_and_render(scene,delta);
+
+        if (UpdateAndDrawMainMenu(delta)){
+            scene_update_and_render(scene,delta);
+        }
     }
 
     DisposeAssets();
