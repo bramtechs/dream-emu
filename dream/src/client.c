@@ -31,10 +31,22 @@ int main()
 
     // SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
-    MainMenuConfig config = { 0 };
-    config.width = WIDTH;
-    config.height = HEIGHT;
-    config.splashCount = 0;
+    MainMenuConfig config = { 
+        WIDTH,
+        HEIGHT,
+        {
+            {
+                "gui/splash.png",
+                3.f,
+            },
+            {
+                "gui/save-warning.png",
+                3.f,
+            },
+        },
+        2,
+        "sky/sky.png"
+    };
 
     BootMainMenu(config,false);
 
