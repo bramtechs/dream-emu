@@ -37,18 +37,16 @@ int main()
         {
             {
                 "gui/splash.png",
-                3.f,
             },
             {
                 "gui/save-warning.png",
-                3.f,
             },
         },
         2,
         "sky/sky.png"
     };
 
-    BootMainMenu(config,false);
+    // BootMainMenu(config,false);
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key

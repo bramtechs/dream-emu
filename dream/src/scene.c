@@ -1,7 +1,7 @@
 #define MAX_ENTITIES 1024
 #include "scene.h"
 
-static Vector3 Feet; // lol
+static Vector3 Feet;
 
 inline Environment environment_default() {
     Environment env = { 0 };
