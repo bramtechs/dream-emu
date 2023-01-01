@@ -15,6 +15,7 @@ int main()
     // Initialization
     //--------------------------------------------------------------------------------------
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH*SCALE, HEIGHT*SCALE, "DREAM_EMU");
+    SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
     INFO("Launched at %s", GetWorkingDirectory());
 
