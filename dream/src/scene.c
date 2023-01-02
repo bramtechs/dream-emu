@@ -26,19 +26,32 @@ Model scene_gen_skybox_model(const char* skybox) {
     return model;
 }
 
-Scene* scene_init(UPDATE_FUNC updateFunc)
-{
-    Scene* scene = MemAlloc(sizeof(Scene));
+void scene_prepare(Scene* scene){
     scene->env = environment_default();
-    scene->group = CreateEntityGroup();
+    scene->spawnPoint = Vector3Zero();
 
-    scene->updateFunc = updateFunc;
     scene->player = SpawnPlayerFPS(1.8f);
-    TeleportPlayerFPS(&scene->player,(Vector3) {10,2,3} );
+    TeleportPlayerFPS(&scene->player, scene->spawnPoint);
 
     scene->editor = editor_init(scene);
+}
+
+Scene* scene_init(UPDATE_FUNC updateFunc){
+    Scene* scene = MemAlloc(sizeof(Scene));
+    scene->group = CreateEntityGroup();
+    scene->updateFunc = updateFunc;
+
+    scene_prepare(scene);
 
     return scene;
+}
+
+Scene* scene_load(const char* fileName, UPDATE_FUNC updateFunc){
+    Scene* scene = MemAlloc(sizeof(Scene));
+    scene->group = LoadEntityGroup(fileName);
+    scene->updateFunc = updateFunc;
+
+    scene_prepare(scene);
 }
 
 void scene_update_and_render(Scene* scene, float delta)

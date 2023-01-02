@@ -38,17 +38,19 @@ int main()
         {
             {
                 "gui/splash.png",
-                2.f,
+                4.f,
             },
             {
                 "gui/save-warning.png",
-                2.f,
+                4.f,
             },
         },
         2,
         "sky/sky.png",
         "Dream Emulator"
     };
+
+    //TestList();
 
     BootMainMenu(config,false);
 
@@ -66,8 +68,6 @@ int main()
             SetTargetFPS(Settings.unlockFrameRate ? 1000:60);
             LastLockFramerate = Settings.unlockFrameRate;
         }
-
-        RequestTexture("palette.png");
 
         float delta = GetFrameTime();
         float time = GetTime();

@@ -20,14 +20,10 @@ typedef struct {
 
 inline Environment environment_default();
 
-typedef struct {
-    Environment env;
-    PlayerFPS player;
-} SceneConfig;
-
 struct Scene {
     Environment env;
     PlayerFPS player;
+    Vector3 spawnPoint;
 
     UPDATE_FUNC updateFunc;
 
@@ -38,6 +34,7 @@ struct Scene {
 Model scene_gen_skybox_model(const char* skybox);
 
 Scene* scene_init(UPDATE_FUNC updateFunc);
+Scene* scene_load(const char* fileName, UPDATE_FUNC updateFunc);
 
 void scene_update_and_render(Scene* scene, float delta);
 

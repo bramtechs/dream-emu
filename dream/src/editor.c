@@ -195,6 +195,9 @@ void editor_update_and_draw(Editor* e, float delta)
             DEBUG("Changed editor subject to %d",id);
         }
     }
+
+    // draw spawnpoint
+    DrawSphere(ActiveScene->spawnPoint, 0.4f, ORANGE);
 }
 
 bool editor_update_and_draw_gui(Editor* e)
@@ -241,6 +244,19 @@ bool editor_update_and_draw_gui(Editor* e)
         if (IsKeyPressed(Modes[i].key)){
             e->mode = i;
             break;
+        }
+    }
+
+    // set spawnpoint
+    if (IsKeyDown(KEY_LEFT_CONTROL))
+    {
+        if (IsKeyPressed(KEY_HOME)){
+            Vector3 spawn = ActiveScene->spawnPoint = ActiveScene->player.feet;
+            INFO("Changed spawnpoint to %f, %f, %f!", spawn.x, spawn.y, spawn.z);
+        }
+        if (IsKeyPressed(KEY_S)){
+            SaveEntityGroup(ActiveScene->group,"levels/savedmap001");
+            INFO("Saved scene!");
         }
     }
 
