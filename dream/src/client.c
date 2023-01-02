@@ -38,16 +38,26 @@ int main()
         {
             {
                 "gui/splash.png",
+                2.f,
             },
             {
                 "gui/save-warning.png",
+                2.f,
             },
         },
         2,
-        "sky/sky.png"
+        "sky/sky.png",
+        "Dream Emulator"
     };
 
-    // BootMainMenu(config,false);
+    BootMainMenu(config,false);
+
+    Shader shader = LoadShader(0, "../../../assets/shaders/gui/menu.fs");
+    int shaderTime = GetShaderLocation(shader, "iTime");
+    int shaderResolution = GetShaderLocation(shader, "iResolution");
+
+    Vector3 size = { WIDTH * 0.001, HEIGHT * 0.001, 1};
+    SetShaderValue(shader, shaderResolution, &size, SHADER_UNIFORM_VEC3);
 
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
@@ -59,9 +69,17 @@ int main()
 
         float delta = GetFrameTime();
 
+        float time = GetTime();
+
+        SetShaderValue(shader, shaderTime, &time, SHADER_UNIFORM_FLOAT);
+
+        BeginShaderMode(shader);
+
         if (UpdateAndDrawMainMenu(delta)){
             scene_update_and_render(scene,delta);
         }
+
+        EndShaderMode();
     }
 
     DisposeAssets();

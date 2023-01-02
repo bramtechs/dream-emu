@@ -119,7 +119,6 @@ int main()
 
         EndTextureMode();
 
-        // TODO fix scuffed
         DrawTexturePro(target.texture, {0.0f, 0.0f, WIDTH, -HEIGHT}, {0.0f, 0.0f, WIDTH * SCALE, HEIGHT * SCALE},
                        {0.0f, 0.0f}, 0.0f, WHITE);
 
