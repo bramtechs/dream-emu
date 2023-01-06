@@ -13,7 +13,7 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +0 X:/
+badd +1 X:/
 badd +1 ~/TODO.md
 badd +1 X:/run
 badd +126 ~/AppData/Local/nvim/init.vim
@@ -60,11 +60,11 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
-exe '2resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
-exe '3resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 1resize ' . ((&columns * 160 + 160) / 320)
+exe '2resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 2resize ' . ((&columns * 159 + 160) / 320)
+exe '3resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 3resize ' . ((&columns * 159 + 160) / 320)
 argglobal
 balt X:/magma/src/window.c
 setlocal fdm=manual
@@ -77,7 +77,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 187 - ((50 * winheight(0) + 37) / 75)
+let s:l = 187 - ((51 * winheight(0) + 38) / 77)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -101,7 +101,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 187 - ((21 * winheight(0) + 18) / 37)
+let s:l = 187 - ((22 * winheight(0) + 19) / 38)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -123,7 +123,7 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 37 - ((9 * winheight(0) + 18) / 37)
+let s:l = 37 - ((9 * winheight(0) + 19) / 38)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -131,11 +131,11 @@ keepjumps 37
 normal! 0
 lcd X:/
 wincmd w
-exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
-exe '2resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
-exe '3resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 1resize ' . ((&columns * 160 + 160) / 320)
+exe '2resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 2resize ' . ((&columns * 159 + 160) / 320)
+exe '3resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 3resize ' . ((&columns * 159 + 160) / 320)
 tabnext
 edit X:/magma/raylib/src/raylib.h
 argglobal
@@ -150,7 +150,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1494 - ((36 * winheight(0) + 37) / 74)
+let s:l = 1494 - ((37 * winheight(0) + 38) / 76)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -179,11 +179,11 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
-exe '2resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
-exe '3resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 1resize ' . ((&columns * 160 + 160) / 320)
+exe '2resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 2resize ' . ((&columns * 159 + 160) / 320)
+exe '3resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 3resize ' . ((&columns * 159 + 160) / 320)
 argglobal
 balt X:/magma/src/player_fps.c
 setlocal fdm=manual
@@ -196,7 +196,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 39 - ((28 * winheight(0) + 37) / 75)
+let s:l = 39 - ((29 * winheight(0) + 38) / 77)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -220,7 +220,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 419 - ((18 * winheight(0) + 18) / 37)
+let s:l = 419 - ((18 * winheight(0) + 19) / 38)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -244,7 +244,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 50 - ((30 * winheight(0) + 18) / 37)
+let s:l = 50 - ((31 * winheight(0) + 19) / 38)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -252,11 +252,11 @@ keepjumps 50
 normal! 021|
 lcd X:/
 wincmd w
-exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
-exe '2resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
-exe '3resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
+exe 'vert 1resize ' . ((&columns * 160 + 160) / 320)
+exe '2resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 2resize ' . ((&columns * 159 + 160) / 320)
+exe '3resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 3resize ' . ((&columns * 159 + 160) / 320)
 tabnext
 edit X:/dream/src/dreams.c
 let s:save_splitbelow = &splitbelow
@@ -283,14 +283,14 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe '1resize ' . ((&lines * 49 + 39) / 78)
-exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
-exe '2resize ' . ((&lines * 25 + 39) / 78)
-exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
-exe '3resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
-exe '4resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 4resize ' . ((&columns * 126 + 126) / 253)
+exe '1resize ' . ((&lines * 50 + 40) / 80)
+exe 'vert 1resize ' . ((&columns * 160 + 160) / 320)
+exe '2resize ' . ((&lines * 26 + 40) / 80)
+exe 'vert 2resize ' . ((&columns * 160 + 160) / 320)
+exe '3resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 3resize ' . ((&columns * 159 + 160) / 320)
+exe '4resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 4resize ' . ((&columns * 159 + 160) / 320)
 argglobal
 balt X:/dream/src/editor.c
 setlocal fdm=manual
@@ -303,7 +303,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 7 - ((6 * winheight(0) + 24) / 49)
+let s:l = 7 - ((6 * winheight(0) + 25) / 50)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -325,7 +325,7 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 25 - ((0 * winheight(0) + 12) / 25)
+let s:l = 25 - ((0 * winheight(0) + 13) / 26)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -349,7 +349,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 47 - ((25 * winheight(0) + 18) / 37)
+let s:l = 47 - ((26 * winheight(0) + 19) / 38)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -373,7 +373,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 171 - ((26 * winheight(0) + 18) / 37)
+let s:l = 171 - ((27 * winheight(0) + 19) / 38)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -381,14 +381,14 @@ keepjumps 171
 normal! 024|
 lcd X:/
 wincmd w
-exe '1resize ' . ((&lines * 49 + 39) / 78)
-exe 'vert 1resize ' . ((&columns * 126 + 126) / 253)
-exe '2resize ' . ((&lines * 25 + 39) / 78)
-exe 'vert 2resize ' . ((&columns * 126 + 126) / 253)
-exe '3resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 3resize ' . ((&columns * 126 + 126) / 253)
-exe '4resize ' . ((&lines * 37 + 39) / 78)
-exe 'vert 4resize ' . ((&columns * 126 + 126) / 253)
+exe '1resize ' . ((&lines * 50 + 40) / 80)
+exe 'vert 1resize ' . ((&columns * 160 + 160) / 320)
+exe '2resize ' . ((&lines * 26 + 40) / 80)
+exe 'vert 2resize ' . ((&columns * 160 + 160) / 320)
+exe '3resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 3resize ' . ((&columns * 159 + 160) / 320)
+exe '4resize ' . ((&lines * 38 + 40) / 80)
+exe 'vert 4resize ' . ((&columns * 159 + 160) / 320)
 tabnext
 edit ~/AppData/Local/nvim/init.vim
 argglobal
@@ -403,7 +403,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 126 - ((43 * winheight(0) + 37) / 74)
+let s:l = 126 - ((44 * winheight(0) + 38) / 76)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -425,7 +425,7 @@ setlocal fdl=0
 setlocal fml=1
 setlocal fdn=20
 setlocal fen
-let s:l = 74 - ((0 * winheight(0) + 37) / 74)
+let s:l = 74 - ((0 * winheight(0) + 38) / 76)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt

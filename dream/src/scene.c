@@ -47,10 +47,8 @@ Scene* scene_init(UPDATE_FUNC updateFunc){
 }
 
 Scene* scene_load(const char* fileName, UPDATE_FUNC updateFunc){
-    Scene* scene = MemAlloc(sizeof(Scene));
-    scene->group = LoadEntityGroup(fileName);
-    scene->updateFunc = updateFunc;
-
+    Scene* scene = scene_init(updateFunc);
+    LoadEntityGroup(scene->group, fileName);
     scene_prepare(scene);
 }
 

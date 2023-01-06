@@ -254,6 +254,10 @@ bool editor_update_and_draw_gui(Editor* e)
             Vector3 spawn = ActiveScene->spawnPoint = ActiveScene->player.feet;
             INFO("Changed spawnpoint to %f, %f, %f!", spawn.x, spawn.y, spawn.z);
         }
+        if (IsKeyPressed(KEY_L)){
+            LoadEntityGroup(ActiveScene->group,"levels/savedmap001");
+            INFO("Saved scene!");
+        }
         if (IsKeyPressed(KEY_S)){
             SaveEntityGroup(ActiveScene->group,"levels/savedmap001");
             INFO("Saved scene!");
