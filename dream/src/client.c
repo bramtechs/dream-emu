@@ -37,16 +37,16 @@ int main()
         HEIGHT,
         {
             {
-                "gui/splash.png",
+                "gui_splash.png",
                 4.f,
             },
             {
-                "gui/save-warning.png",
+                "gui_save_warning.png",
                 4.f,
             },
         },
         2,
-        "sky/sky.png",
+        "spr_sky.png",
         "Dream Emulator"
     };
 

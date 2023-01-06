@@ -33,7 +33,7 @@ typedef struct {
     bool prevFreecamMode;
 
     // model selector
-    Model models[MAX_MODELS];
+    char models[128][MAX_MODELS];
     size_t modelCount;
     size_t selectedModel;
 

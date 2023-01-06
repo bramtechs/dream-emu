@@ -54,7 +54,8 @@ Editor* editor_init(SCENE* scene){
     editor->modelCount = models.count;
     for (int i = 0; i < editor->modelCount; i++){
         const char* path = models.paths[i];
-        editor->models[i] = LoadModel(path);
+        ModelContainer* cont = &editor->models[i];
+        strcpy(cont->name, path);
     }
 
     return editor;
@@ -81,7 +82,7 @@ void editor_move(Editor* e, Base* base){
         SetBaseCenter(base, ActiveScene->player.feet);
     }
 
-    if (IsKeyDown(KEY_ENTER)){
+    if (IsKeyDown(KEY_P)){
         Ray ray = { 0 };
         ray.position = Vector3Add(base->center, (Vector3) { 0.f, -0.01f, 0.f });
         ray.direction = (Vector3) {0,-1,0};
@@ -92,14 +93,19 @@ void editor_move(Editor* e, Base* base){
         }
     }
 
+    float LINE_LEN = 100.f;
+    float LINE_THICK = 1.f;
     if (IsKeyDown(KEY_X)){
         TranslateBaseX(base,delta.x);
+        DrawCube(base->center, LINE_LEN, LINE_THICK, LINE_THICK, RED);
     }
     if (IsKeyDown(KEY_Y)){
         TranslateBaseY(base,-delta.y);
+        DrawCube(base->center, LINE_THICK, LINE_LEN, LINE_THICK, GREEN);
     }
     if (IsKeyDown(KEY_Z)){
         TranslateBaseZ(base,delta.x);
+        DrawCube(base->center, LINE_THICK, LINE_THICK, LINE_LEN, BLUE);
     }
     if (IsKeyDown(KEY_ZERO)){
         ResetBaseTranslation(base);
@@ -134,7 +140,7 @@ void editor_spawner_gui(Editor* e){
     Vector3 pos = { -e->modelCount/2, 0, 0 };
     pos.x = e->selectedModel;
     for (int i = 0; i < e->modelCount; i++){
-        Model model = e->models[i];
+        Model model = RequestModel(e->models[i]);
         BoundingBox box = GetModelBoundingBox(model);
         float diameter = Vector3Length(Vector3Subtract(box.max,box.min));
         float scale = 1 / diameter;
@@ -152,18 +158,17 @@ void editor_spawner_gui(Editor* e){
     }
 
     if (IsKeyPressed(KEY_ENTER)){
-        Model model = e->models[e->selectedModel];
+        const char* modelPath = e->models[e->selectedModel];
 
         // spawn new entity
         EntityID id = AddEntity(ActiveScene->group);
         Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
 
         // TODO FIX
-        // ModelRenderer renderer = CreateModelRenderer(id,model,&base);
-        assert(false);
+        ModelRenderer renderer = CreateModelRenderer(id,modelPath,&base);
 
-        //AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
-        //AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+        AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
+        AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
 
         e->mode = EDITOR_MOVE;
         e->subject = id;
@@ -200,6 +205,10 @@ void editor_update_and_draw(Editor* e, float delta)
 
     // draw spawnpoint
     DrawSphere(ActiveScene->spawnPoint, 0.4f, ORANGE);
+
+    if (e->mode == EDITOR_MOVE) {
+        editor_move(e,subjectBase);
+    }
 }
 
 bool editor_update_and_draw_gui(Editor* e)
@@ -270,7 +279,6 @@ bool editor_update_and_draw_gui(Editor* e)
         case EDITOR_NORMAL:
             break;
         case EDITOR_MOVE:
-            editor_move(e,subjectBase);
             editor_move_gui(e,subjectBase);
             break;
         case EDITOR_ROTATE:

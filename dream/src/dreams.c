@@ -13,7 +13,7 @@ Scene* dream_init_hub(){
 
     {
         // generate skybox 
-        Model sky = scene_gen_skybox_model("sky/sky.png");
+        Model sky = scene_gen_skybox_model("spr_sky.png");
         EntityID id = AddEntity(scene->group);
 
         Base base = CreateDefaultBase(id);
@@ -28,7 +28,7 @@ Scene* dream_init_hub(){
         EntityID id = AddEntity(scene->group);
         Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
 
-        ModelRenderer renderer = CreateModelRenderer(id,"levels/hub/hub.obj",&base);
+        ModelRenderer renderer = CreateModelRenderer(id,"mesh_hub.obj",&base);
 
         AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
         AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
@@ -47,7 +47,7 @@ Scene* dream_init_garden(){
     EntityID id = AddEntity(scene->group);
 
     Base base = CreateDefaultBase(id);
-    ModelRenderer renderer = CreateModelRenderer(id,"levels/garden/garden_start.obj",&base);
+    ModelRenderer renderer = CreateModelRenderer(id,"mesh_garden_start.obj",&base);
     renderer.accurate = true;
 
 	AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base));
