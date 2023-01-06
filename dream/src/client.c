@@ -28,7 +28,7 @@ int main()
     InitAssets("assets");
 
     //Scene* scene = dream_init_hub();
-    Scene* scene = dream_init_garden();
+    Scene* scene = scene_init(NULL);
 
     // SetWindowState(FLAG_WINDOW_MAXIMIZED);
 

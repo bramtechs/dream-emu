@@ -1,16 +1,15 @@
-# Blender MTL File: 'garden_start.blend'
-# Material Count: 4
+# Blender 3.4.1 MTL File: 'mesh_garden_start.blend'
+# www.blender.org
 
 newmtl Grass
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.000000 0.800000 0.001127
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd .\\spr_grass_02.png
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_grass_02.png
 
 newmtl Hedge
 Ns 250.000000
@@ -21,26 +20,63 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd .\\spr_grass_07.png
+
+newmtl Material
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_grass_03.png
 
 newmtl Material.001
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd .\\spr_grass_03.png
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_grass_03.png
 
 newmtl Material.002
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Kd .\\spr_bricks_18.png
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_bricks_01.png
+
+newmtl Material.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_rock.png
+
+newmtl Material.004
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_roofs_12.png
+
+newmtl Rock
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:/Users/bramb/Downloads/DREAM_EMU/assets/spr_bricks_19.png

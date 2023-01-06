@@ -190,7 +190,9 @@ void editor_update_and_draw(Editor* e, float delta)
 
     // highlight selected
     Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);
-    DrawBoundingBox(subjectBase->bounds, Modes[e->mode].color);
+    if (subjectBase != NULL) {
+        DrawBoundingBox(subjectBase->bounds, Modes[e->mode].color);
+    }
 
     // change selected subject on clicking it
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
