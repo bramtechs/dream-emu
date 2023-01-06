@@ -11,5 +11,6 @@ In order to prevent re-inventing the wheel too much, [Raylib](https://github.com
 <https://youtu.be/NbYaycJjWfA>
 
 ### Screenshots
+![003](/screenshots/indev003.png)
 ![002](/screenshots/indev002.png)
 ![001](/screenshots/indev001.png)
