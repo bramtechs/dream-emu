@@ -266,11 +266,11 @@ bool editor_update_and_draw_gui(Editor* e)
             INFO("Changed spawnpoint to %f, %f, %f!", spawn.x, spawn.y, spawn.z);
         }
         if (IsKeyPressed(KEY_L)){
-            LoadEntityGroup(ActiveScene->group,"levels/savedmap001");
+            LoadEntityGroup(ActiveScene->group,"levels/savedmap001.comps");
             INFO("Loaded scene!");
         }
         if (IsKeyPressed(KEY_S)){
-            SaveEntityGroup(ActiveScene->group,"levels/savedmap001");
+            SaveEntityGroup(ActiveScene->group,"levels/savedmap001.comps");
             INFO("Saved scene!");
         }
     }

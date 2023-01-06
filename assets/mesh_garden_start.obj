@@ -1,6 +1,6 @@
 # Blender v3.2.2 OBJ File: 'garden_start.blend'
 # www.blender.org
-mtllib garden_start.mtl
+mtllib mesh_garden_start.mtl
 o Grid
 v -10.000000 0.720322 10.000000
 v -6.000000 0.766278 10.000000
