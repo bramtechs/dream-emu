@@ -158,10 +158,12 @@ void editor_spawner_gui(Editor* e){
         EntityID id = AddEntity(ActiveScene->group);
         Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
 
-        ModelRenderer renderer = CreateModelRenderer(id,model,&base);
+        // TODO FIX
+        // ModelRenderer renderer = CreateModelRenderer(id,model,&base);
+        assert(false);
 
-        AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
-        AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+        //AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
+        //AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
 
         e->mode = EDITOR_MOVE;
         e->subject = id;
@@ -256,7 +258,7 @@ bool editor_update_and_draw_gui(Editor* e)
         }
         if (IsKeyPressed(KEY_L)){
             LoadEntityGroup(ActiveScene->group,"levels/savedmap001");
-            INFO("Saved scene!");
+            INFO("Loaded scene!");
         }
         if (IsKeyPressed(KEY_S)){
             SaveEntityGroup(ActiveScene->group,"levels/savedmap001");

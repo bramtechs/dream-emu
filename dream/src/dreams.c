@@ -17,17 +17,18 @@ Scene* dream_init_hub(){
         EntityID id = AddEntity(scene->group);
 
         Base base = CreateDefaultBase(id);
-        ModelRenderer renderer = CreateModelRenderer(id, sky, &base);
+        // ModelRenderer renderer = CreateModelRenderer(id, sky, &base);
 
-        AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
-        AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+        // TODO
+        //AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
+        // AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
     }
 
     {
         EntityID id = AddEntity(scene->group);
         Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
 
-        ModelRenderer renderer = CreateModelRendererFromFile(id,"levels/hub/hub.obj",&base);
+        ModelRenderer renderer = CreateModelRenderer(id,"levels/hub/hub.obj",&base);
 
         AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
         AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
@@ -46,7 +47,7 @@ Scene* dream_init_garden(){
     EntityID id = AddEntity(scene->group);
 
     Base base = CreateDefaultBase(id);
-    ModelRenderer renderer = CreateModelRendererFromFile(id,"levels/garden/garden_start.obj",&base);
+    ModelRenderer renderer = CreateModelRenderer(id,"levels/garden/garden_start.obj",&base);
     renderer.accurate = true;
 
 	AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base));
