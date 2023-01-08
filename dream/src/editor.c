@@ -33,6 +33,12 @@ static EditorMode Modes[EDITOR_MODE_COUNT] = {
         KEY_S,
         { 200, 122, 255, 255 },
     },
+    {
+        EDITOR_ARCHITECT,
+        "Architect Mode",
+        KEY_A,
+        { 163, 73, 164 },
+    },
 };
 
 static int LayoutY = 0;
@@ -76,7 +82,6 @@ void editor_move_gui(Editor* e, Base* base){
 }
 
 void editor_move(Editor* e, Base* base){
-
     Vector2 delta = Vector2Scale(GetMouseDelta(),0.5f);
     if (IsKeyDown(KEY_F)){
         SetBaseCenter(base, ActiveScene->player.feet);
@@ -94,7 +99,7 @@ void editor_move(Editor* e, Base* base){
     }
 
     float LINE_LEN = 100.f;
-    float LINE_THICK = 1.f;
+    float LINE_THICK = 0.3f;
     if (IsKeyDown(KEY_X)){
         TranslateBaseX(base,delta.x);
         DrawCube(base->center, LINE_LEN, LINE_THICK, LINE_THICK, RED);
@@ -119,6 +124,39 @@ void editor_move(Editor* e, Base* base){
         SetBaseCenter(base,pos);
     }
 
+}
+
+void editor_architect_gui(Editor* e, Base* base){
+}
+
+void editor_architect(Editor* e, Base* base){
+    if (base == NULL){
+        // spawn in empty and set as subject
+        EntityID id = AddEntity(ActiveScene->group);
+        Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
+        AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
+        e->subject = id;
+    }
+
+    // draw mouse
+    float RADIUS = 10000.f;
+    Vector3 vertices[] = {
+        { -RADIUS, 0.f, -RADIUS },
+        { -RADIUS, 0.f, RADIUS },
+        { RADIUS, 0.f, RADIUS },
+        { RADIUS, 0.f, -RADIUS },
+    };
+
+    Color color = RED;
+    Ray mouseRay = GetWindowMouseRay(ActiveScene->player.camera);
+    RayCollision col = GetRayCollisionQuad(mouseRay, vertices[0], vertices[1], vertices[2], vertices[3]);
+    if (col.hit){
+        Vector3 pos = { roundf(col.point.x), 0, roundf(col.point.z) };
+        DrawSphere(pos, 0.1f, color);
+        Vector3 below = Vector3Subtract(pos,(Vector3){0.f,1.f,0.f});
+        Vector3 above = Vector3Add(pos,(Vector3){0.f,3.f,0.f});
+        DrawLine3D(below,above,color);
+    }
 }
 
 void editor_spawner_gui(Editor* e){
@@ -205,11 +243,21 @@ void editor_update_and_draw(Editor* e, float delta)
         }
     }
 
+    // draw grid
+    if (Settings.drawGrid || e->mode == EDITOR_ARCHITECT) {
+        DrawGrid(1000, 1);
+    }
+
     // draw spawnpoint
     DrawSphere(ActiveScene->spawnPoint, 0.4f, ORANGE);
 
-    if (e->mode == EDITOR_MOVE) {
-        editor_move(e,subjectBase);
+    switch (e->mode){
+        case EDITOR_MOVE:
+            editor_move(e,subjectBase);
+            break;
+        case EDITOR_ARCHITECT:
+            editor_architect(e,subjectBase);
+            break;
     }
 }
 
@@ -268,11 +316,11 @@ bool editor_update_and_draw_gui(Editor* e)
             INFO("Changed spawnpoint to %f, %f, %f!", spawn.x, spawn.y, spawn.z);
         }
         if (IsKeyPressed(KEY_L)){
-            LoadEntityGroup(ActiveScene->group,"levels/savedmap001.comps");
+            LoadEntityGroup(ActiveScene->group,"savedmap001.comps");
             INFO("Loaded scene!");
         }
         if (IsKeyPressed(KEY_S)){
-            SaveEntityGroup(ActiveScene->group,"levels/savedmap001.comps");
+            SaveEntityGroup(ActiveScene->group,"savedmap001.comps");
             INFO("Saved scene!");
         }
     }
@@ -286,6 +334,9 @@ bool editor_update_and_draw_gui(Editor* e)
         case EDITOR_ROTATE:
             break;
         case EDITOR_SCALE:
+            break;
+        case EDITOR_ARCHITECT:
+            editor_architect_gui(e,subjectBase);
             break;
         case EDITOR_SPAWN:
             editor_spawner_gui(e);

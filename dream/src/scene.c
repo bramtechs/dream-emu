@@ -77,10 +77,8 @@ void scene_update_and_render(Scene* scene, float delta)
 
     if (Settings.editorVisible) {
         editor_update_and_draw(scene->editor, delta);
-        if (Settings.drawGrid) {
-            DrawGrid(1000, 1);
-        }
     }
+
     EndMode3D();
 
     DrawFPS(10, 10);

@@ -13,7 +13,8 @@
 #define EDITOR_MOVE        2
 #define EDITOR_ROTATE      3
 #define EDITOR_SCALE       4
-#define EDITOR_MODE_COUNT  5
+#define EDITOR_ARCHITECT   5
+#define EDITOR_MODE_COUNT  6
 
 // bandaid fix to avoid circular dependencies
 typedef void SCENE;
