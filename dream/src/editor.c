@@ -134,7 +134,7 @@ void editor_architect(Editor* e, Base* base){
         // spawn in empty and set as subject
         EntityID id = AddEntity(ActiveScene->group);
         Base base = CreateBase(id, Vector3Zero(), RAYWHITE);
-        AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
+        AddEntityComponent(ActiveScene->group, COMP_BASE, id, &base, sizeof(Base));
         e->subject = id;
     }
 
@@ -205,8 +205,8 @@ void editor_spawner_gui(Editor* e){
         // TODO FIX
         ModelRenderer renderer = CreateModelRenderer(id,modelPath,&base);
 
-        AddEntityComponent(ActiveScene->group, COMP_BASE, &base, sizeof(Base), id);
-        AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+        AddEntityComponent(ActiveScene->group, COMP_BASE, id, &base, sizeof(Base));
+        AddEntityComponent(ActiveScene->group, COMP_MODEL_RENDERER, id, &renderer, sizeof(ModelRenderer));
 
         e->mode = EDITOR_MOVE;
         e->subject = id;

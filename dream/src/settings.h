@@ -9,6 +9,9 @@ typedef struct {
     bool drawGrid;
     bool drawOutlines;
     bool editorVisible;
+    bool skipIntro;
 } UserSettings;
 
 extern UserSettings Settings;
+
+void SaveUserSettings();

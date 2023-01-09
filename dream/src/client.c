@@ -52,7 +52,9 @@ int main()
 
     //TestList();
 
-    BootMainMenu(config,false);
+    if (!Settings.skipIntro) {
+        BootMainMenu(config,false);
+    }
 
 //    Shader shader = LoadShader(0, "../../../assets/shaders/gui/menu.fs");
 //    int shaderTime = GetShaderLocation(shader, "iTime");

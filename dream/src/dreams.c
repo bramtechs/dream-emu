@@ -30,8 +30,8 @@ Scene* dream_init_hub(){
 
         ModelRenderer renderer = CreateModelRenderer(id,"mesh_hub.obj",&base);
 
-        AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base), id);
-        AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer), id);
+        AddEntityComponent(scene->group, COMP_BASE, id, &base, sizeof(Base));
+        AddEntityComponent(scene->group, COMP_MODEL_RENDERER, id, &renderer, sizeof(ModelRenderer));
     }
 
     return scene;
@@ -50,8 +50,8 @@ Scene* dream_init_garden(){
     ModelRenderer renderer = CreateModelRenderer(id,"mesh_garden_start.obj",&base);
     renderer.accurate = true;
 
-	AddEntityComponent(scene->group, COMP_BASE, &base, sizeof(Base));
-	AddEntityComponent(scene->group, COMP_MODEL_RENDERER, &renderer, sizeof(ModelRenderer));
+    AddEntityComponent(scene->group, COMP_BASE, id, &base, sizeof(Base));
+    AddEntityComponent(scene->group, COMP_MODEL_RENDERER, id, &renderer, sizeof(ModelRenderer));
 
     return scene;
 }

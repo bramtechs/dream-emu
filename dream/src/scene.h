@@ -10,7 +10,7 @@ extern bool DoDrawGrid;
 struct Scene;
 typedef struct Scene Scene;
 
-typedef void(*UPDATE_FUNC)(Scene*,float);
+typedef void(*UPDATE_FUNC_SCENE)(Scene*,float);
 
 typedef struct {
     Color skyColor;
@@ -33,8 +33,8 @@ struct Scene {
 
 Model scene_gen_skybox_model(const char* skybox);
 
-Scene* scene_init(UPDATE_FUNC updateFunc);
-Scene* scene_load(const char* fileName, UPDATE_FUNC updateFunc);
+Scene* scene_init(UPDATE_FUNC_SCENE updateFunc);
+Scene* scene_load(const char* fileName, UPDATE_FUNC_SCENE updateFunc);
 
 void scene_update_and_render(Scene* scene, float delta);
 
