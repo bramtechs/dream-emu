@@ -221,9 +221,9 @@ void editor_update_and_draw(Editor* e, float delta)
 {
     assert(e);
 
-    if (e->prevFreecamMode != Settings.freeCam){
-        e->prevFreecamMode = Settings.freeCam;
-        SetCameraMode(ActiveScene->player.camera,Settings.freeCam ? CAMERA_FIRST_PERSON : CAMERA_FREE);
+    if (e->prevFreecamMode != Prefs.freeCam){
+        e->prevFreecamMode = Prefs.freeCam;
+        SetCameraMode(ActiveScene->player.camera,Prefs.freeCam ? CAMERA_FIRST_PERSON : CAMERA_FREE);
     }
 
     // highlight selected
@@ -244,7 +244,7 @@ void editor_update_and_draw(Editor* e, float delta)
     }
 
     // draw grid
-    if (Settings.drawGrid || e->mode == EDITOR_ARCHITECT) {
+    if (Prefs.drawGrid || e->mode == EDITOR_ARCHITECT) {
         DrawGrid(1000, 1);
     }
 
@@ -287,10 +287,10 @@ bool editor_update_and_draw_gui(Editor* e)
 
     GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
 
-    Settings.unlockFrameRate = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock framerate (not recommended)", Settings.unlockFrameRate);
-    Settings.drawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", Settings.drawOutlines);
-    Settings.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Settings.drawGrid);
-    Settings.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Settings.freeCam);
+    Prefs.unlockFrameRate = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock framerate (not recommended)", Prefs.unlockFrameRate);
+    Prefs.drawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", Prefs.drawOutlines);
+    Prefs.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Prefs.drawGrid);
+    Prefs.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Prefs.freeCam);
 
     // get current selected base
     Base* subjectBase = GetEntityComponent(ActiveScene->group, e->subject, COMP_BASE);

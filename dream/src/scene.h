@@ -3,7 +3,7 @@
 #include "magma.h"
 #include "client.h"
 #include "editor.h"
-#include "settings.h"
+#include "prefs.h"
 
 extern bool DoDrawGrid;
 

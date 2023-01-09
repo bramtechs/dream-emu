@@ -6,12 +6,10 @@
 typedef struct {
     bool unlockFrameRate;
     bool freeCam;
-    bool drawGrid;
-    bool drawOutlines;
-    bool editorVisible;
     bool skipIntro;
-} UserSettings;
+} MagmaSettings;
 
-extern UserSettings Settings;
+extern MagmaSettings Settings;
 
-void SaveUserSettings();
+void SaveMagmaSettings();
+void LoadMagmaSettings();

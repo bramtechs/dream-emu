@@ -25,6 +25,9 @@ int main()
 
     SetTraceLogLevel(LOG_DEBUG);
 
+    LoadUserPrefs();
+    LoadMagmaSettings();
+
     InitAssets("assets");
 
     //Scene* scene = dream_init_hub();
@@ -84,6 +87,9 @@ int main()
 
 //        EndShaderMode();
     }
+
+    SaveUserPrefs();
+    SaveMagmaSettings();
 
     DisposeAssets();
 
