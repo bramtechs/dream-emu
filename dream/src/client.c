@@ -25,6 +25,8 @@ int main()
 
     SetTraceLogLevel(LOG_DEBUG);
 
+    LoadUserSettings(GAME_NAME);
+
     InitAssets("assets");
 
     //Scene* scene = dream_init_hub();
@@ -52,7 +54,7 @@ int main()
 
     //TestList();
 
-    if (!Settings.skipIntro) {
+    if (!Settings.extra_skipIntro) {
         BootMainMenu(config,false);
     }
 
@@ -66,9 +68,9 @@ int main()
     // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        if (LastLockFramerate != Settings.unlockFrameRate){
-            SetTargetFPS(Settings.unlockFrameRate ? 1000:60);
-            LastLockFramerate = Settings.unlockFrameRate;
+        if (LastLockFramerate != BOOL(Settings.engine_unlockFrameRate)){
+            SetTargetFPS(BOOL(Settings.engine_unlockFrameRate) ? 1000:60);
+            LastLockFramerate = BOOL(Settings.engine_unlockFrameRate);
         }
 
         float delta = GetFrameTime();
@@ -84,6 +86,8 @@ int main()
 
 //        EndShaderMode();
     }
+
+    SaveUserSettings(GAME_NAME);
 
     DisposeAssets();
 

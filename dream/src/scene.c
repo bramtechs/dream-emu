@@ -70,12 +70,12 @@ void scene_update_and_render(Scene* scene, float delta)
     }
 
     UpdateGroup(scene->group, delta);
-    DrawGroup(scene->group,&scene->player.camera,Settings.drawOutlines);
+    DrawGroup(scene->group,&scene->player.camera,Settings.editor_drawOutlines);
 
     DrawSphere(scene->player.camera.position, 0.2f, GREEN);
     DrawSphere(Feet, 0.3f, PURPLE);
 
-    if (Settings.editorVisible) {
+    if (Settings.editor_visible) {
         editor_update_and_draw(scene->editor, delta);
     }
 
@@ -98,12 +98,12 @@ void scene_update_and_render(Scene* scene, float delta)
 
 void scene_update_and_render_gui(Scene* scene, float delta)
 {
-    if (Settings.editorVisible) {
-        Settings.editorVisible = editor_update_and_draw_gui(scene->editor);
+    if (Settings.editor_visible) {
+        SetBoolean(Settings.editor_visible, editor_update_and_draw_gui(scene->editor));
     }
     if (IsKeyPressed(KEY_F3)) {
-        Settings.editorVisible = !Settings.editorVisible;
-        if (Settings.editorVisible){
+        ToggleBoolean(Settings.editor_visible);
+        if (Settings.editor_visible){
             UnfocusPlayerFPS(&scene->player);
             SetCameraMode(scene->player.camera,CAMERA_FREE);
         } else {

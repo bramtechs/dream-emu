@@ -1,0 +1,9 @@
+CFG(engine,unlockFrameRate,"false")
+CFG(engine,freeCam,"false")
+
+CFG(extra,skipIntro,"false")
+
+CFG(editor,visible,"false")
+CFG(editor,drawGrid,"false")
+CFG(editor,drawOutlines,"false")
+#undef CFG
