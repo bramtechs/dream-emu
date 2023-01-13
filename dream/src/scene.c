@@ -72,9 +72,6 @@ void scene_update_and_render(Scene* scene, float delta)
     UpdateGroup(scene->group, delta);
     DrawGroup(scene->group,&scene->player.camera,Prefs.drawOutlines);
 
-    DrawSphere(scene->player.camera.position, 0.2f, GREEN);
-    DrawSphere(Feet, 0.3f, PURPLE);
-
     if (Prefs.editorVisible) {
         editor_update_and_draw(scene->editor, delta);
     }

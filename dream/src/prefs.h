@@ -4,12 +4,10 @@
 #include "magma.h"
 
 typedef struct {
-    bool unlockFrameRate;
-    bool freeCam;
     bool drawGrid;
     bool drawOutlines;
+    bool freeCam;
     bool editorVisible;
-    bool skipIntro;
 } UserPrefs;
 
 extern UserPrefs Prefs;

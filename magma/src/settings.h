@@ -5,7 +5,6 @@
 
 typedef struct {
     bool unlockFrameRate;
-    bool freeCam;
     bool skipIntro;
 } MagmaSettings;
 

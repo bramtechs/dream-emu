@@ -287,7 +287,7 @@ bool editor_update_and_draw_gui(Editor* e)
 
     GuiLabel(LAYOUT(20, WIN_W - 50, 50),"Hold middle mouse to move around,\nhold alt to look around.\nUse scrollwheel");
 
-    Prefs.unlockFrameRate = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock framerate (not recommended)", Prefs.unlockFrameRate);
+    Settings.unlockFrameRate = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock framerate (not recommended)", Settings.unlockFrameRate);
     Prefs.drawOutlines = GuiCheckBox(LAYOUT(20, 30, 30), "Draw outlines", Prefs.drawOutlines);
     Prefs.drawGrid = GuiCheckBox(LAYOUT(20, 30, 30), "Draw grid", Prefs.drawGrid);
     Prefs.freeCam = GuiCheckBox(LAYOUT(20, 30, 30), "Unlock camera", Prefs.freeCam);
