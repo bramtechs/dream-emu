@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define MAGMA_CONF_PATH "../save/engine_conf.ini"
+#define MAGMA_CONF_PATH "../save/engine_conf.dat"
 
 typedef struct {
     bool unlockFrameRate;
@@ -16,8 +16,3 @@ extern MagmaSettings Settings;
 
 void SaveMagmaSettings();
 void LoadMagmaSettings();
-
-void ClearConfig(const char* file);
-
-inline void PutBool(const char* file, const char* name, bool on);
-void PutField(const char* file, const char* name, const char* value);
