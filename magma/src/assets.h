@@ -11,6 +11,11 @@
 
 #define MAX_ASSETS 512 
 
+#define ASSET_CUSTOM   0
+#define ASSET_TEXTURE  1
+#define ASSET_MESH     2
+#define ASSET_AUDIO    3
+
 typedef struct {
     char name[128];
     Texture texture;

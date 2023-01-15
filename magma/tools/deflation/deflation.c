@@ -1,21 +1,6 @@
 // deflation.c
 
-#include <stdio.h>
-#include "raylib.h"
-
-#ifdef __unix___
-
-#define LOG(X...)   TraceLog(LOG_INFO, X)
-#define ERROR(X...) TraceLog(LOG_ERROR,X)
-#define DEBUG(X...) TraceLog(LOG_DEBUG,X)
-
-#elif defined(_WIN32) || defined(WIN32)
-
-#define LOG(...)   TraceLog(LOG_INFO, __VA_ARGS__)
-#define ERROR(...) TraceLog(LOG_ERROR,__VA_ARGS__)
-#define DEBUG(...) TraceLog(LOG_DEBUG,__VA_ARGS__)
-
-#endif
+#include "magma.h"
 
 static const char* FORMATS[] = {
     ".png",
@@ -52,41 +37,37 @@ bool should_include(char const* ext){
     return false;
 }
 
-#define BLOCK_AMOUNT 10
-void process(char const* path, char const* output) {
+void process(List* list, char const* path) {
     unsigned int size = 0;
     unsigned char* data = LoadFileData(path,&size);
 
     unsigned int compSize = 0;
     unsigned char* compData = CompressData(data, size, &compSize);
 
-    int percentage = (int) ((compSize / (float) size) * 100.f);
-
-    char blocks[BLOCK_AMOUNT+1];
-    for (int i = 0; i < BLOCK_AMOUNT; i++){
-        blocks[i] = percentage / BLOCK_AMOUNT > i ? '#':' ';
-    }
-    blocks[BLOCK_AMOUNT] = '\0';
-    LOG ("Compressed %s (%02d%%) [%s]",path, percentage, blocks);
-
+    MemFree(compData);
     UnloadFileData(data);
+
+    PushListEx(list, compData, compSize, 0, path);
 }
 
 void deflate(const char* input, const char* output){
-    FilePathList list = LoadDirectoryFilesEx(input, NULL, true);
+    FilePathList files = LoadDirectoryFilesEx(input, NULL, true);
 
-    for (int i = 0; i < list.count; i++){
-        const char* path = list.paths[i];
+    List* list = MakeList();
+
+    for (int i = 0; i < files.count; i++){
+        const char* path = files.paths[i];
         const char* ext = GetFileExtension(path);
 
         if (should_include(ext)){
-            const char* fileName = GetFileName(path);
-            const char* outputPath = TextFormat("%s/%s",output,fileName);
-            process(path, outputPath);
+            process(list, path);
         }
     }
 
-    UnloadDirectoryFiles(list);
+    UnloadDirectoryFiles(files);
+
+    // save result
+    SaveList(list, output);
 }
 
 int main(void)
@@ -94,9 +75,9 @@ int main(void)
     SetTraceLogLevel(LOG_ALL);
 
     const char* inputFolder = "X:\\raw_assets";
-    const char* exportFolder = "X:\\assets";
-    deflate(inputFolder,exportFolder);
+    const char* exportFolder = "X:\\assets.mga";
 
+    deflate(inputFolder,exportFolder);
 
     return 0;
 }

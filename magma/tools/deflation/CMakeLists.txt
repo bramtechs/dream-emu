@@ -12,4 +12,4 @@ add_executable(${PROJECT_NAME} ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE} src)
-target_link_libraries(${PROJECT_NAME} PUBLIC raylib)
+target_link_libraries(${PROJECT_NAME} PUBLIC magma)

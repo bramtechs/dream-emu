@@ -1,5 +1,7 @@
 #pragma once
 
+#define uint unsigned int
+
 // c libraries
 #include <stdio.h>
 #include <string.h>
@@ -22,5 +24,4 @@
 #include "entity.h"
 #include "window.h"
 #include "player_fps.h"
-
 

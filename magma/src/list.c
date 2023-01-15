@@ -2,10 +2,7 @@
 
 List* MakeList(){
     List *list = new(List);
-
-    list->capacity = 100000;
-    list->data = M_MemAlloc(list->capacity);
-
+    list->data = M_MemAlloc(1); // dummy to resize later
     return list;
 }
 
@@ -13,21 +10,24 @@ void DisposeList(List* list){
     M_MemFree(list);
 }
 
-void PushList(List* list, void* data, size_t size, ItemType type){
+void PushList(List* list, void* data, uint size, ItemType type){
+    PushListEx(list,data,size,type,"Unknown");
+}
+
+void PushListEx(List* list, void* data, uint size, ItemType type, const char* tag){
     assert(list->data);
     assert(data);
 
-    // make sure action has enough memory
-    size_t expectedSize = list->size + sizeof(ListItem) + size;
-    if (expectedSize >= list->capacity) {
-        list->capacity *= 2;
-        TraceLog(LOG_DEBUG, "Reallocated list to capacity of %d bytes", list->capacity);
-        list->data = (char*) MemRealloc(list->data, list->capacity);
-    }
-
     ListItem* newItem = (ListItem*) (list->data + list->size);
+
+    // realloc enough memory
+    list->size += sizeof(ListItem) + size;
+    list->data = (char*) MemRealloc(list->data, list->size);
+
     newItem->size = size;
     newItem->type = type;
+    strcpy(newItem->tag, tag);
+
     char* target = (char*) newItem + sizeof(ListItem);
     memcpy(target, data, size);
     list->size += sizeof(ListItem) + size;
@@ -87,7 +87,7 @@ bool IterateNextItem(ListIterator* it, void** result){
 }
 
 List* LoadList(const char* fileName) {
-    size_t totalSize = 0;
+    uint totalSize = 0;
 
     if (!FileExists(fileName)) {
         assert(false);
@@ -100,7 +100,7 @@ List* LoadList(const char* fileName) {
 }
 
 void SaveList(List* list, const char* fileName){
-    size_t size = sizeof(List)+list->size;
+    uint size = sizeof(List)+list->size;
 
     char* data = M_MemAlloc(size);
     memcpy(data,list,sizeof(List)); // copy header

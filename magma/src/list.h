@@ -5,6 +5,10 @@
 #include "logger.h"
 #include "memory.h"
 
+#define uint unsigned int
+
+// TODO clean this mess
+
 // A serializable list that is contained in a single block. It uses relative pointers to allow navigation.
 
 // HEADER 1 (ListItem)
@@ -22,27 +26,28 @@
 typedef int ItemType;
 
 typedef struct {
-    size_t size;
+    uint size;
     ItemType type;
+    char tag[128]; // optional
 } ListItem;
 
 typedef struct {
     char* data;
-    size_t capacity; // in bytes
-    size_t size; // in bytes
-    size_t count; // number of items 
+    uint size; // in bytes
+    uint count; // number of items 
 } List;
 
 typedef struct {
     List* list;
     ListItem* current;
-    size_t curIndex;
+    unsigned int curIndex;
     ItemType filter;
 } ListIterator;
 
 List* MakeList();
 void DisposeList(List* list);
-void PushList(List* list, void* data, size_t size, ItemType type);
+void PushList(List* list, void* data, uint size, ItemType type);
+void PushListEx(List* list, void* data, uint size, ItemType type, const char* tag);
 
 ListIterator IterateListItems(List* list);
 ListIterator IterateListItemsEx(List* list, ItemType filter);
