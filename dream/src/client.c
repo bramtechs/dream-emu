@@ -87,7 +87,6 @@ int main()
 
 //        EndShaderMode();
 //
-        CloseWindow(); // NOTE: for testing (remove this)
     }
 
     SaveUserPrefs();
