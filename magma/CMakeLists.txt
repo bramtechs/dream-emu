@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
-project(magma C)
+project(magma CXX C)
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # Adding Raylib
@@ -12,7 +13,7 @@ add_subdirectory(raylib)
 add_subdirectory(raygui/projects/CMake)
 
 # Declaring our executable
-FILE(GLOB THESAUCE src/*.c src/*.h)
+FILE(GLOB THESAUCE src/*.cpp src/*.h)
 add_library(${PROJECT_NAME} STATIC ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})

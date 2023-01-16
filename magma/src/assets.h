@@ -7,7 +7,6 @@
 
 #include "logger.h"
 #include "memory.h"
-#include "array.h"
 
 #define MAX_ASSETS 512 
 

@@ -16,7 +16,7 @@
 typedef void(*UPDATE_FUNC)(void*,float);
 typedef void(*DRAW_FUNC)(void*);
 
-typedef size_t EntityID;
+typedef uint EntityID;
 
 typedef struct {
     EntityID id;

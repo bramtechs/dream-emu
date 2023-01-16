@@ -1,13 +1,14 @@
 #include "list.h"
 
-List* MakeList(){
-    List *list = new(List);
-    list->data = M_MemAlloc(1); // dummy to resize later
-    return list;
+List MakeList(){
+    return List();
 }
 
-void DisposeList(List* list){
-    M_MemFree(list);
+void DisposeList(List &list){
+    for (const auto &it = list.begin();it != list.end();++it)
+    {
+        M_MemFree(it.second);
+    }
 }
 
 void PushList(List* list, void* data, uint size, ItemType type){
