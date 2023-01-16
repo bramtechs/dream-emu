@@ -1,6 +1,10 @@
 // deflation.c
 
+#include <filesystem>
+#include <system_error>
 #include "magma.h"
+
+namespace fs = std::filesystem;
 
 static const char* FORMATS[] = {
     ".png",
@@ -19,9 +23,8 @@ bool create_directory(const char* path){
         return true;
     }
 
-    int result = mkdir(path, 0777);
-    if (result == -1){
-        ERROR("Failed to create directory %s! (code %d)", path, result);
+    if (fs::create_directories(path)){
+        ERROR("Failed to create directory %s!", path);
         return false;
     }
     DEBUG("Made directory %s",path);
@@ -41,7 +44,7 @@ void process(List* list, char const* path) {
     unsigned int size = 0;
     unsigned char* data = LoadFileData(path,&size);
 
-    unsigned int compSize = 0;
+    int compSize = 0;
     unsigned char* compData = CompressData(data, size, &compSize);
 
     MemFree(compData);
