@@ -1,16 +1,17 @@
 #pragma once
 
 #include "raylib.h"
-#include "memory.h"
+#include "memory_custom.h"
+#include <string>
 
 #define MAX_LINES 128
 #define MAX_LINE_LEN 512
 
-typedef struct {
+struct LogBuffer {
     TraceLogLevel levels[MAX_LINES];
-    const char lines[MAX_LINES][MAX_LINE_LEN];
+    char lines[MAX_LINES][MAX_LINE_LEN];
     size_t count;
-} LogBuffer;
+};
 
 // do not use these methods directly
 void LoggerLog(TraceLogLevel level, const char* name);

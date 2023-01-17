@@ -1,7 +1,5 @@
 #pragma once
 
-#define uint unsigned int
-
 // c libraries
 #include <stdio.h>
 #include <string.h>
@@ -13,8 +11,7 @@
 
 // small quality of life stuff 
 #include "math_custom.h"
-#include "list.h"
-#include "memory.h"
+#include "memory_custom.h"
 #include "logger.h"
 #include "couroutines.h"
 

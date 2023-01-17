@@ -1,12 +1,13 @@
 #pragma once
 
 #include <stdio.h>
+#include <string.h>
 
 #include "raylib.h"
 #include "raymath.h"
 
 #include "logger.h"
-#include "memory.h"
+#include "memory_custom.h"
 
 #define MAX_ASSETS 512 
 

@@ -2,6 +2,7 @@
 
 // dump all globals in here lol
 #include "magma.h"
+#include "utils.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 

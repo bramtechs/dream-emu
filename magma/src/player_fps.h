@@ -4,7 +4,7 @@
 #include "raymath.h"
 #include "entity.h"
 
-typedef struct {
+struct PlayerFPS {
     Camera camera;
     float eyeHeight;
     bool isFocused;
@@ -13,14 +13,14 @@ typedef struct {
     float tilt;
 
     Vector3 feet;
-} PlayerFPS;
+};
 
 PlayerFPS SpawnPlayerFPS(float eyeHeight);
 
 void SetPlayerFPSAngle(PlayerFPS *player, int lookAtDeg);
 void SetPlayerFPSFov(PlayerFPS *player, int fovDeg);
 
-Vector3 UpdatePlayerFPS(PlayerFPS* player, EntityGroup* group, float delta);
+// Vector3 UpdatePlayerFPS(PlayerFPS* player, EntityGroup* group, float delta);
 
 void FocusPlayerFPS(PlayerFPS *player);
 void UnfocusPlayerFPS(PlayerFPS *player);

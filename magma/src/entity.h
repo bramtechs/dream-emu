@@ -2,23 +2,23 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "list.h"
+
 #include "window.h"
-#include "memory.h"
+#include "memory_custom.h"
 #include "assets.h"
 
-// poor man's ECS imitation, it's probably slow
+#include <map>
+#include <memory>
 
 #define COMP_ALL                0
 #define COMP_BASE               1
 #define COMP_MODEL_RENDERER     2
 
-typedef void(*UPDATE_FUNC)(void*,float);
-typedef void(*DRAW_FUNC)(void*);
-
+typedef unsigned int uint;
+typedef uint ItemType;
 typedef uint EntityID;
 
-typedef struct {
+struct Base {
     EntityID id;
     BoundingBox bounds;
     Color tint;
@@ -27,19 +27,19 @@ typedef struct {
     Vector3 center;
     Vector3 size;
     Vector3 halfSize;
-} Base;
+};
 
-typedef struct {
+struct ModelRenderer{
     EntityID id;
     const char* model;
     bool accurate;
     Vector3 offset; //from base center
-} ModelRenderer;
+};
 
-typedef struct {
-    size_t entityCount; 
-    List* components;
-} EntityGroup;
+struct EntityGroup {
+    uint entityCount;
+    std::multimap<ItemType, std::shared_ptr<void*>> comps;
+};
 
 Base CreateBase(EntityID id, Vector3 pos, Color tint);
 #define CreateDefaultBase(ID) CreateBase(ID,Vector3Zero(),WHITE)
@@ -61,15 +61,13 @@ RayCollision GetMouseRayCollisionBase(Base base, Camera camera);
 bool GetMousePickedBase(EntityGroup* group, Camera camera, Base** result);
 bool GetMousePickedBaseEx(EntityGroup* group, Camera camera, Base** result, RayCollision* col);
 
-EntityGroup* CreateEntityGroup();
-void DisposeEntityGroup(EntityGroup *group); // NOTE: custom component arrays need to be disposed manually!
-
 void LoadEntityGroup(EntityGroup* group, const char* fileName);
 void SaveEntityGroup(EntityGroup* group, const char* fileName);
 
 EntityID AddEntity(EntityGroup* group);
 
-void AddEntityComponent(EntityGroup* group, ItemType type, EntityID id, void* data, size_t size);
+template <typename T>
+void AddEntityComponent(EntityGroup* group, ItemType type, EntityID id, T data);
 
 void* GetEntityComponent(EntityGroup* group, EntityID id, ItemType filter);
 

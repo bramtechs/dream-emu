@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "math_custom.h"
+#include "magma.h"
 
 void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title); // create a raylib window with 'letterbox' support for
                                                                                                      // those for crusty PS1 looks

@@ -45,7 +45,7 @@ Texture RequestTexture(const char* name) {
     // get cached texture
     for (int i = 0; i < Assets->textureCount; i++){
         TextureContainer cont = Assets->textures[i];
-        if (strcmp(cont.name,name) == 0){
+        if (TextIsEqual(cont.name,name)){
             return cont.texture;
         }
     }
@@ -72,7 +72,7 @@ Model RequestModel(const char* name) {
     // get cached model
     for (int i = 0; i < Assets->modelCount; i++){
         ModelContainer cont = Assets->models[i];
-        if (strcmp(cont.name,name) == 0){
+        if (TextIsEqual(cont.name,name)){
             return cont.model;
         }
     }
