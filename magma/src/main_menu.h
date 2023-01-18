@@ -6,7 +6,6 @@
 #include "window.h"
 #include "assets.h"
 #include "couroutines.h"
-#include <string.h> 
 
 #define MAX_SPLASHES 8
 #define FADE_DURATION 1

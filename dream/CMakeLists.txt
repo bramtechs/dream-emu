@@ -4,7 +4,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
 # Declaring our executable
-FILE(GLOB THESAUCE src/*.c src/*.h) # TODO put ./shared into own library
+FILE(GLOB THESAUCE src/*.cpp src/*.h) # TODO put ./shared into own library
 add_executable(${PROJECT_NAME} ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})

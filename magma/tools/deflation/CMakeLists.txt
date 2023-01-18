@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
-project(deflation CXX)
+project(deflation CXX C)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 # Adding Raylib
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
