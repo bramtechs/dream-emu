@@ -1,70 +1,68 @@
 #include "player_fps.h"
 
-PlayerFPS SpawnPlayerFPS(float eyeHeight) {
-    PlayerFPS player = { 0 };
-    player.eyeHeight = eyeHeight;
-    player.isFocused = true;
+PlayerFPS::PlayerFPS(float eyeHeight) {
+    this->eyeHeight = eyeHeight;
+    this->isFocused = true;
 
-    Camera* cam = &player.camera;
+    Camera* cam = &this->camera;
     cam->projection = CAMERA_PERSPECTIVE;
     cam->up = { 0.0f, 1.0f, 0.f };
 
     SetCameraMode(*cam, CAMERA_CUSTOM);
 
-    SetPlayerFPSAngle(&player, 0);
-    SetPlayerFPSFov(&player, 80);
+    SetAngle(0.f);
+    SetFov(80.f);
 
-    FocusPlayerFPS(&player);
-    return player;
+    Focus();
 }
 
-void SetPlayerFPSAngle(PlayerFPS* player, int lookAtDeg) {
-    Vector3 pos = player->camera.position;
+void PlayerFPS::SetAngle(float lookAtDeg) {
+    Vector3 pos = camera.position;
     Vector3 offset = {
         cosf(lookAtDeg * DEG2RAD),
         sinf(lookAtDeg * DEG2RAD),
         0
     };
-    player->camera.target = Vector3Add(pos, offset);
+    camera.target = Vector3Add(pos, offset);
 }
 
-void SetPlayerFPSFov(PlayerFPS* player, int fovDeg) {
-    player->camera.fovy = fovDeg;
+void PlayerFPS::SetFov(float fovDeg) {
+    camera.fovy = fovDeg;
 }
 
-Vector3 UpdatePlayerFPS(PlayerFPS* player, EntityGroup* group, float delta) {
+Vector3 PlayerFPS::Update(EntityGroup* group, float delta) {
 
     // snap to the floor 
     Ray ray = { 0 };
 
-    Vector3 offset = { 0,player->eyeHeight,0 };
-    ray.position = Vector3Add(player->camera.position, offset);
+    Vector3 offset = { 0,this->eyeHeight,0 };
+    ray.position = Vector3Add(this->camera.position, offset);
     ray.direction = { 0,-1,0 };
 
-    RayCollision col = GetRayCollisionGroup(group, ray);
+    RayCollision col = group->GetRayCollision(ray);
 
     // move player to hit point
-    player->feet = Vector3Add(col.point, offset);
-    player->camera.position = player->feet;
+    feet = Vector3Add(col.point, offset);
+    camera.position = this->feet;
 
-    if (player->isFocused) {
+    if (this->isFocused) {
 
         // TODO naive use proper quaternions instead!
 
         Vector2 mouse = Vector2Scale(Vector2Scale(GetMouseDelta(), delta), 3.f);
-        player->tilt -= mouse.y;
-        player->angle -= mouse.x;
+        tilt -= mouse.y;
+        angle -= mouse.x;
         SetMousePosition(GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f);
 
         // look around
         Vector3 angle = {
-            sinf(player->angle * DEG2RAD),
-            sinf(player->tilt * DEG2RAD) * 2,
-            cosf(player->angle * DEG2RAD)
+            sinf(this->angle * DEG2RAD),
+            sinf(this->tilt * DEG2RAD) * 2,
+            cosf(this->angle * DEG2RAD)
         };
 
         // clamp
-        player->tilt = Clamp(player->tilt, -90, 90);
+        tilt = Clamp(tilt, -90, 90);
 
         // movement
         float axisX = 0;
@@ -78,12 +76,12 @@ Vector3 UpdatePlayerFPS(PlayerFPS* player, EntityGroup* group, float delta) {
             pressed = true;
         }
         if (pressed) {
-            Vector3 offset = { cosf((player->angle - axisX) * DEG2RAD), 0, sinf((player->angle + axisX) * DEG2RAD) };
-            player->camera.position = Vector3Add(player->camera.position, Vector3Scale(Vector3Scale(offset, delta), 10));
+            Vector3 offset = { cosf((this->angle - axisX) * DEG2RAD), 0, sinf((this->angle + axisX) * DEG2RAD) };
+            camera.position = Vector3Add(camera.position, Vector3Scale(Vector3Scale(offset, delta), 10));
         }
 
         // look
-        player->camera.target = Vector3Add(player->camera.position, angle);
+        camera.target = Vector3Add(camera.position, angle);
     }
 
     // DrawText(TextFormat("%f\n%f\n\n%f\n%f\n%f horizontal movement not implemented lmao",player->angle,player->tilt,
@@ -93,15 +91,15 @@ Vector3 UpdatePlayerFPS(PlayerFPS* player, EntityGroup* group, float delta) {
     return col.point;
 }
 
-void FocusPlayerFPS(PlayerFPS* player) {
-    player->isFocused = true;
-    SetCameraMode(player->camera, CAMERA_CUSTOM);
+void PlayerFPS::Focus() {
+    isFocused = true;
+    SetCameraMode(camera, CAMERA_CUSTOM);
 }
 
-void UnfocusPlayerFPS(PlayerFPS* player) {
-    player->isFocused = false;
+void PlayerFPS::Unfocus() {
+    isFocused = false;
 }
 
-void TeleportPlayerFPS(PlayerFPS* player, Vector3 pos) {
-    player->camera.position = pos;
+void PlayerFPS::Teleport(Vector3 pos) {
+    camera.position = pos;
 }

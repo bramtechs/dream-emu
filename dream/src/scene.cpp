@@ -3,12 +3,16 @@
 
 static Vector3 Feet;
 
-inline Environment environment_default() {
-    Environment env = { 0 };
-    env.skyColor = SKYBLUE;
-    env.fogColor = GRAY;
-    env.fogDistance = 0.2f;
-    return env;
+Environment::Environment() {
+    skyColor = SKYBLUE;
+    fogColor = GRAY;
+    fogDistance = 0.2f;
+}
+
+Environment::Environment(Color sky, Color fog, float distance) {
+	skyColor = sky;
+	fogColor = fog;
+	fogDistance = distance;
 }
 
 Model scene_gen_skybox_model(const char* skybox) {
@@ -26,51 +30,44 @@ Model scene_gen_skybox_model(const char* skybox) {
     return model;
 }
 
+void Scene::reset() {
+    env = Environment();
+    spawnPoint = Vector3Zero();
+
+    player = PlayerFPS(1.8f);
+    player.Teleport(spawnPoint);
+
+    editor = editor_init(this);
+}
+
 void scene_prepare(Scene* scene){
-    scene->env = environment_default();
-    scene->spawnPoint = Vector3Zero();
-
-    scene->player = SpawnPlayerFPS(1.8f);
-    TeleportPlayerFPS(&scene->player, scene->spawnPoint);
-
-    scene->editor = editor_init(scene);
 }
 
-Scene* scene_init(UPDATE_FUNC updateFunc){
-    Scene* scene = MemAlloc(sizeof(Scene));
-    scene->group = CreateEntityGroup();
-    scene->updateFunc = updateFunc;
-
-    scene_prepare(scene);
-
-    return scene;
+Scene::Scene() {
+    group = EntityGroup();
+    scene_prepare(this);
 }
 
-Scene* scene_load(const char* fileName, UPDATE_FUNC updateFunc){
-    Scene* scene = scene_init(updateFunc);
-    LoadEntityGroup(scene->group, fileName);
+Scene::Scene(const char* fileName) {
+    group.LoadGroup(fileName);
     scene_prepare(scene);
 }
 
-void scene_update_and_render(Scene* scene, float delta)
+void Scene::update_and_render(float delta)
 {
-    assert(scene);
-
     BeginMagmaDrawing();
 
-    Camera* cam = &scene->player.camera;
+    Camera* cam = &player.camera;
     UpdateCamera(cam);
 
-    BeginMode3D(scene->player.camera);
+    BeginMode3D(player.camera);
 
-    ClearBackground(scene->env.skyColor);
+    ClearBackground(env.skyColor);
 
-    if (scene->updateFunc != NULL){
-        (*scene->updateFunc)((void*)scene,delta);
-    }
+    update(delta);
 
-    UpdateGroup(scene->group, delta);
-    DrawGroup(scene->group,&scene->player.camera,Prefs.drawOutlines);
+    group.UpdateGroup(delta);
+    group.DrawGroup(player.camera,Prefs.drawOutlines);
 
     if (Prefs.editorVisible) {
         editor_update_and_draw(scene->editor, delta);
@@ -80,7 +77,7 @@ void scene_update_and_render(Scene* scene, float delta)
 
     DrawFPS(10, 10);
 
-    Feet = UpdatePlayerFPS(&scene->player,scene->group,delta);
+    Feet = player.Update(&group,delta);
 
     if (((int)GetTime()) % 2 == 0) {
         DrawText("DEV-DISC", WIDTH - MeasureText("DEV-DISC ", 20), HEIGHT - 20, 20, WHITE);
@@ -93,7 +90,7 @@ void scene_update_and_render(Scene* scene, float delta)
     EndDrawing();
 }
 
-void scene_update_and_render_gui(Scene* scene, float delta)
+void Scene::update_and_render_gui(float delta)
 {
     if (Prefs.editorVisible) {
         Prefs.editorVisible = editor_update_and_draw_gui(scene->editor);
@@ -101,19 +98,13 @@ void scene_update_and_render_gui(Scene* scene, float delta)
     if (IsKeyPressed(KEY_F3)) {
         Prefs.editorVisible = !Prefs.editorVisible;
         if (Prefs.editorVisible){
-            UnfocusPlayerFPS(&scene->player);
-            SetCameraMode(scene->player.camera,CAMERA_FREE);
+            player.Unfocus();
+            SetCameraMode(player.camera,CAMERA_FREE);
         } else {
-            FocusPlayerFPS(&scene->player);
+            player.Focus();
         }
     }
     if (IsKeyPressed(KEY_HOME)) {
-        TeleportPlayerFPS(&scene->player, Vector3Zero());
+        player.Teleport(Vector3Zero());
     }
-}
-
-void scene_dispose(Scene* scene)
-{
-    DisposeEntityGroup(scene->group);
-    MemFree(scene);
 }

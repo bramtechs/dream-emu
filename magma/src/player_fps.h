@@ -13,16 +13,15 @@ struct PlayerFPS {
     float tilt;
 
     Vector3 feet;
+
+    PlayerFPS(float eyeHeight);
+    Vector3 Update(EntityGroup* group, float delta);
+
+	void Focus();
+	void Unfocus();
+	void Teleport(Vector3 position);
+
+    void SetAngle(float lookAtDeg);
+    void SetFov(float fovDeb);
 };
 
-PlayerFPS SpawnPlayerFPS(float eyeHeight);
-
-void SetPlayerFPSAngle(PlayerFPS *player, int lookAtDeg);
-void SetPlayerFPSFov(PlayerFPS *player, int fovDeg);
-
-// Vector3 UpdatePlayerFPS(PlayerFPS* player, EntityGroup* group, float delta);
-
-void FocusPlayerFPS(PlayerFPS *player);
-void UnfocusPlayerFPS(PlayerFPS *player);
-
-void TeleportPlayerFPS(PlayerFPS *player, Vector3 position);

@@ -23,10 +23,23 @@ struct Base {
     BoundingBox bounds;
     Color tint;
 
-    // read only
-    Vector3 center;
-    Vector3 size;
-    Vector3 halfSize;
+    Base(EntityID id);
+    Base(EntityID id, Vector3 pos, Color tint);
+
+    void Translate(Vector3 offset);
+    inline void TranslateX(float x);
+    inline void TranslateY(float y);
+    inline void TranslateZ(float z);
+    inline void TranslateXYZ(float x, float y, float z);
+
+    void SetBaseCenter(Vector3 pos);
+    inline void ResetTranslation();
+
+	RayCollision GetMouseRayCollision(Camera camera);
+
+    inline Vector3 center();
+    inline Vector3 size();
+    inline Vector3 halfSize();
 };
 
 struct ModelRenderer{
@@ -34,43 +47,30 @@ struct ModelRenderer{
     const char* model;
     bool accurate;
     Vector3 offset; //from base center
+
+    ModelRenderer(EntityID id, const char* modelPath, Base* base);
 };
 
 struct EntityGroup {
     uint entityCount;
     std::multimap<ItemType, std::shared_ptr<void*>> comps;
+
+	RayCollision GetRayCollision(Ray ray);
+
+	bool GetMousePickedBase(Camera camera, Base** result);
+	bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
+
+	void LoadGroup(const char* fileName);
+	void SaveGroup(const char* fileName);
+
+	EntityID AddEntity();
+
+	template <typename T>
+	void AddEntityComponent(ItemType type, EntityID id, T data);
+
+	void* GetEntityComponent(EntityID id, ItemType filter);
+
+	size_t UpdateGroup(float delta);
+	size_t DrawGroup(Camera camera, bool drawOutlines);
 };
 
-Base CreateBase(EntityID id, Vector3 pos, Color tint);
-#define CreateDefaultBase(ID) CreateBase(ID,Vector3Zero(),WHITE)
-
-void TranslateBase(Base* base, Vector3 offset);
-#define TranslateBaseX(BASE_PTR,X) TranslateBase(BASE_PTR, (Vector3) {X,0.f,0.f})
-#define TranslateBaseY(BASE_PTR,Y) TranslateBase(BASE_PTR, (Vector3) {0.f,Y,0.f})
-#define TranslateBaseZ(BASE_PTR,Z) TranslateBase(BASE_PTR, (Vector3) {0.f,0.f,Z})
-#define TranslateBaseXYZ(BASE_PTR,X,Y,Z) TranslateBase(BASE_PTR, (Vector3) {X,Y,Z})
-
-void SetBaseCenter(Base* base, Vector3 pos);
-#define ResetBaseTranslation(BASE_PTR) SetBaseCenter(BASE_PTR, Vector3Zero())
-
-ModelRenderer CreateModelRenderer(EntityID id, const char* modelPath, Base* base);
-
-RayCollision GetRayCollisionGroup(EntityGroup* groups, Ray ray);
-RayCollision GetMouseRayCollisionBase(Base base, Camera camera);
-
-bool GetMousePickedBase(EntityGroup* group, Camera camera, Base** result);
-bool GetMousePickedBaseEx(EntityGroup* group, Camera camera, Base** result, RayCollision* col);
-
-void LoadEntityGroup(EntityGroup* group, const char* fileName);
-void SaveEntityGroup(EntityGroup* group, const char* fileName);
-
-EntityID AddEntity(EntityGroup* group);
-
-template <typename T>
-void AddEntityComponent(EntityGroup* group, ItemType type, EntityID id, T data);
-
-void* GetEntityComponent(EntityGroup* group, EntityID id, ItemType filter);
-
-size_t UpdateGroup(EntityGroup* group, float delta);
-
-size_t DrawGroup(EntityGroup* group, Camera* camera, bool drawOutlines);

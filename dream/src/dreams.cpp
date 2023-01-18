@@ -2,7 +2,7 @@
 
 void dream_update_hub(Scene* scene, float delta){
     // move skybox around
-    Base *skyBase = GetEntityComponent(scene->group,0,COMP_BASE);
+    Base *skyBase = scene->group.GetEntityComponent(0,COMP_BASE);
     SetBaseCenter(skyBase,scene->player.camera.position);
     // skyBase->rotation.z += 2.0f * delta;
 }
