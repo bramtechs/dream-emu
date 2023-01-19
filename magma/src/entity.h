@@ -32,7 +32,7 @@ struct Base {
     inline void TranslateZ(float z);
     inline void TranslateXYZ(float x, float y, float z);
 
-    void SetBaseCenter(Vector3 pos);
+    void SetCenter(Vector3 pos);
     inline void ResetTranslation();
 
 	RayCollision GetMouseRayCollision(Camera camera);
@@ -53,7 +53,7 @@ struct ModelRenderer{
 
 struct EntityGroup {
     uint entityCount;
-    std::multimap<ItemType, std::shared_ptr<void*>> comps;
+    std::multimap<ItemType, void*> comps;
 
 	RayCollision GetRayCollision(Ray ray);
 
@@ -65,8 +65,13 @@ struct EntityGroup {
 
 	EntityID AddEntity();
 
+    // TODO dispose functions
 	template <typename T>
-	void AddEntityComponent(ItemType type, EntityID id, T data);
+	void AddEntityComponent(ItemType type, EntityID id, T data) {
+        auto ptr = M_MemAlloc(sizeof(T));
+        memcpy(ptr, &data, sizeof(T));
+		comps.insert({ type, ptr });
+	}
 
 	void* GetEntityComponent(EntityID id, ItemType filter);
 

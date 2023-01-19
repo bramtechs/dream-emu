@@ -1,10 +1,9 @@
 #pragma once
 
-#define RAYGUI_IMPLEMENTATION
+/*
 
 #include "magma.h"
 #include "settings.h"
-#include "scene.h"
 
 #define MAX_MODELS 128
 
@@ -17,35 +16,43 @@
 #define EDITOR_MODE_COUNT  6
 
 // bandaid fix to avoid circular dependencies
-typedef void SCENE;
+struct Scene;
 
-typedef struct {
-    size_t id;
-    const char name[40];
-    KeyboardKey key;
-    Color color;
-} EditorMode;
+struct EditorMode {
+	size_t id;
+	const char name[40];
+	KeyboardKey key;
+	Color color;
+};
 
-typedef struct {
-    size_t mode;
-    EntityID subject;
+struct Editor {
+	size_t mode;
+	EntityID subject;
 
-    float elapsedTime;
-    bool prevFreecamMode;
+	float elapsedTime;
+	bool prevFreecamMode;
 
-    // model selector
-    char models[128][MAX_MODELS];
-    size_t modelCount;
-    size_t selectedModel;
+	// model selector
+	std::vector<std::string> models;
+	size_t selectedModel;
 
-} Editor;
+	Editor(Scene* scene);
 
-Editor* editor_init(SCENE* scene);
+	void update_and_render(float delta);
+	bool update_and_draw_gui();
 
-void editor_dispose(Editor* editor);
+private:
+	void architect_gui(Base* base);
+	void architect(Base* base);
 
-void editor_update_and_draw(Editor* editor, float delta);
+	void move(Base* base);
+	void move_gui(Base* base);
 
-bool editor_update_and_draw_gui(Editor* editor);
+	void spawner_gui();
 
+	void print_transform(Base* base);
+};
 
+#include "scene.h" // TODO vile and disgusting, don't put this here!!!
+
+*/

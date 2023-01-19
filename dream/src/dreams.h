@@ -1,10 +1,16 @@
 #pragma once
 
 #include "magma.h"
-#include "entity.h"
 #include "scene.h"
 
-Scene* dream_init_hub();
+struct HubDream : Scene {
+	HubDream();
 
-// garden? more like an empty wasteland for now
-Scene* dream_init_garden();
+	void update(float delta);
+};
+
+struct GardenDream : Scene {
+	GardenDream();
+
+	void update(float delta);
+};

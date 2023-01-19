@@ -5,7 +5,6 @@
 
 // the all powerful raylib
 #include "raylib.h"
-#include "raygui.h"
 #include "raymath.h"
 
 // small quality of life stuff 

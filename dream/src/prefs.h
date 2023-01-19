@@ -2,17 +2,18 @@
 
 // dump all globals in here lol
 #include "magma.h"
+#include <utils.h>
 
 #define PREFS_PATH "../save/engine_conf.dat"
 
-typedef struct {
+struct UserPrefs {
     bool drawGrid;
     bool drawOutlines;
     bool freeCam;
     bool editorVisible;
-} UserPrefs;
+
+    static void Save();
+    static void Load();
+};
 
 extern UserPrefs Prefs;
-
-void SaveUserPrefs();
-void LoadUserPrefs();

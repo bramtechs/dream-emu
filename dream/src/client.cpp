@@ -14,7 +14,7 @@ int main()
 
     // Initialization
     //--------------------------------------------------------------------------------------
-    InitMagmaWindow(WIDTH, HEIGHT, WIDTH*SCALE, HEIGHT*SCALE, "DREAM_EMU");
+    InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "DREAM_EMU");
     SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
     INFO("Launched at %s", GetWorkingDirectory());
@@ -25,17 +25,17 @@ int main()
 
     SetTraceLogLevel(LOG_DEBUG);
 
-    LoadUserPrefs();
+    UserPrefs::Load();
     LoadMagmaSettings();
 
-    InitAssets("assets");
+    Assets::Init("assets");
 
     //Scene* scene = dream_init_hub();
-    Scene* scene = scene_init(NULL);
+    auto scene = GardenDream();
 
     // SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
-    MainMenuConfig config = { 
+    MainMenuConfig config = {
         WIDTH,
         HEIGHT,
         {
@@ -56,46 +56,44 @@ int main()
     //TestList();
 
     if (!Settings.skipIntro) {
-        BootMainMenu(config,false);
+        BootMainMenu(config, false);
     }
 
-//    Shader shader = LoadShader(0, "../../../assets/shaders/gui/menu.fs");
-//    int shaderTime = GetShaderLocation(shader, "iTime");
-//    int shaderResolution = GetShaderLocation(shader, "iResolution");
-//
-//    Vector3 size = { WIDTH * 0.001, HEIGHT * 0.001, 1};
-//    SetShaderValue(shader, shaderResolution, &size, SHADER_UNIFORM_VEC3);
+    //    Shader shader = LoadShader(0, "../../../assets/shaders/gui/menu.fs");
+    //    int shaderTime = GetShaderLocation(shader, "iTime");
+    //    int shaderResolution = GetShaderLocation(shader, "iResolution");
+    //
+    //    Vector3 size = { WIDTH * 0.001, HEIGHT * 0.001, 1};
+    //    SetShaderValue(shader, shaderResolution, &size, SHADER_UNIFORM_VEC3);
 
-    // Main game loop
+        // Main game loop
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
-        if (LastLockFramerate != Settings.unlockFrameRate){
-            SetTargetFPS(Settings.unlockFrameRate ? 1000:60);
+        if (LastLockFramerate != Settings.unlockFrameRate) {
+            SetTargetFPS(Settings.unlockFrameRate ? 1000 : 60);
             LastLockFramerate = Settings.unlockFrameRate;
         }
 
         float delta = GetFrameTime();
         float time = GetTime();
 
-//        SetShaderValue(shader, shaderTime, &time, SHADER_UNIFORM_FLOAT);
+        //        SetShaderValue(shader, shaderTime, &time, SHADER_UNIFORM_FLOAT);
 
-//        BeginShaderMode(shader);
+        //        BeginShaderMode(shader);
 
-        if (UpdateAndDrawMainMenu(delta)){
-            scene_update_and_render(scene,delta);
+        if (UpdateAndDrawMainMenu(delta)) {
+            scene.update_and_render(delta);
         }
 
-//        EndShaderMode();
-//
+        //        EndShaderMode();
+        //
     }
 
-    SaveUserPrefs();
+    UserPrefs::Save();
 
     SaveMagmaSettings();
 
-    DisposeAssets();
-
-    scene_dispose(scene);
+    Assets::Dispose();
 
     CheckAllocations();
 

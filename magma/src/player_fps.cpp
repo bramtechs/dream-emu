@@ -30,7 +30,8 @@ void PlayerFPS::SetFov(float fovDeg) {
     camera.fovy = fovDeg;
 }
 
-Vector3 PlayerFPS::Update(EntityGroup* group, float delta) {
+// TODO shouldnt be a EntityGroup pointer but that doesnt compile for some reason
+Vector3 PlayerFPS::Update(void* group, float delta) {
 
     // snap to the floor 
     Ray ray = { 0 };
@@ -39,7 +40,7 @@ Vector3 PlayerFPS::Update(EntityGroup* group, float delta) {
     ray.position = Vector3Add(this->camera.position, offset);
     ray.direction = { 0,-1,0 };
 
-    RayCollision col = group->GetRayCollision(ray);
+    RayCollision col = ((EntityGroup*)group)->GetRayCollision(ray);
 
     // move player to hit point
     feet = Vector3Add(col.point, offset);

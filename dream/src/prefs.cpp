@@ -2,7 +2,7 @@
 
 UserPrefs Prefs = { 0 };
 
-void SaveUserPrefs(){
+void UserPrefs::Save(){
     if (CreateDirectory("../save")){
         if (SaveFileData(PREFS_PATH, &Prefs, sizeof(UserPrefs))){
             DEBUG("Saved engine settings!");
@@ -12,7 +12,7 @@ void SaveUserPrefs(){
     ERROR("Could not save engine settings!");
 }
 
-void LoadUserPrefs(){
+void UserPrefs::Load(){
     if (!DirectoryExists("../save") || !FileExists(PREFS_PATH)){
         DEBUG("No engine settings found, using defaults...");
         return;

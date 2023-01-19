@@ -10,7 +10,6 @@ set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example g
 
 add_subdirectory(tools)
 add_subdirectory(raylib)
-add_subdirectory(raygui/projects/CMake)
 
 # Declaring our executable
 FILE(GLOB THESAUCE src/*.cpp src/*.h)
@@ -18,4 +17,4 @@ add_library(${PROJECT_NAME} STATIC ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE} src)
-target_link_libraries(${PROJECT_NAME} PUBLIC raylib raygui)
+target_link_libraries(${PROJECT_NAME} PUBLIC raylib)

@@ -14,8 +14,8 @@ struct PlayerFPS {
 
     Vector3 feet;
 
-    PlayerFPS(float eyeHeight);
-    Vector3 Update(EntityGroup* group, float delta);
+    PlayerFPS(float eyeHeight=1.8f);
+    Vector3 Update(void* group, float delta);
 
 	void Focus();
 	void Unfocus();

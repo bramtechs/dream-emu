@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(dream CXX C)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 # Declaring our executable
 FILE(GLOB THESAUCE src/*.cpp src/*.h) # TODO put ./shared into own library

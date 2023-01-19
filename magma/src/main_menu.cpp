@@ -4,20 +4,20 @@
 #define DISPLAY  1
 #define FADE_OUT 2
 
-typedef struct {
+struct MainMenuSession{
 	bool skipSplash;
 
 	float alpha;
 	size_t state;
 	size_t curSplash;
 
-	Texture splashTextures[MAX_SPLASHES];
+	std::vector<Texture> splashTextures;
 	Texture bgTexture;
 
 	bool isDone;
 
 	float timer;
-} MainMenuSession;
+};
 
 static MainMenuSession Session = { 0 };
 static MainMenuConfig MenuConfig = { 0 };
@@ -37,9 +37,10 @@ void BootMainMenu(MainMenuConfig config, bool skipSplash) {
 	Session.isDone = false;
 
 	// load all textures
-	Session.bgTexture = RequestTexture(config.bgPath);
-	for (int i = 0; i < config.splashCount; i++) {
-		Session.splashTextures[i] = RequestTexture(config.splashes[i].imgPath);
+	Session.bgTexture = Assets::RequestTexture(config.bgPath);
+	for (const auto &splash : config.splashes) {
+		Texture img = Assets::RequestTexture(splash.imgPath);
+		Session.splashTextures.push_back(img);
 	}
 
 	INFO("Booting main menu!");
@@ -69,7 +70,7 @@ bool UpdateAndDrawMainMenu(float delta) {
 	float waitTime = FADE_DURATION;
 	Texture texture = Session.splashTextures[Session.curSplash];
 
-	if (Session.curSplash < MenuConfig.splashCount) {
+	if (Session.curSplash < MenuConfig.splashes.size()) {
 		switch (Session.state) {
 		case FADE_IN:
 			Session.alpha += delta / FADE_DURATION;
@@ -109,7 +110,7 @@ bool UpdateAndDrawMainMenu(float delta) {
 	Color tint = { 255, 255, 255, alphaByte };
 	DrawBackground(texture, tint);
 
-	if (Session.curSplash >= MenuConfig.splashCount) {
+	if (Session.curSplash >= MenuConfig.splashes.size()) {
 		DrawText(MenuConfig.title, 20, 20, 36, WHITE);
 	}
 

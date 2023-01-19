@@ -21,10 +21,7 @@ struct Scene {
     PlayerFPS player;
     Vector3 spawnPoint;
 
-    void reset();
-
     virtual void update(float delta) = 0;
-    virtual void draw() = 0;
 
     void update_and_render(float delta);
     void update_and_render_gui(float delta);
@@ -33,5 +30,4 @@ struct Scene {
     Scene(const char* fileName);
 
     EntityGroup group;
-    void* editor;
 };

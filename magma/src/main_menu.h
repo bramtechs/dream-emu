@@ -5,27 +5,26 @@
 #include "logger.h"
 #include "window.h"
 #include "assets.h"
-#include "couroutines.h"
+
+#include <vector>
 
 #define MAX_SPLASHES 8
 #define FADE_DURATION 1
 
-typedef struct {
+struct SplashScreen{
     const char imgPath[128];
     float duration;
-} SplashScreen;
+};
 
-typedef struct {
+struct MainMenuConfig {
     int width;
     int height;
 
-    SplashScreen splashes[MAX_SPLASHES];
-    size_t splashCount;
+    std::vector<SplashScreen> splashes;
 
     const char bgPath[128]; // background image or shader!
-
     const char title[128];
-} MainMenuConfig;
+};
 
 void BootMainMenu(MainMenuConfig config, bool skipSplash);
 bool UpdateAndDrawMainMenu(float delta); // returns 'true' if done

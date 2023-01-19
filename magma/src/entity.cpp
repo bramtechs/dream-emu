@@ -32,12 +32,12 @@ inline void Base::TranslateXYZ(float x, float y, float z) {
 	Translate({ x,y,z });
 }
 
-void Base::SetBaseCenter(Vector3 pos) {
+void Base::SetCenter(Vector3 pos) {
 	bounds.min = Vector3Subtract(pos, halfSize());
 	bounds.max = Vector3Add(pos, halfSize());
 }
 inline void Base::ResetTranslation() {
-	SetBaseCenter(Vector3Zero());
+	SetCenter(Vector3Zero());
 }
 
 inline Vector3 Base::center() {
@@ -58,7 +58,7 @@ RayCollision Base::GetMouseRayCollision(Camera camera) {
 }
 
 ModelRenderer::ModelRenderer(EntityID id, const char* modelPath, Base* base) {
-	Model model = RequestModel(modelPath);
+	Model model = Assets::RequestModel(modelPath);
 
 	// make the base big enough to hold the model
 	BoundingBox modelBox = GetModelBoundingBox(model);
@@ -81,9 +81,9 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
 
 	for (const auto& comp : comps) {
 		if (comp.first == COMP_MODEL_RENDERER) {
-			auto render = (ModelRenderer*)comp.second.get();
+			auto render = (ModelRenderer*)comp.second;
 			auto base = (Base*)GetEntityComponent(render->id, COMP_BASE);
-			Model model = RequestModel(render->model);
+			Model model = Assets::RequestModel(render->model);
 
 			if (render->accurate) { // do per triangle collisions
 
@@ -118,7 +118,7 @@ bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
 
 bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col) {
 	for (const auto& entry : comps) {
-		auto base = (Base*)entry.second.get();
+		auto base = (Base*)entry.second;
 		RayCollision rayCol = base->GetMouseRayCollision(camera);
 
 		if (rayCol.hit) {
@@ -148,18 +148,12 @@ EntityID EntityGroup::AddEntity() {
 	return id;
 }
 
-template <typename T>
-void EntityGroup::AddEntityComponent(ItemType type, EntityID id, T data) {
-	auto ptr = std::shared_ptr(data);
-	group->comps.insert({ type, ptr });
-}
-
 void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
 	for (const auto& comp : comps) {
 		// TODO dirty hack 
-		EntityID otherId = *((EntityID*)comp.second.get());
+		EntityID otherId = *((EntityID*)comp.second);
 		if (otherId == id) {
-			return comp.second.get();
+			return comp.second;
 		}
 	}
 	return NULL;
@@ -171,7 +165,7 @@ size_t EntityGroup::UpdateGroup(float delta) {
 		switch (comp.first) {
 		case COMP_BASE:
 		{
-			auto base = (Base*)comp.second.get();
+			auto base = (Base*)comp.second;
 		} break;
 		default:
 			break;
@@ -186,14 +180,14 @@ size_t EntityGroup::DrawGroup(Camera camera, bool drawOutlines) {
 		case COMP_MODEL_RENDERER:
 		{
 			// draw modelrenderers
-			auto renderer = (ModelRenderer*)comp.second.get();
+			auto renderer = (ModelRenderer*)comp.second;
 			auto base = (Base*)GetEntityComponent(renderer->id, COMP_BASE);
 
 			if (base == NULL) {
 				assert(false); // model renderer has no base! TODO shouldn't crash
 			}
 
-			Model model = RequestModel(renderer->model);
+			Model model = Assets::RequestModel(renderer->model);
 			DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
 				Vector3Zero(), 0, Vector3One(), base->tint);
 
@@ -201,7 +195,7 @@ size_t EntityGroup::DrawGroup(Camera camera, bool drawOutlines) {
 		case COMP_BASE:
 		{
 			if (drawOutlines) {
-				auto base = (Base*)comp.second.get();
+				auto base = (Base*)comp.second;
 				RayCollision col = base->GetMouseRayCollision(camera);
 				Color tint = col.hit ? WHITE : GRAY;
 				DrawBoundingBox(base->bounds, tint);

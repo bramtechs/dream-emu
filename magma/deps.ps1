@@ -2,6 +2,6 @@
 if (-not(Test-Path -Path "raylib")){
     git clone "https://github.com/bramtechs/raylib" raylib
 }
-if (-not(Test-Path -Path "raygui")){
-    git clone "https://github.com/bramtechs/raygui" raygui
-}
+#if (-not(Test-Path -Path "raygui")){
+#    git clone "https://github.com/SasLuca/raygui.git" raygui
+#}

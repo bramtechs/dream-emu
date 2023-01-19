@@ -15,29 +15,31 @@
 #define ASSET_MESH     2
 #define ASSET_AUDIO    3
 
-typedef struct {
+struct TextureContainer{
     char name[128];
     Texture texture;
-} TextureContainer;
+};
 
-typedef struct {
+struct ModelContainer{
     char name[128];
     Model model;
-} ModelContainer;
+};
 
-typedef struct {
+struct Assets{
     TextureContainer textures[MAX_ASSETS];
     size_t textureCount;
 
     ModelContainer models[MAX_ASSETS];
     size_t modelCount;
-} GameAssets;
 
-void InitAssets(const char* folder);
-void DisposeAssets();
+    static Assets* Init(const char* folder);
+    static void Dispose();
+    ~Assets();
 
-Texture RequestTexture(const char* name);
-Model RequestModel(const char* name);
-Shader RequestShader(const char* name);
+	static Texture RequestTexture(const char* name);
+	static Model RequestModel(const char* name);
+	static Shader RequestShader(const char* name);
 
-FilePathList IndexModels();
+	static FilePathList IndexModels();
+};
+
