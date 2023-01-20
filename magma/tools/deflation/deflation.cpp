@@ -5,8 +5,11 @@
 #include <system_error>
 #include <map>
 #include <memory>
+#include <fstream>
 
 #include "magma.h"
+
+// TODO v2: add compression
 
 namespace fs = std::filesystem;
 
@@ -23,25 +26,25 @@ std::vector<std::string> get_supported_formats() {
 };
 
 struct Asset {
-	char path[128];
-	int64_t size;
-	void* data;
+    char path[128];
+    int64_t size;
+    void* data;
 };
 
 typedef std::vector<Asset> PackList;
 
 bool create_directory(const char* path) {
-	if (DirectoryExists(path)) {
-		DEBUG("Directory %s already exists, skipping folder creation...", path);
-		return true;
-	}
+    if (DirectoryExists(path)) {
+        DEBUG("Directory %s already exists, skipping folder creation...", path);
+        return true;
+    }
 
-	if (fs::create_directories(path)) {
-		ERROR("Failed to create directory %s!", path);
-		return false;
-	}
-	DEBUG("Made directory %s", path);
-	return true;
+    if (fs::create_directories(path)) {
+        ERROR("Failed to create directory %s!", path);
+        return false;
+    }
+    DEBUG("Made directory %s", path);
+    return true;
 }
 
 bool should_include(char const* ext) {
@@ -54,81 +57,77 @@ bool should_include(char const* ext) {
 }
 
 void process(PackList& pack, std::string path, std::string shortPath) {
+    Asset asset = {};
 
-	uint size = 0;
-	unsigned char* data = LoadFileData(path.c_str(), &size);
+    uint size = 0;
+    asset.data = (void*) LoadFileData(path.c_str(), &size);
+    asset.size = (int64_t)size;
+    strcpy_s(asset.path, 128, shortPath.c_str());
 
-	int compSize = 0;
-	Asset asset = {};
-	asset.data = (void*)CompressData(data, size, &compSize);
-	strcpy_s(asset.path, 128, shortPath.c_str());
-	asset.size = (int64_t)compSize;
+    assert(asset.size > 0);
+    assert(asset.data != NULL);
 
-	assert(asset.size > 0);
-	assert(asset.data != NULL);
-
-	pack.push_back(asset);
-
-	UnloadFileData(data);
+    pack.push_back(asset);
 }
 
 void save(PackList pack, const char* output) {
-	// save into file
-	uint size = 0;
-	char* outPtr = (char*)M_MemAlloc(1);
+    // save into file
+    uint size = 0;
 
-	auto outFile = std::ofstream(output);
-	for (const auto& item : pack) {
-		INFO("Writing %d bytes of %s...", item.size, item.path);
-
-		outFile.write((char*)item.path, 128);
-		outFile.write((char*)&item.size, sizeof(int64_t));
-		outFile.write((char*)item.data, item.size);
-	}
-	outFile.close();
-
-	MemFree(outPtr);
+    auto buffer = std::ofstream(output);
+    for (const auto& item : pack) {
+        // INFO("Writing %d bytes of %s...", item.size, item.path);
+        buffer.write((char*)item.path, 128);
+        buffer.write((char*)&item.size, sizeof(int64_t));
+        buffer.write((char*)item.data, item.size);
+    }
+    buffer.close();
 }
 
 void deflate(const char* input, const char* output) {
-	FilePathList files = LoadDirectoryFilesEx(input, NULL, true);
+    FilePathList files = LoadDirectoryFilesEx(input, NULL, true);
 
-	PackList pack;
+    PackList pack;
 
-	for (int i = 0; i < files.count; i++) {
+    for (int i = 0; i < files.count; i++) {
 
-		std::string shortPath = files.paths[i];
-		shortPath.erase(0, strlen(input));
-		// remove slashes if present
-		if (shortPath[0] == '\\' || shortPath[0] == '/') {
-			shortPath.erase(0, 1);
-		}
-		// tilt slashes forwards
-		std::replace(shortPath.begin(), shortPath.end(), '\\', '/');
+        std::string shortPath = files.paths[i];
+        shortPath.erase(0, strlen(input));
+        // remove slashes if present
+        if (shortPath[0] == '\\' || shortPath[0] == '/') {
+            shortPath.erase(0, 1);
+        }
+        // tilt slashes forwards
+        std::replace(shortPath.begin(), shortPath.end(), '\\', '/');
 
-		std::string path = files.paths[i];
-		const char* ext = GetFileExtension(path.c_str());
+        std::string path = files.paths[i];
+        const char* ext = GetFileExtension(path.c_str());
 
-		if (should_include(ext)) {
-			process(pack, path, shortPath);
-		}
-	}
+        if (should_include(ext)) {
+            process(pack, path, shortPath);
+        }
+    }
 
-	save(pack, output);
+    save(pack, output);
 
-	UnloadDirectoryFiles(files);
+    UnloadDirectoryFiles(files);
 
-	CheckAllocations();
+    CheckAllocations();
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
-	SetTraceLogLevel(LOG_ALL);
+    SetTraceLogLevel(LOG_WARNING);
 
-	const char* inputFolder = "X:\\raw_assets";
-	const char* exportFolder = "X:\\assets.mga";
+    if (argc <= 2){
+        ERROR("Not enough arguments provided! Got %d args.",argc);
+        return -1;
+    }
 
-	deflate(inputFolder, exportFolder);
+    const char* inputFolder = argv[1];
+    const char* exportFolder = argv[2];
 
-	return 0;
+    deflate(inputFolder, exportFolder);
+
+    return 0;
 }
