@@ -10,16 +10,17 @@
 
 namespace fs = std::filesystem;
 
-static const char* FORMATS[] = {
-	".png",
-	".mpg",
-	".comps",
-	".obj",
-	".mtl",
-	".wav",
-	".mp3",
+std::vector<std::string> get_supported_formats() {
+	return {
+		".png",
+		".mpg",
+		".comps",
+		".obj",
+		".mtl",
+		".wav",
+		".mp3" 
+	};
 };
-#define FORMAT_COUNT 7
 
 struct Asset {
 	char path[128];
@@ -44,8 +45,8 @@ bool create_directory(const char* path) {
 }
 
 bool should_include(char const* ext) {
-	for (int i = 0; i < FORMAT_COUNT; i++) {
-		if (TextIsEqual(ext, FORMATS[i])) {
+	for (auto format : get_supported_formats()) {
+		if (TextIsEqual(ext, format.c_str())) {
 			return true;
 		}
 	}
