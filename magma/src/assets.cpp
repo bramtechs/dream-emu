@@ -1,4 +1,4 @@
-#include "assets.h"
+#include "magma.h"
 
 static Assets* _Assets = NULL;
 

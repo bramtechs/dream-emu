@@ -1,4 +1,4 @@
-#include "main_menu.h"
+#include "magma.h"
 
 #define FADE_IN  0
 #define DISPLAY  1

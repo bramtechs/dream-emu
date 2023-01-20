@@ -1,9 +1,6 @@
 #include "magma.h"
 #include "client.h"
-#include "scene.h"
 #include "dreams.h"
-#include "settings.h"
-#include "main_menu.h"
 
 #define RAYGUI_IMPLEMENTATION
 
@@ -11,7 +8,6 @@ bool LastLockFramerate = true;
 
 int main()
 {
-
     // Initialization
     //--------------------------------------------------------------------------------------
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "DREAM_EMU");
@@ -48,7 +44,6 @@ int main()
                 4.f,
             },
         },
-        2,
         "spr_sky.png",
         "Dream Emulator"
     };

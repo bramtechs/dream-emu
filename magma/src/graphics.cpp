@@ -1,16 +1,4 @@
-#include "window.h"
-
-// adapted from core_window_letterbox, thank you ~!
-
-typedef struct {
-	Vector2 gameSize;
-	Vector2 winSize;
-	RenderTexture2D renderTarget;
-
-	float scale;
-	Vector2 virtualMouse;
-
-} MagmaWindow;
+#include "magma.h"
 
 static MagmaWindow Win = { 0 };
 
