@@ -31,7 +31,7 @@ int main()
 
     // SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
-    MainMenuConfig config = {
+    MainMenu menu = MainMenu({
         WIDTH,
         HEIGHT,
         {
@@ -46,13 +46,9 @@ int main()
         },
         "spr_sky.png",
         "Dream Emulator"
-    };
+    },Settings.skipIntro);
 
     //TestList();
-
-    if (!Settings.skipIntro) {
-        BootMainMenu(config, false);
-    }
 
     //    Shader shader = LoadShader(0, "../../../assets/shaders/gui/menu.fs");
     //    int shaderTime = GetShaderLocation(shader, "iTime");
@@ -76,7 +72,7 @@ int main()
 
         //        BeginShaderMode(shader);
 
-        if (UpdateAndDrawMainMenu(delta)) {
+        if (menu.UpdateAndDraw(delta)) {
             scene.update_and_render(delta);
         }
 

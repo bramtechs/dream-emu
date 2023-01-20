@@ -132,6 +132,28 @@ struct MainMenuConfig {
     const char* title;
 };
 
+struct MainMenu {
+    MainMenuConfig config;
+
+	bool skipSplash;
+	bool isDone;
+	float timer;
+	float alpha;
+
+	size_t state;
+	size_t curSplash;
+
+	std::vector<Texture> splashTextures;
+	Texture bgTexture;
+    Color saveCol;
+
+    MainMenu(MainMenuConfig config, bool skipSplash=false);
+    bool UpdateAndDraw(float delta);
+
+private:
+    void DrawScreenSaver(float delta);
+    void DrawBackground(Texture texture, Color tint);
+};
 
 struct Base {
     EntityID id;
@@ -223,9 +245,6 @@ void CheckAllocations();
 
 void LoggerLog(TraceLogLevel level, const char* name);
 void DrawLog(float offsetX, float offsetY, int fontSize);
-
-void BootMainMenu(MainMenuConfig config, bool skipSplash);
-bool UpdateAndDrawMainMenu(float delta); // returns 'true' if done
 
 void SaveMagmaSettings();
 void LoadMagmaSettings();

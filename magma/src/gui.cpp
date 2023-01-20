@@ -4,49 +4,27 @@
 #define DISPLAY  1
 #define FADE_OUT 2
 
-struct MainMenuSession{
-	bool skipSplash;
-
-	float alpha;
-	size_t state;
-	size_t curSplash;
-
-	std::vector<Texture> splashTextures;
-	Texture bgTexture;
-
-	bool isDone;
-
-	float timer;
-};
-
-static MainMenuSession Session = { 0 };
-static MainMenuConfig MenuConfig = { 0 };
-
-static Color saveCol = { 0, 0, 0, 255 };
-
-void BootMainMenu(MainMenuConfig config, bool skipSplash) {
-
-	memcpy(&MenuConfig, &config, sizeof(MainMenuConfig));
+MainMenu::MainMenu(MainMenuConfig config, bool skipSplash) 
+	: skipSplash(skipSplash), config(config) {
 
 	// initialize session
-	Session.skipSplash = skipSplash;
-	Session.state = FADE_IN;
-	Session.curSplash = 0;
-	Session.timer = 0.f;
-	Session.alpha = 0.f;
-	Session.isDone = false;
+	state = FADE_IN;
+	curSplash = 0;
+	timer = 0.f;
+	alpha = 0.f;
+	isDone = false;
 
 	// load all textures
-	Session.bgTexture = Assets::RequestTexture(config.bgPath);
+	bgTexture = Assets::RequestTexture(config.bgPath);
 	for (const auto &splash : config.splashes) {
 		Texture img = Assets::RequestTexture(splash.imgPath);
-		Session.splashTextures.push_back(img);
+		splashTextures.push_back(img);
 	}
 
 	INFO("Booting main menu!");
 }
 
-void DrawScreenSaver(float delta) {
+void MainMenu::DrawScreenSaver(float delta) {
 	ClearBackground(saveCol);
 	Color* c = &saveCol;
 	c->r += delta * 10.f;
@@ -55,67 +33,67 @@ void DrawScreenSaver(float delta) {
 	c->a = 255;
 }
 
-void DrawBackground(Texture texture, Color tint) {
+void MainMenu::DrawBackground(Texture texture, Color tint) {
 	Rectangle src = { 0, 0, texture.width, texture.height };
 	Vector2 winSize = GetMagmaGameSize();
 	Rectangle dest = { 0, 0, winSize.x, winSize.y };
 	DrawTexturePro(texture, src, dest, Vector2Zero(), 0.f, tint);
 }
 
-bool UpdateAndDrawMainMenu(float delta) {
-	if (Session.isDone || MenuConfig.width == 0) { // skip if not booted
+bool MainMenu::UpdateAndDraw(float delta) {
+	if (isDone || config.width == 0) { // skip if not booted
 		return true;
 	}
 
 	float waitTime = FADE_DURATION;
-	Texture texture = Session.splashTextures[Session.curSplash];
+	Texture texture = splashTextures[curSplash];
 
-	if (Session.curSplash < MenuConfig.splashes.size()) {
-		switch (Session.state) {
+	if (curSplash < config.splashes.size()) {
+		switch (state) {
 		case FADE_IN:
-			Session.alpha += delta / FADE_DURATION;
+			alpha += delta / FADE_DURATION;
 			break;
 		case DISPLAY: {
-			SplashScreen splash = MenuConfig.splashes[Session.curSplash];
-			waitTime = splash.duration;
-			Session.alpha = 1.f;
-		}
-					break;
+				SplashScreen splash = config.splashes[curSplash];
+				waitTime = splash.duration;
+				alpha = 1.f;
+			}
+			break;
 		case FADE_OUT:
-			Session.alpha -= delta / FADE_DURATION;
+			alpha -= delta / FADE_DURATION;
 			break;
 		default:
 			assert(false);
 			break;
 		}
 
-		if (Session.timer > waitTime) {
-			Session.timer -= waitTime;
-			Session.state++;
-			if (Session.state > FADE_OUT) {
-				Session.state = FADE_IN;
-				Session.curSplash++;
+		if (timer > waitTime) {
+			timer -= waitTime;
+			state++;
+			if (state > FADE_OUT) {
+				state = FADE_IN;
+				curSplash++;
 			}
 		}
-		Session.timer += delta;
+		timer += delta;
 	}
 	else {
-		Session.alpha = 1.f;
-		texture = Session.bgTexture;
+		alpha = 1.f;
+		texture = bgTexture;
 	}
 
 	BeginMagmaDrawing();
 
-	char alphaByte = Clamp(Session.alpha * 255, 0, 255);
+	char alphaByte = Clamp(alpha * 255, 0, 255);
 	Color tint = { 255, 255, 255, alphaByte };
 	DrawBackground(texture, tint);
 
-	if (Session.curSplash >= MenuConfig.splashes.size()) {
-		DrawText(MenuConfig.title, 20, 20, 36, WHITE);
+	if (curSplash >= config.splashes.size()) {
+		DrawText(config.title, 20, 20, 36, WHITE);
 	}
 
 	if (IsKeyPressed(KEY_ENTER)) {
-		Session.isDone = true;
+		isDone = true;
 	}
 
 	EndMagmaDrawing();
