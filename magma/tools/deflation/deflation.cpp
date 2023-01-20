@@ -1,5 +1,3 @@
-// deflation.c
-
 #include <filesystem>
 #include <fstream>
 #include <system_error>
@@ -7,7 +5,10 @@
 #include <memory>
 #include <fstream>
 
+#include "deflated_assets.h"
 #include "magma.h"
+
+// CLI: tool to generate "Deflation" packages
 
 // TODO v2: add compression
 
@@ -25,13 +26,7 @@ std::vector<std::string> get_supported_formats() {
 	};
 };
 
-struct Asset {
-    char path[128];
-    int64_t size;
-    void* data;
-};
-
-typedef std::vector<Asset> PackList;
+typedef std::vector<RawAsset> PackList;
 
 bool create_directory(const char* path) {
     if (DirectoryExists(path)) {
@@ -57,12 +52,12 @@ bool should_include(char const* ext) {
 }
 
 void process(PackList& pack, std::string path, std::string shortPath) {
-    Asset asset = {};
+    RawAsset asset = {};
 
     uint size = 0;
-    asset.data = (void*) LoadFileData(path.c_str(), &size);
+    asset.data = (char*) LoadFileData(path.c_str(), &size);
     asset.size = (int64_t)size;
-    strcpy_s(asset.path, 128, shortPath.c_str());
+    strcpy_s(asset.path, PATH_MAX_LEN, shortPath.c_str());
 
     assert(asset.size > 0);
     assert(asset.data != NULL);
@@ -74,10 +69,12 @@ void save(PackList pack, const char* output) {
     // save into file
     uint size = 0;
 
-    auto buffer = std::ofstream(output);
+    auto buffer = std::ofstream(output,std::ofstream::binary);
+    int64_t amount = pack.size();
+    buffer.write((char*)&amount,sizeof(int64_t));
     for (const auto& item : pack) {
         // INFO("Writing %d bytes of %s...", item.size, item.path);
-        buffer.write((char*)item.path, 128);
+        buffer.write((char*)item.path, PATH_MAX_LEN);
         buffer.write((char*)&item.size, sizeof(int64_t));
         buffer.write((char*)item.data, item.size);
     }
@@ -115,7 +112,7 @@ void deflate(const char* input, const char* output) {
     CheckAllocations();
 }
 
-int main(int argc, char** argv)
+int main2(int argc, char** argv)
 {
     SetTraceLogLevel(LOG_WARNING);
 
@@ -129,5 +126,23 @@ int main(int argc, char** argv)
 
     deflate(inputFolder, exportFolder);
 
+    DeflationPack("assets.mga");
+
     return 0;
+}
+
+int main() {
+    const char* inputFolder = "X:\\raw_assets";
+    const char* exportFolder = "X:\\assets.mga";
+
+    deflate(inputFolder, exportFolder);
+
+    auto pack = DeflationPack("X:\\assets.mga");
+    if (pack.succeeded) {
+		pack.PrintAssetList();
+    }
+
+    Image img = pack.RequestImage("spr_wood_12");
+    
+    ExportImage(img, "output.png");
 }
