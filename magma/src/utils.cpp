@@ -63,13 +63,6 @@ void M_MemFree(void* ptr)
     Allocations--;
 }
 
-void assert(bool cond) {
-    if (!cond) {
-        int* ptr = NULL;
-        *ptr = 666;
-    }
-}
-
 void CheckAllocations(){
     if (Allocations == 0){
         INFO("All allocations got freed!");

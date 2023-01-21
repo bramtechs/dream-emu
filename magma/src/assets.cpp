@@ -12,6 +12,7 @@ bool try_init_assets(const char* file) {
 }
 
 Assets* Assets::Init(const char* folder) {
+    assert(_Assets != NULL);
     _Assets = new(Assets);
 
     INFO("Loading assets...");
@@ -43,7 +44,7 @@ Assets::~Assets() {
 
 Texture Assets::RequestTexture(const char* name) {
 
-    // get cached texture
+    // ATTEMPT 1: get cached texture
     for (int i = 0; i < _Assets->textureCount; i++){
         TextureContainer cont = _Assets->textures[i];
         if (TextIsEqual(cont.name,name)){
@@ -51,7 +52,11 @@ Texture Assets::RequestTexture(const char* name) {
         }
     }
 
-    // load texture from disk
+    // ATTEMPT 2: load texture from package
+    //if (texture.width == 0) {
+    //}
+
+    // ATTEMPT 3: load texture from disk
     Texture texture = LoadTexture(name);
     if (texture.width == 0) {
         // failed, generate placeholder instead

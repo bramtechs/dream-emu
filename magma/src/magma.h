@@ -6,18 +6,21 @@
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <cassert>
 
 // the all powerful raylib
 #include "raylib.h"
 #include "raymath.h"
+
+// tooling
+#include "deflated_assets.h"
 
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
 
 #define new(X) (X*)M_MemAlloc(sizeof(X))
 
-#ifdef __unix___
-
+#ifdef __unix___ 
 #define INFO(X...)  LoggerLog(LOG_INFO,TextFormat(X));      TraceLog(LOG_INFO,X)
 #define WARN(X...)  LoggerLog(LOG_WARNING,TextFormat(X));   TraceLog(LOG_WARNING,X)
 #define DEBUG(X...) LoggerLog(LOG_DEBUG,TextFormat(X));     TraceLog(LOG_DEBUG,X)
@@ -29,7 +32,6 @@
 #define WARN(...)  LoggerLog(LOG_WARNING,TextFormat(__VA_ARGS__)); TraceLog(LOG_WARNING,__VA_ARGS__)
 #define DEBUG(...) LoggerLog(LOG_DEBUG,TextFormat(__VA_ARGS__));   TraceLog(LOG_DEBUG,__VA_ARGS__)
 #define ERROR(...) LoggerLog(LOG_ERROR,TextFormat(__VA_ARGS__));   TraceLog(LOG_ERROR,__VA_ARGS__)
-
 #endif
 
 #define MAGMA_CONF_PATH "../save/engine_conf.dat"
@@ -95,6 +97,8 @@ struct MagmaSettings {
 extern MagmaSettings Settings;
 
 struct Assets{
+    DeflationPack pack;
+
     TextureContainer textures[MAX_ASSETS];
     size_t textureCount;
 
@@ -240,7 +244,6 @@ struct PlayerFPS {
     void SetFov(float fovDeb);
 };
 
-void assert(bool cond);
 void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
