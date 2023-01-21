@@ -2,6 +2,7 @@
 #include "client.h"
 #include "dreams.h"
 
+
 #define RAYGUI_IMPLEMENTATION
 
 bool LastLockFramerate = true;
@@ -35,15 +36,15 @@ int main()
 			HEIGHT,
 			{
 				{
-					"gui_splash.png",
+					"gui_splash",
 					4.f,
 				},
 				{
-					"gui_save_warning.png",
+					"gui_save_warning",
 					4.f,
 				},
 			},
-			"spr_sky.png",
+			"spr_sky",
 			"Dream Emulator"
 			}, Settings.skipIntro);
 

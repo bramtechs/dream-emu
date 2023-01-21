@@ -46,9 +46,10 @@ bool MainMenu::UpdateAndDraw(float delta) {
 	}
 
 	float waitTime = FADE_DURATION;
-	Texture texture = splashTextures[curSplash];
+	Texture texture = {};
 
 	if (curSplash < config.splashes.size()) {
+		texture = splashTextures[curSplash];
 		switch (state) {
 		case FADE_IN:
 			alpha += delta / FADE_DURATION;

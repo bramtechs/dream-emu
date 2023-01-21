@@ -80,16 +80,6 @@ struct MagmaWindow {
 
 };
 
-struct TextureContainer{
-    char name[128];
-    Texture texture;
-};
-
-struct ModelContainer{
-    char name[128];
-    Model model;
-};
-
 struct MagmaSettings {
     bool unlockFrameRate;
     bool skipIntro;
@@ -99,15 +89,14 @@ extern MagmaSettings Settings;
 struct Assets{
     DeflationPack pack;
 
-    TextureContainer textures[MAX_ASSETS];
-    size_t textureCount;
+    std::map<std::string, Texture> textures;
+    std::map<std::string, Model> models;
 
-    ModelContainer models[MAX_ASSETS];
-    size_t modelCount;
-
-    static Assets* Init(const char* folder);
-    static void Dispose();
+    Assets(const char* file);
     ~Assets();
+
+    static Assets* Init(const char* file);
+    static void Dispose();
 
 	static Texture RequestTexture(const char* name);
 	static Model RequestModel(const char* name);

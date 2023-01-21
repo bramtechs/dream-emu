@@ -63,6 +63,10 @@ void DeflationPack::PrintAssetList() {
 	}
 }
 
+bool DeflationPack::AssetExists(const char* name) {
+	return QueryAsset(name) != NULL;
+}
+
 Texture DeflationPack::RequestTexture(const char* name) {
 	Image img = RequestImage(name);
 	return LoadTextureFromImage(img);

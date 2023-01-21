@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Declaring our executable
 FILE(GLOB THESAUCE src/*.cpp src/*.h) # TODO put ./shared into own library
-add_executable(${PROJECT_NAME} ${THESAUCE})
+add_executable(${PROJECT_NAME} WIN32 ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})

@@ -32,6 +32,7 @@ public:
 
 	void PrintAssetList();
 
+	bool AssetExists(const char* name);
 	Image RequestImage(const char* name);
 	Texture RequestTexture(const char* name); // NOTE: GL context required!
 
