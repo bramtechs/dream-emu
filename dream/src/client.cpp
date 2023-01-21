@@ -21,7 +21,7 @@ int main()
 
 	SetTraceLogLevel(LOG_DEBUG);
 
-	if (Assets::Init("assets") != NULL) {
+	if (Assets::Init("assets.mga") != NULL) {
 		UserPrefs::Load();
 		LoadMagmaSettings();
 
@@ -87,26 +87,8 @@ int main()
 
 	}
 	else {
-		Image grid = GenImageChecked(WIDTH+64, WIDTH+64, 32, 32, PURPLE, DARKPURPLE);
-		Texture gridTexture = LoadTextureFromImage(grid);
-		UnloadImage(grid);
-		float offset = 0.f;
-		const char* text = "Could not find 'assets.mga'.\nPlease extract your download.";
-		while (!WindowShouldClose()) {
-			BeginMagmaDrawing();
-				ClearBackground(BLACK);
-				DrawTexture(gridTexture, -offset, -offset, WHITE);
-				DrawRectangleGradientV(0, 0, WIDTH, HEIGHT+abs(sin(GetTime())*100), BLANK, PINK);
-				offset += GetFrameTime() * 32.f;
-				if (offset > 32){
-					offset = 0;
-				}
-				Vector2 pos = Vector2Subtract({ WIDTH / 2,HEIGHT / 2 }, Vector2Scale(MeasureTextEx(GetFontDefault(), text, 28, 2), 0.5f));
-				DrawTextEx(GetFontDefault(), text, pos, 28, 2, WHITE);
-			EndMagmaDrawing();
-			EndDrawing();
-		}
-		UnloadTexture(gridTexture);
+		// render fail screen until game close
+		Assets::EnterFailScreen(WIDTH,HEIGHT);
 	}
 	CheckAllocations();
 

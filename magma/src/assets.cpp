@@ -2,13 +2,12 @@
 
 static Assets* _Assets = NULL;
 
-bool try_init_assets(const char* folder) {
-    if (DirectoryExists(folder)) {
-       INFO("Found assets at %s ...",folder);
-       assert(ChangeDirectory(folder));
+bool try_init_assets(const char* file) {
+    if (FileExists(file)) {
+       INFO("Found assets at file %s ...",file);
        return true;
     }
-    WARN("Did not find assets at %s, keep searching...",folder);
+    WARN("Did not find assets at %s, keep searching...",file);
     return false;
 }
 
@@ -22,7 +21,7 @@ Assets* Assets::Init(const char* folder) {
     }
 
     // visual studio
-    if (try_init_assets("../../assets/")) {
+    if (try_init_assets("../../assets.mga")) {
         return _Assets;
     }
 
@@ -106,4 +105,27 @@ FilePathList Assets::IndexModels(){
     }
     // TODO dispose
     return list;
+}
+
+void Assets::EnterFailScreen(int width, int height) {
+	Image grid = GenImageChecked(width+64, width+64, 32, 32, PURPLE, DARKPURPLE);
+	Texture gridTexture = LoadTextureFromImage(grid);
+	UnloadImage(grid);
+	float offset = 0.f;
+	const char* text = "Could not find 'assets.mga'.\nPlease extract your download.";
+	while (!WindowShouldClose()) {
+		BeginMagmaDrawing();
+			ClearBackground(BLACK);
+			DrawTexture(gridTexture, -offset, -offset, WHITE);
+			DrawRectangleGradientV(0, 0, width, height+abs(sin(GetTime())*100), BLANK, PINK);
+			offset += GetFrameTime() * 32.f;
+			if (offset > 32){
+				offset = 0;
+			}
+			Vector2 pos = Vector2Subtract({ width * 0.5f,height * 0.5f }, Vector2Scale(MeasureTextEx(GetFontDefault(), text, 28, 2), 0.5f));
+			DrawTextEx(GetFontDefault(), text, pos, 28, 2, WHITE);
+		EndMagmaDrawing();
+		EndDrawing();
+	}
+	UnloadTexture(gridTexture);
 }

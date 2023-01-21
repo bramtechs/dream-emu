@@ -110,6 +110,8 @@ struct Assets{
 	static Shader RequestShader(const char* name);
 
 	static FilePathList IndexModels();
+
+    static void EnterFailScreen(int width, int height); // do not run in game loop
 };
 
 struct LogLine {
