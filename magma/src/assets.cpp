@@ -26,7 +26,6 @@ Assets* Assets::Init(const char* folder) {
         return _Assets;
     }
 
-    assert(false);
     return NULL;
 }
 
