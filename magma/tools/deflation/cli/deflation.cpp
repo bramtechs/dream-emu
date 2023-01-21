@@ -112,7 +112,7 @@ void deflate(const char* input, const char* output) {
     CheckAllocations();
 }
 
-int main2(int argc, char** argv)
+int main(int argc, char** argv)
 {
     SetTraceLogLevel(LOG_WARNING);
 
@@ -129,20 +129,4 @@ int main2(int argc, char** argv)
     DeflationPack("assets.mga");
 
     return 0;
-}
-
-int main() {
-    const char* inputFolder = "X:\\raw_assets";
-    const char* exportFolder = "X:\\assets.mga";
-
-    deflate(inputFolder, exportFolder);
-
-    auto pack = DeflationPack("X:\\assets.mga");
-    if (pack.succeeded) {
-		pack.PrintAssetList();
-    }
-
-    Image img = pack.RequestImage("spr_wood_12");
-    
-    ExportImage(img, "output.png");
 }
