@@ -41,7 +41,7 @@ void MainMenu::DrawBackground(Texture texture, Color tint) {
 }
 
 bool MainMenu::UpdateAndDraw(float delta) {
-	if (isDone || config.width == 0) { // skip if not booted
+	if (skipSplash || isDone || config.width == 0) { // skip if not booted
 		return true;
 	}
 

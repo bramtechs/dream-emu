@@ -32,8 +32,7 @@ void Assets::Dispose() {
     delete _Assets;
 }
 
-Assets::Assets(const char* file) : pack(file) {
-    
+Assets::Assets(const char* file): pack(file) {
 }
 
 Assets::~Assets() {
@@ -61,6 +60,7 @@ Texture Assets::RequestTexture(const char* name) {
     }
     else {
 		// ATTEMPT 3: load texture from disk
+        const char* path = TextFormat("raw_assets/%s", name);
 		texture = LoadTexture(name);
 		if (texture.width == 0) {
 			// FAILED: generate placeholder instead

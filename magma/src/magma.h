@@ -21,17 +21,17 @@
 #define new(X) (X*)M_MemAlloc(sizeof(X))
 
 #ifdef __unix___ 
-#define INFO(X...)  LoggerLog(LOG_INFO,TextFormat(X));      TraceLog(LOG_INFO,X)
-#define WARN(X...)  LoggerLog(LOG_WARNING,TextFormat(X));   TraceLog(LOG_WARNING,X)
-#define DEBUG(X...) LoggerLog(LOG_DEBUG,TextFormat(X));     TraceLog(LOG_DEBUG,X)
-#define ERROR(X...) LoggerLog(LOG_ERROR,TextFormat(X));     TraceLog(LOG_ERROR,X)
+#define INFO(X...)  TraceLog(LOG_INFO,X)
+#define WARN(X...)  TraceLog(LOG_WARNING,X)
+#define DEBUG(X...) TraceLog(LOG_DEBUG,X)
+#define ERROR(X...) TraceLog(LOG_ERROR,X)
 
 #elif defined(_WIN32) || defined(WIN32)
 
-#define INFO(...)  LoggerLog(LOG_INFO,TextFormat(__VA_ARGS__));    TraceLog(LOG_INFO,__VA_ARGS__)
-#define WARN(...)  LoggerLog(LOG_WARNING,TextFormat(__VA_ARGS__)); TraceLog(LOG_WARNING,__VA_ARGS__)
-#define DEBUG(...) LoggerLog(LOG_DEBUG,TextFormat(__VA_ARGS__));   TraceLog(LOG_DEBUG,__VA_ARGS__)
-#define ERROR(...) LoggerLog(LOG_ERROR,TextFormat(__VA_ARGS__));   TraceLog(LOG_ERROR,__VA_ARGS__)
+#define INFO(...)  TraceLog(LOG_INFO,__VA_ARGS__)
+#define WARN(...)  TraceLog(LOG_WARNING,__VA_ARGS__)
+#define DEBUG(...) TraceLog(LOG_DEBUG,__VA_ARGS__)
+#define ERROR(...) TraceLog(LOG_ERROR,__VA_ARGS__)
 #endif
 
 #define MAGMA_CONF_PATH "../save/engine_conf.dat"
@@ -86,7 +86,7 @@ struct MagmaSettings {
 };
 extern MagmaSettings Settings;
 
-struct Assets{
+struct Assets {
     DeflationPack pack;
 
     std::map<std::string, Texture> textures;
@@ -237,7 +237,7 @@ void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
 
-void LoggerLog(TraceLogLevel level, const char* name);
+void MagmaLogger(int msgType, const char* text, va_list args);
 void DrawLog(float offsetX, float offsetY, int fontSize);
 
 void SaveMagmaSettings();

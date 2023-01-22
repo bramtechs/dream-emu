@@ -1,15 +1,40 @@
 #include "magma.h"
 #include "client.hpp"
 
-void update_and_render(float delta){
+static bool ShowConsole = false;
 
-}
+struct TempleGame {
+    Texture blockTexture;
+
+    TempleGame() {
+        blockTexture = Assets::RequestTexture("spr_block_2");
+    }
+
+    void update_and_render(float delta) {
+		BeginMagmaDrawing();
+
+        ClearBackground(SKYBLUE);
+
+        DrawTexture(blockTexture, 20, 20, WHITE);
+
+		EndMagmaDrawing();
+        if (ShowConsole) {
+			DrawLog(10, 10, 18);
+        }
+        if (IsKeyPressed(KEY_F3)) {
+            ShowConsole = !ShowConsole;
+        }
+		EndDrawing();
+    }
+};
 
 int main()
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "DREAM_EMU");
+    SetTraceLogCallback(MagmaLogger);
+    SetTraceLogLevel(LOG_DEBUG);
+    assert(ChangeDirectory("X:\\temple"));
+
+    InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");
     SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
     INFO("Launched at %s", GetWorkingDirectory());
@@ -17,8 +42,6 @@ int main()
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
     SetTargetFPS(60);
-
-    SetTraceLogLevel(LOG_DEBUG);
 
     if (Assets::Init("assets.mga") != NULL) {
         LoadMagmaSettings();
@@ -38,7 +61,9 @@ int main()
             },
             "spr_sky",
             "Dream Emulator"
-            }, Settings.skipIntro);
+            }, true);
+
+        TempleGame game;
 
         while (!WindowShouldClose()) // Detect window close button or ESC key
         {
@@ -47,7 +72,7 @@ int main()
 
             if (menu.UpdateAndDraw(delta)) {
                 // draw scene here
-                update_and_render(delta);
+                game.update_and_render(delta);
             }
         }
 

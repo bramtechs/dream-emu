@@ -17,10 +17,32 @@ bool CreateDirectory(const char* path){
     return true;
 }
 
-void LoggerLog(TraceLogLevel level, const char* text){
+void MagmaLogger(int msgType, const char *text, va_list args)
+{
+    char timeStr[64] = { 0 };
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+
+    strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", tm_info);
+    printf("[%s] ", timeStr);
+
+    switch (msgType)
+    {
+        case LOG_INFO: printf("[INFO] : "); break;
+        case LOG_ERROR: printf("[ERROR]: "); break;
+        case LOG_WARNING: printf("[WARN] : "); break;
+        case LOG_DEBUG: printf("[DEBUG]: "); break;
+        default: break;
+    }
+
+    char buffer[512];
+    vsnprintf(buffer, 255, text, args);
+
+    std::cout << buffer << std::endl;
+
     LogLine line = {
-        level,
-        text
+        (TraceLogLevel) msgType,
+        buffer
     };
     Buffer.push_back(line);
 }
