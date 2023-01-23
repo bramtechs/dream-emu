@@ -35,8 +35,7 @@ void MainMenu::DrawScreenSaver(float delta) {
 
 void MainMenu::DrawBackground(Texture texture, Color tint) {
 	Rectangle src = { 0, 0, texture.width, texture.height };
-	Vector2 winSize = GetMagmaGameSize();
-	Rectangle dest = { 0, 0, winSize.x, winSize.y };
+	Rectangle dest = { 0, 0, Window.winSize.x, Window.winSize.y };
 	DrawTexturePro(texture, src, dest, Vector2Zero(), 0.f, tint);
 }
 

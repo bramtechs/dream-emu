@@ -1,6 +1,7 @@
 #include "magma.h"
 
-static MagmaWindow Win = { 0 };
+#define Win Window
+MagmaWindow Window = {0};
 
 void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) {
 	Win.gameSize = { (float)gameWidth, (float)gameHeight };
@@ -29,8 +30,8 @@ void BeginMagmaDrawing() {
 	// Update virtual mouse (clamped mouse value behind game screen)
 	Vector2 mouse = GetMousePosition();
 	Vector2 virtualMouse = { 0 };
-	Win.virtualMouse.x = (mouse.x - (GetScreenWidth() - (Win.gameSize.x * Win.scale)) * 0.5f) / Win.scale;
-	Win.virtualMouse.y = (mouse.y - (GetScreenHeight() - (Win.gameSize.y * Win.scale)) * 0.5f) / Win.scale;
+	Win.scaledMouse.x = (mouse.x - (GetScreenWidth() - (Win.gameSize.x * Win.scale)) * 0.5f) / Win.scale;
+	Win.scaledMouse.y = (mouse.y - (GetScreenHeight() - (Win.gameSize.y * Win.scale)) * 0.5f) / Win.scale;
 	virtualMouse = Vector2Clamp(virtualMouse, { 0, 0 }, { (float)Win.gameSize.x, (float)Win.gameSize.y });
 
 	BeginTextureMode(Win.renderTarget);
@@ -48,12 +49,11 @@ void EndMagmaDrawing() {
 	BeginDrawing();
 	ClearBackground(BLACK);     // Clear screen background
 
-	float left = GetLeftMagmaWindowOffset();
-	float top = GetTopMagmaWindowOffset();
+	Vector2 topLeft = GetWindowTopLeft();
 
 	// Draw render texture to screen, properly scaled
 	DrawTexturePro(Win.renderTarget.texture, { 0.0f, 0.0f, (float)Win.renderTarget.texture.width, (float)-Win.renderTarget.texture.height },
-		{ left, top, (float)Win.gameSize.x * Win.scale, (float)Win.gameSize.y * Win.scale }, { 0, 0 }, 0.0f, WHITE);
+		{ topLeft.x, topLeft.y, (float)Win.gameSize.x * Win.scale, (float)Win.gameSize.y * Win.scale }, { 0, 0 }, 0.0f, WHITE);
 }
 
 void CloseMagmaWindow() {
@@ -61,34 +61,20 @@ void CloseMagmaWindow() {
 	CloseWindow();
 }
 
-float GetMagmaScaleFactor() {
-	return Win.scale;
-}
-
-float GetLeftMagmaWindowOffset() {
-	return (GetScreenWidth() - ((float)Win.gameSize.x * Win.scale)) * 0.5f;
-}
-
-float GetTopMagmaWindowOffset() {
-	return (GetScreenHeight() - ((float)Win.gameSize.y * Win.scale)) * 0.5f;
-}
-
-Vector2 GetMagmaGameSize() {
-	return Win.gameSize;
-}
-
-Vector2 GetScaledMousePosition() {
-	return Win.virtualMouse;
+Vector2 GetWindowTopLeft() {
+	return {
+		(GetScreenWidth() - ((float)Win.gameSize.x * Win.scale)) * 0.5f,
+		(GetScreenHeight() - ((float)Win.gameSize.y * Win.scale)) * 0.5f
+	};
 }
 
 Ray GetWindowMouseRay(Camera camera) {
-	Vector2 mouse = GetScaledMousePosition();
+	Vector2 mouse = Win.scaledMouse;
 
 	// TODO do some terribleness for this to work with letterboxing
 	// TODO turn into own api function
-	mouse = Vector2Scale(mouse, GetMagmaScaleFactor());
-	mouse.x += GetLeftMagmaWindowOffset();
-	mouse.y += GetTopMagmaWindowOffset();
+	mouse = Vector2Scale(mouse, Win.scale);
+	mouse = Vector2Add(mouse, GetWindowTopLeft());
 
 	return GetMouseRay(mouse, camera);
 }

@@ -76,9 +76,9 @@ struct MagmaWindow {
 	RenderTexture2D renderTarget;
 
 	float scale;
-	Vector2 virtualMouse;
-
+	Vector2 scaledMouse;
 };
+extern MagmaWindow Window;
 
 struct MagmaSettings {
     bool unlockFrameRate;
@@ -237,6 +237,18 @@ void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
 
+void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
+void CloseMagmaWindow();
+
+void BeginMagmaDrawing();
+void EndMagmaDrawing();
+
+Ray GetWindowMouseRay(Camera camera);
+Vector2 GetWindowTopLeft();
+
+void BeginPaletteBlending();
+void EndPaletteBlending();
+
 void MagmaLogger(int msgType, const char* text, va_list args);
 void DrawLog(float offsetX, float offsetY, int fontSize);
 void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
@@ -244,16 +256,3 @@ void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
 void SaveMagmaSettings();
 void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
-
-void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title); // create a raylib window with 'letterbox' support for
-void BeginMagmaDrawing();
-void EndMagmaDrawing();
-void CloseMagmaWindow();
-
-float GetMagmaScaleFactor();
-float GetLeftMagmaWindowOffset(); // get the width of the horizontal black bars
-float GetTopMagmaWindowOffset();  // get the height of the vertical black bars
-
-Vector2 GetMagmaGameSize();
-Vector2 GetScaledMousePosition();
-Ray GetWindowMouseRay(Camera camera);
