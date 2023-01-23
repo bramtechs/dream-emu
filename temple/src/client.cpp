@@ -1,8 +1,6 @@
 #include "magma.h"
 #include "client.hpp"
 
-static bool ShowConsole = false;
-
 struct TempleGame {
     Texture blockTexture;
 
@@ -18,12 +16,7 @@ struct TempleGame {
         DrawTexture(blockTexture, 20, 20, WHITE);
 
 		EndMagmaDrawing();
-        if (ShowConsole) {
-			DrawLog(10, 10, 18);
-        }
-        if (IsKeyPressed(KEY_F3)) {
-            ShowConsole = !ShowConsole;
-        }
+        UpdateAndDrawLog();
 		EndDrawing();
     }
 };

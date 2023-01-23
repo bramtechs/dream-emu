@@ -239,6 +239,7 @@ void CheckAllocations();
 
 void MagmaLogger(int msgType, const char* text, va_list args);
 void DrawLog(float offsetX, float offsetY, int fontSize);
+void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
 
 void SaveMagmaSettings();
 void LoadMagmaSettings();
