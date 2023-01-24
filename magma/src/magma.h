@@ -99,6 +99,7 @@ struct Assets {
     static void Dispose();
 
 	static Texture RequestTexture(const char* name);
+	static Image RequestImage(const char* name);
 	static Model RequestModel(const char* name);
 	static Shader RequestShader(const char* name);
 

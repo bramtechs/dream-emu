@@ -75,6 +75,26 @@ Texture Assets::RequestTexture(const char* name) {
     return texture;
 }
 
+Image Assets::RequestImage(const char* name) {
+
+    // ATTEMPT 1: load image from package
+    Image image = {};
+    if (_Assets->pack.AssetExists(name)) {
+        image = _Assets->pack.RequestImage(name);
+    }
+    else {
+		// ATTEMPT 2: load image from disk
+        const char* path = TextFormat("raw_assets/%s", name);
+		image = LoadImage(name);
+		if (image.width == 0) {
+			// FAILED: generate placeholder instead
+			image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
+		}
+    }
+
+    return image;
+}
+
 Model Assets::RequestModel(const char* name) {
     // get cached model
     for (const auto& item : _Assets->models) {
