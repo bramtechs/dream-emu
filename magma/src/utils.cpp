@@ -3,6 +3,7 @@
 static std::vector<LogLine> Buffer;
 static size_t Allocations = 0;
 static bool ShowLogger = false;
+static float LoggerOffsetY = 0.f;
 
 bool CreateDirectory(const char* path) {
 	if (DirectoryExists(path)) {
@@ -46,11 +47,20 @@ void MagmaLogger(int msgType, const char* text, va_list args)
 		buffer
 	};
 	Buffer.push_back(line);
+
+	// open logger on error
+	if (msgType == LOG_ERROR || msgType == LOG_WARNING ) {
+		ShowLogger = true;
+	}
+}
+
+void ClearLog() {
+	Buffer.clear();
 }
 
 void DrawLog(float offsetX, float offsetY, int fontSize) {
 	for (int i = 0; i < Buffer.size(); i++) {
-		auto line = Buffer.at(i);
+		auto &line = Buffer.at(Buffer.size()-i-1);
 		int y = i * (fontSize + 4);
 
 		Color color;
@@ -70,16 +80,20 @@ void DrawLog(float offsetX, float offsetY, int fontSize) {
 		}
 
 		const char* text = line.text.c_str();
-		DrawText(text, offsetX, offsetY + y, fontSize, color);
+		DrawText(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
 	}
 }
 
 void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
 	if (IsKeyPressed(KEY_F2)) {
 		ShowLogger = !ShowLogger;
+		LoggerOffsetY = 0.f;
 	}
 	if (ShowLogger) {
 		DrawLog(offsetX, offsetY, fontSize);
+
+		// scrolling
+		LoggerOffsetY += GetMouseWheelMove() * 100;
 	}
 }
 

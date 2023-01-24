@@ -4,11 +4,12 @@
 #define COLORS_PER_PALETTE 256 
 struct Palette {
 	const char name[64];
-	uint8_t colors[COLORS_PER_PALETTE * 3];
+	int colors[COLORS_PER_PALETTE * 3];
 
 	Color GetColor(int index);
 	Color GetIndexColor(int index);
 	void MapImage(Image img);
+	void DrawPreview(Rectangle region);
 	int MapColorLoosely(Color color);
 	int MapColor(Color color);
 };
@@ -85,38 +86,55 @@ void Palette::MapImage(Image img) {
 	}
 }
 
+void Palette::DrawPreview(Rectangle region) {
+	const int DEV = 16;
+
+	int size = region.width / DEV;
+	int i = 0;
+	for (int y = 0; y < DEV; y++) {
+		for (int x = 0; x < DEV; x++) {
+			Color col = GetColor(i);
+			DrawRectangle(region.x+x*size, region.y+y*size, size, size, col);
+			i++;
+		}
+	}
+}
+
 struct TempleGame {
 	Texture blockTexture;
 
+	Palette* palette;
 	Shader shader;
 
 	TempleGame() {
 		Image blockImage = Assets::RequestImage("spr_block_2");
 
 		// force texture into palette
-		Palette palette = {
+		this->palette = new Palette{
 			"default",
-		 {
-			255, 0, 255,
-			4, 12, 6,
-			17, 35, 24,
-			30, 58, 41,
-			48, 93, 66,
-			77, 128, 97,
-			137, 162, 87,
-			190, 220, 127,
-			238, 255, 204,
-		 }
+			{
+				255, 0, 255,
+				4, 12, 6,
+				17, 35, 24,
+				30, 58, 41,
+				48, 93, 66,
+				77, 128, 97,
+				137, 162, 87,
+				190, 220, 127,
+				238, 255, 204,
+			}
 		};
-		palette.MapImage(blockImage);
+
+		palette->MapImage(blockImage);
 
 		blockTexture = LoadTextureFromImage(blockImage);
 		UnloadImage(blockImage);
 
-		shader = LoadShader(NULL, "frag_palette_switch.fs");
+		INFO("LOADING SHADER");
+		shader = LoadShader(0, "raw_assets/frag_palette_switch.fs");
 
 		int paletteLoc = GetShaderLocation(shader, "palette");
-		SetShaderValueV(shader, paletteLoc, &palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
+		SetShaderValueV(shader, paletteLoc, palette->colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
 	}
 
 	void update_and_render(float delta) {
@@ -127,12 +145,12 @@ struct TempleGame {
 		BeginShaderMode(shader);
 
 		DrawTexture(blockTexture, 20, 20, WHITE);
-		DrawCircleGradient(250, 250, 150, BLACK, RED);
 
 		EndShaderMode();
 
 		EndMagmaDrawing();
 		UpdateAndDrawLog();
+		palette->DrawPreview({ (float)GetScreenWidth() - 150,(float)GetScreenHeight() - 150,150,150});
 		EndDrawing();
 	}
 };
