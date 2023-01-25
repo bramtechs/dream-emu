@@ -1,4 +1,10 @@
-# LSD Dream Emulator- type game
+# my game dev stuff (the timesink)
+for big boi c++ game development chads
+![chad](/screenshots/chad.jpg)
+
+(should have used unity tbh, please help)
+
+---
 
 Note: this repo is a mess and contains unused files from other projects
 
