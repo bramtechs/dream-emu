@@ -269,6 +269,8 @@ void CloseMagmaWindow();
 void BeginMagmaDrawing();
 void EndMagmaDrawing();
 
+void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor = WHITE);
+
 Ray GetWindowMouseRay(Camera camera);
 Vector2 GetWindowTopLeft();
 

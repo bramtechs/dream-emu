@@ -164,3 +164,28 @@ void Palette::DrawPreview(Rectangle region) {
 		}
 	}
 }
+
+void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor) {
+	int width = Window.gameSize.x;
+	int height = Window.gameSize.y;
+
+	float offset = GetTime()*tileSize;
+
+	// draw live grid
+	int xx = 0; int yy = 0;
+	for (int x = -offset; x < width; x += tileSize) {
+		for (int y = -offset; y < height; y += tileSize) {
+			Color col = (xx++ + yy) % 2 == 0 ? color : altColor;
+			DrawRectangle(x, y, tileSize, tileSize, col);
+		}
+		xx = 0;
+		yy++;
+	}
+	DrawRectangleGradientV(0, 0, width, height+abs(sin(GetTime())*100), BLANK, highlightColor);
+
+	// draw text
+	if (text != NULL && text != "") {
+		Vector2 pos = Vector2Subtract({ width * 0.5f,height * 0.5f }, Vector2Scale(MeasureTextEx(GetFontDefault(), text, 28, 2), 0.5f));
+		DrawTextEx(GetFontDefault(), text, pos, 28, 2, textColor);
+	}
+}

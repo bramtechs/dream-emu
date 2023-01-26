@@ -166,24 +166,11 @@ FilePathList Assets::IndexModels(){
 }
 
 void Assets::EnterFailScreen(int width, int height) {
-	Image grid = GenImageChecked(width+64, width+64, 32, 32, PURPLE, DARKPURPLE);
-	Texture gridTexture = LoadTextureFromImage(grid);
-	UnloadImage(grid);
-	float offset = 0.f;
-	const char* text = "Could not find 'assets.mga'.\nPlease extract your download.";
 	while (!WindowShouldClose()) {
 		BeginMagmaDrawing();
-			ClearBackground(BLACK);
-			DrawTexture(gridTexture, -offset, -offset, WHITE);
-			DrawRectangleGradientV(0, 0, width, height+abs(sin(GetTime())*100), BLANK, PINK);
-			offset += GetFrameTime() * 32.f;
-			if (offset > 32){
-				offset = 0;
-			}
-			Vector2 pos = Vector2Subtract({ width * 0.5f,height * 0.5f }, Vector2Scale(MeasureTextEx(GetFontDefault(), text, 28, 2), 0.5f));
-			DrawTextEx(GetFontDefault(), text, pos, 28, 2, WHITE);
+        DrawCheckeredBackground(32, "Could not find 'assets.mga'.\nPlease extract your download.",
+            PURPLE, DARKPURPLE, PINK);
 		EndMagmaDrawing();
 		EndDrawing();
 	}
-	UnloadTexture(gridTexture);
 }
