@@ -9,7 +9,7 @@ cmake --build build -j $Env:NUMBER_OF_PROCESSORS --config Release
 .\tools.ps1
 
 # package assets
-.\mgtools\deflation.exe raw_assets assets.mga
+.\mgtools\deflation.exe raw_assets assets.mga --compress
 
 Copy-Item -Force -Recurse assets.mga $BUILD_DIR
 

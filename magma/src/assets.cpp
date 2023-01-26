@@ -118,6 +118,43 @@ Shader Assets::RequestShader(const char* name){
     return shader;
 }
 
+Palette Assets::ParsePalette(const char* text) {
+    std::string bloat(text);
+    std::stringstream stream(bloat);
+
+    int lineIndex = 0;
+    std::string line;
+    while (std::getline(stream, line, '\n')) {
+        if (lineIndex >= 2) {
+            std::cout << line << std::endl;
+        }
+        lineIndex++;
+    }
+    return {};
+}
+
+Palette Assets::RequestPalette(const char* name) {
+    // ATTEMPT 1: load palette from package
+    if (_Assets->pack.AssetExists(name)) {
+        RawAsset asset = _Assets->pack.RequestCustom(name, ".pal");
+        assert(asset.data != NULL);
+
+        // todo load palette in
+        Palette pal = ParsePalette(asset.data);
+        return pal;
+    }
+
+	// ATTEMPT 2: load image from disk
+	const char* path = TextFormat("raw_assets/%s", name);
+    if (FileExists(path)) {
+		char* paletteText = LoadFileText(path);
+		Palette pal = ParsePalette(paletteText);
+		UnloadFileText(paletteText);
+        return pal;
+    }
+    return {};
+}
+
 // TODO inline
 FilePathList Assets::IndexModels(){
     FilePathList list =  LoadDirectoryFilesEx(".", ".obj", true);

@@ -78,3 +78,89 @@ Ray GetWindowMouseRay(Camera camera) {
 
 	return GetMouseRay(mouse, camera);
 }
+
+Color Palette::GetIndexColor(int index) {
+	index = Clamp(index, 0, 255);
+	Color result = {
+		index,
+		0,
+		0,
+		255
+	};
+	return result;
+}
+
+Color Palette::GetColor(int index) {
+	if (index < 0 || index >= COLORS_PER_PALETTE) {
+		WARN("Could not get color indexed %d from palette %s", index, name);
+		return {255,0,255,255};
+	}
+	Color result = {
+		colors[index * 3 + 0],
+		colors[index * 3 + 1],
+		colors[index * 3 + 2],
+		255
+	};
+	return result;
+}
+
+int Palette::MapColor(Color color) {
+	for (int i = 0; i < COLORS_PER_PALETTE; i++) {
+		if (colors[i * 3 + 0] == color.r &&
+			colors[i * 3 + 1] == color.g &&
+			colors[i * 3 + 2] == color.b) {
+			return i;
+		}
+	}
+	WARN("Could not map color into palette %s", name);
+	return 0;
+}
+
+int Palette::MapColorLoosely(Color color) {
+	Vector3 inCol = {
+		color.r,
+		color.g,
+		color.b
+	};
+
+	int closestID = 0;
+	float closestDiff = FLT_MAX;
+	for (int i = 0; i < COLORS_PER_PALETTE; i++) {
+		Vector3 palCol{
+			colors[i * 3 + 0],
+			colors[i * 3 + 1],
+			colors[i * 3 + 2]
+		};
+		float diff = Vector3DistanceSqr(palCol, inCol);
+		if (diff < closestDiff) {
+			closestDiff = diff;
+			closestID = i;
+		}
+	}
+	return closestID;
+}
+
+void Palette::MapImage(Image img) {
+	for (int y = 0; y < img.height; y++) {
+		for (int x = 0; x < img.width; x++) {
+			Color origColor = GetImageColor(img, x, y);
+			int i = MapColorLoosely(origColor);
+			Color newColor = GetIndexColor(i);
+			ImageDrawPixel(&img, x,y, newColor);
+		}
+	}
+}
+
+void Palette::DrawPreview(Rectangle region) {
+	const int DEV = 16;
+
+	int size = region.width / DEV;
+	int i = 0;
+	for (int y = 0; y < DEV; y++) {
+		for (int x = 0; x < DEV; x++) {
+			Color col = GetColor(i);
+			DrawRectangle(region.x+x*size, region.y+y*size, size, size, col);
+			i++;
+		}
+	}
+}

@@ -51,12 +51,23 @@ bool should_include(char const* ext) {
 	return false;
 }
 
-void process(PackList& pack, std::string path, std::string shortPath) {
+void process(PackList& pack, std::string path, std::string shortPath, bool compress=false) {
     RawAsset asset = {};
 
     uint size = 0;
-    asset.data = (char*) LoadFileData(path.c_str(), &size);
-    asset.size = (int64_t)size;
+    unsigned char* data = (unsigned char*) LoadFileData(path.c_str(), &size);
+
+    if (compress) {
+        unsigned char* compressed = CompressData(data, size, (int*) &size);
+        UnloadFileData(data);
+
+        asset.data = (char*) compressed;
+    }
+    else {
+        asset.data = (char*) data;
+    }
+    asset.size = size;
+
     strcpy_s(asset.path, PATH_MAX_LEN, shortPath.c_str());
 
     assert(asset.size > 0);
@@ -65,15 +76,21 @@ void process(PackList& pack, std::string path, std::string shortPath) {
     pack.push_back(asset);
 }
 
-void save(PackList pack, const char* output) {
+void save(PackList pack, const char* output, bool compress=false) {
     // save into file
     uint size = 0;
 
     auto buffer = std::ofstream(output,std::ofstream::binary);
+    // >>> size
     int64_t amount = pack.size();
     buffer.write((char*)&amount,sizeof(int64_t));
+    // >>> compressed flag
+    buffer.write((char*)&compress,sizeof(bool));
+
+    // >>> items
     for (const auto& item : pack) {
-        // INFO("Writing %d bytes of %s...", item.size, item.path);
+        // >>> item
+        DEBUG("Writing %d bytes of %s...", item.size, item.path);
         buffer.write((char*)item.path, PATH_MAX_LEN);
         buffer.write((char*)&item.size, sizeof(int64_t));
         buffer.write((char*)item.data, item.size);
@@ -81,7 +98,7 @@ void save(PackList pack, const char* output) {
     buffer.close();
 }
 
-void deflate(const char* input, const char* output) {
+void deflate(const char* input, const char* output, bool compress=false) {
     FilePathList files = LoadDirectoryFilesEx(input, NULL, true);
 
     PackList pack;
@@ -101,32 +118,51 @@ void deflate(const char* input, const char* output) {
         const char* ext = GetFileExtension(path.c_str());
 
         if (should_include(ext)) {
-            process(pack, path, shortPath);
+            process(pack, path, shortPath, compress);
         }
     }
 
-    save(pack, output);
+    save(pack, output, compress);
 
     UnloadDirectoryFiles(files);
+}
 
-    CheckAllocations();
+int run(std::vector<std::string> args) {
+    if (args.size() <= 2){
+        ERROR("Not enough arguments provided! Got %d args.",args.size());
+        return -1;
+    }
+
+    std::string inputFolder = args[1];
+    std::string exportFolder = args[2];
+
+    bool doCompress = false;
+    if (args.size() > 3 && args[3] == "--compress") {
+        doCompress = true;
+        INFO("Compressing package...");
+    }
+
+    deflate(inputFolder.c_str(), exportFolder.c_str(), doCompress);
+
+    INFO("Exported %scompressed package to %s", doCompress ? "":"un", exportFolder);
+
+    return 0;
 }
 
 int main(int argc, char** argv)
 {
-    SetTraceLogLevel(LOG_WARNING);
+    SetTraceLogLevel(LOG_DEBUG);
+    DEBUG("Launched at %s", GetWorkingDirectory());
 
-    if (argc <= 2){
-        ERROR("Not enough arguments provided! Got %d args.",argc);
-        return -1;
+    auto args = std::vector<std::string>();
+    for (int i = 0; i < argc; i++) {
+        args.push_back(argv[i]);
     }
+    run(args);
 
-    const char* inputFolder = argv[1];
-    const char* exportFolder = argv[2];
-
-    deflate(inputFolder, exportFolder);
-
-    DeflationPack("assets.mga");
-
-    return 0;
+    //ChangeDirectory("X:\\");
+    //args.push_back("assets_raw");
+    //args.push_back("assets.mga");
+    //args.push_back("--compressed");
+    //run(args);
 }

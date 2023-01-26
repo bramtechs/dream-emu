@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <cassert>
+#include <sstream>
 
 // the all powerful raylib
 #include "raylib.h"
@@ -45,6 +46,8 @@
 #define COMP_ALL                0
 #define COMP_BASE               1
 #define COMP_MODEL_RENDERER     2
+
+#define COLORS_PER_PALETTE 256 
 
 #define BeginCouroutine() \
     static float CTARGET = 0.f; \
@@ -86,6 +89,26 @@ struct MagmaSettings {
 };
 extern MagmaSettings Settings;
 
+struct Palette {
+	const char name[64];
+	int colors[COLORS_PER_PALETTE * 3];
+
+	Color GetColor(int index);
+	Color GetIndexColor(int index);
+	void MapImage(Image img);
+	void DrawPreview(Rectangle region);
+	int MapColorLoosely(Color color);
+	int MapColor(Color color);
+
+};
+constexpr Palette INVALID_PALETTE = {
+	"invalid",
+	{
+        255,0,0,
+        255,0,255
+    }
+};
+
 struct Assets {
     DeflationPack pack;
 
@@ -102,10 +125,13 @@ struct Assets {
 	static Image RequestImage(const char* name);
 	static Model RequestModel(const char* name);
 	static Shader RequestShader(const char* name);
+	static Palette RequestPalette(const char* name);
 
 	static FilePathList IndexModels();
-
     static void EnterFailScreen(int width, int height); // do not run in game loop
+
+private:
+    static Palette ParsePalette(const char* text);
 };
 
 struct LogLine {
@@ -233,7 +259,6 @@ struct PlayerFPS {
     void SetAngle(float lookAtDeg);
     void SetFov(float fovDeb);
 };
-
 void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
@@ -246,9 +271,6 @@ void EndMagmaDrawing();
 
 Ray GetWindowMouseRay(Camera camera);
 Vector2 GetWindowTopLeft();
-
-void BeginPaletteBlending();
-void EndPaletteBlending();
 
 void MagmaLogger(int msgType, const char* text, va_list args);
 void ClearLog();

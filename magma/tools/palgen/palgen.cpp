@@ -75,8 +75,8 @@ int execute_with_args(int argc, char* argv[]) {
     }
 
     if (argc >= 2) {
-        const char* input = argv[0];
-        const char* output = argv[1];
+        const char* input = argv[argc-2];
+        const char* output = argv[argc-1];
         auto check = check_paths(input, output);
         if (check.first) {
             auto result = extract_from_path(input, output);

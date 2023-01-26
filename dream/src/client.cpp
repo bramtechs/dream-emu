@@ -2,7 +2,6 @@
 #include "client.h"
 #include "dreams.h"
 
-
 #define RAYGUI_IMPLEMENTATION
 
 bool LastLockFramerate = true;

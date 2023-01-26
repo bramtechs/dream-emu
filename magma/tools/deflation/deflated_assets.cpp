@@ -26,21 +26,33 @@ DeflationPack::DeflationPack(const char* filePath) {
 		return;
 	}
 
-	// read total items
+	// >> size
 	int64_t count = -1;
-	char* countPtr = (char*) &count;
-	stream.read(countPtr,sizeof(int64_t));
+	stream.read((char*) &count,sizeof(int64_t));
 
+	bool isCompressed = false;
+	// >> compressed flag
+	stream.read((char*) isCompressed,sizeof(bool));
+
+	// >> items
 	for (auto i = 0; i < count; i++) {
+		// >> item
 		RawAsset asset = {};
 		stream.read(asset.path, PATH_MAX_LEN);
 
-		char* sizePtr = (char*)&asset.size;
-		stream.read(sizePtr, sizeof(int64_t));
+		stream.read((char*)&asset.size, sizeof(int64_t));
 		assert(asset.size > 0); // TODO handle errors properly
 
-		asset.data = (char*) MemAlloc(asset.size);
-		stream.read(asset.data, asset.size);
+		unsigned char* loaded = (unsigned char*) MemAlloc(asset.size);
+		stream.read((char*)loaded, asset.size);
+
+		if (isCompressed) {
+			asset.data = (char*) DecompressData(loaded, asset.size, NULL);
+			MemFree(loaded);
+		}
+		else {
+			asset.data = (char*) loaded;
+		}
 
 		assets.push_back(asset);
 		TraceLog(LOG_DEBUG,"Loaded asset %s", asset.path);
@@ -85,6 +97,32 @@ Image DeflationPack::RequestImage(const char* name) {
 	}
 	const char* ext = GetFileExtension(asset->path);
 	return LoadImageFromMemory(ext, (const unsigned char*) asset->data, asset->size);
+}
+
+RawAsset DeflationPack::RequestCustom(const char* name, const char* ext) {
+	// check if exists
+	const RawAsset* asset = QueryAsset(name);
+	if (asset == NULL) {
+		TraceLog(LOG_ERROR,"Packaged palette with name %s not found!", name);
+		return {};
+	}
+	if (GetAssetType(asset->path) != CUSTOM) {
+		TraceLog(LOG_ERROR,"Packaged asset with name %s is not custom!", name);
+		return {};
+	}
+
+	// check extension
+	if (ext != NULL) {
+		const char* fext = ext;
+		if (ext[0] != '.') {
+			fext = TextFormat(".%s", ext);
+		}
+		if (!TextIsEqual(GetFileExtension(asset->path), fext)) {
+			TraceLog(LOG_ERROR,"Custom packaged asset is not of type %s", fext);
+			return {};
+		}
+	}
+	return *asset;
 }
 
 const RawAsset* DeflationPack::QueryAsset(const char* name) {
