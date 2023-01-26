@@ -263,7 +263,9 @@ struct PlayerFPS {
 void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
+
 Color InvertColor(Color col, bool invertAlpha = false);
+Color ColorLerp(Color src, Color dst, float factor);
 
 void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
 void InitMagmaWindow(int winWidth, int winHeight, const char* title);

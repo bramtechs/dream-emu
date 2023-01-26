@@ -10,10 +10,10 @@
 #define PATH_MAX_LEN 128
 
 // API to access "Deflation" asset packs
-#define CUSTOM	-1
+#define CUSTOM    -1
 #define TEXTURE 0
-#define MODEL	1
-#define SOUND	2
+#define MODEL    1
+#define SOUND    2
 
 struct RawAsset {
     char path[PATH_MAX_LEN];
@@ -24,20 +24,23 @@ struct RawAsset {
 class DeflationPack {
 
 public:
-	bool succeeded;
-	std::vector<RawAsset> assets;
+    bool succeeded;
+    std::vector<RawAsset> assets;
 
-	DeflationPack(const char* filePath);
-	~DeflationPack();
+    DeflationPack(const char* filePath);
+    ~DeflationPack();
 
-	void PrintAssetList();
+    void PrintAssetList();
 
-	bool AssetExists(const char* name);
-	Image RequestImage(const char* name);
-	Texture RequestTexture(const char* name); // NOTE: GL context required!
-	RawAsset RequestCustom(const char* name, const char* ext=NULL);
-	std::vector<std::string> GetAssetNames();
+    bool AssetExists(const char* name);
+    Image RequestImage(const char* name);
+    Texture RequestTexture(const char* name); // NOTE: GL context required!
+    RawAsset RequestCustom(const char* name, const char* ext=NULL);
+
+    std::vector<std::string> GetAssetNames();
 
 private:
-	const RawAsset* QueryAsset(const char* name);
+    const RawAsset* QueryAsset(const char* name);
 };
+
+int GetAssetType(const char* name);

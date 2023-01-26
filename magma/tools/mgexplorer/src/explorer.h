@@ -1,53 +1,70 @@
 #include "deflated_assets.h"
 
 struct Explorer {
-	const int FONT_SIZE = 18;
-	const float BUTTON_HEIGHT = 24;
+    const int FONT_SIZE = 18;
 
-	float barWidth;
-	float barOffsetY;
+    float barWidth;
+    float listOffsetY;
 
-	DeflationPack* pack;
-	std::vector<std::string> names;
+    DeflationPack* pack;
+    std::vector<std::string> names;
 
-	Explorer(const char* filePath) {
-		pack = new DeflationPack(filePath);
-		names = pack->GetAssetNames();
-		barOffsetY = 0;
+    Explorer(const char* filePath) {
+        pack = new DeflationPack(filePath);
+        names = pack->GetAssetNames();
+        listOffsetY = 0;
+    }
 
-		// determine width of bar
-		barWidth = 100;
-		for (auto& name : names) {
-			float len = MeasureText(name.c_str(), FONT_SIZE);
-			if (len > barWidth) {
-				barWidth = len;
-			}
-		}
-	}
+    ~Explorer() {
+        delete pack;
+    }
 
-	~Explorer() {
-		delete pack;
-	}
+    void update_and_render(float delta) {
+        ClearBackground(SKYBLUE);
 
-	void update_and_render(float delta) {
-		ClearBackground(SKYBLUE);
+        float y = 5.0f + listOffsetY;
+        for (auto& name : names) {
+            Color col = GetAssetTypeColor(name);
+            DrawButton(name.c_str(), 5, y, col);
+            y += FONT_SIZE+5;
+        }
 
-		float y = 10;
-		for (auto& name : names) {
-			DrawButton(name.c_str(), { 0,y,barWidth,BUTTON_HEIGHT });
-			y += BUTTON_HEIGHT+5;
-		}
+        listOffsetY += GetMouseWheelMove()*FONT_SIZE;
+    }
 
-		barOffsetY += GetMouseWheelMove()*BUTTON_HEIGHT;
-	}
+    void DrawButton(const char* text, int x, int y, Color color=WHITE) {
+        Vector2 textSize = MeasureTextEx(GetFontDefault(),text,FONT_SIZE,3);
+        Rectangle region = { x, y, textSize.x, textSize.y };
 
-	void DrawButton(const char* name, Rectangle region) {
-		Vector2 mouse = GetMousePosition();
+        bool mouseOver = CheckCollisionPointRec(GetMousePosition(), region);
+        Color tint = mouseOver ? color : ColorBrightness(color,-0.3f);
 
-		bool mouseOver = CheckCollisionPointRec(mouse, region);
-		Color tint = mouseOver ? RAYWHITE : GRAY;
+        const int SEGS = 10;
+        for (int i = 0; i < SEGS; i++){
+            float perc = i/(float)SEGS;
+            Color shade;
+            if (i == SEGS-2){
+                shade = BLACK;
+            }else{
+                shade = ColorLerp(WHITE,tint,perc);
+            }
+            DrawText(text, x + SEGS - i, y + SEGS - i, FONT_SIZE, shade);
+        }
+    }
 
-		DrawRectangle(region.x,region.y+barOffsetY,region.width,region.height, tint);
-		DrawText(name, region.x + 5, region.y + 5, FONT_SIZE, BLACK);
-	}
+    Color GetAssetTypeColor(std::string& path){
+        switch (GetAssetType(path.c_str())){
+            case CUSTOM:
+                return PINK;
+            case TEXTURE:
+                return GREEN;
+            case MODEL:
+                return RED;
+            case SOUND:
+                return BLUE;
+            default:
+                return WHITE;
+        }
+        return WHITE;
+    }
 };
