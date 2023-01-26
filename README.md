@@ -1,16 +1,14 @@
-# my game dev stuff (the timesink)
-for big boi c++ game development chads
-![chad](/screenshots/chad.jpg)
+# game dev stuff (aka the timesink)
+for big boi c++ [raylib](https://github.com/raysan5/raylib) game development chads
 
-(should have used unity tbh, please help)
+<img src="/screenshots/chad.jpg" alt="chad" title="not actually me" width="256"/>
 
----
+(should have used unity tbh, please help...)
 
-Note: this repo is a mess and contains unused files from other projects
-
-Just renders OBJ models for now....
-
-In order to prevent re-inventing the wheel too much, [Raylib](https://github.com/raysan5/raylib) is used.
+## TODO
+- [ ] Dream emulator (some small 3d game to develop my library around)
+- [ ] Temple Mayhem (some small 2d game to develop my library around)
+- [ ] Space Game (the rpg that will never be done)
 
 ### Previews
 
