@@ -38,18 +38,7 @@ struct Explorer {
 
         bool mouseOver = CheckCollisionPointRec(GetMousePosition(), region);
         Color tint = mouseOver ? color : ColorBrightness(color,-0.3f);
-
-        const int SEGS = 10;
-        for (int i = 0; i < SEGS; i++){
-            float perc = i/(float)SEGS;
-            Color shade;
-            if (i == SEGS-2){
-                shade = BLACK;
-            }else{
-                shade = ColorLerp(WHITE,tint,perc);
-            }
-            DrawText(text, x + SEGS - i, y + SEGS - i, FONT_SIZE, shade);
-        }
+        DrawText(text, x, y, FONT_SIZE, tint);
     }
 
     Color GetAssetTypeColor(std::string& path){
