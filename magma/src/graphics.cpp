@@ -3,9 +3,9 @@
 #define Win Window
 MagmaWindow Window = {0};
 
-void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) {
-	Win.gameSize = { (float)gameWidth, (float)gameHeight };
+void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) { Win.gameSize = { (float)gameWidth, (float)gameHeight };
 	Win.winSize = { (float)winWidth, (float)winHeight };
+	Win.unscaled = false;
 
 	assert(gameWidth > 0 && gameHeight > 0 &&
 		winWidth > 0 && winHeight > 0);
@@ -20,6 +20,26 @@ void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight,
 
 	// Render texture initialization, used to hold the rendering result so we can easily resize it
 	Win.renderTarget = LoadRenderTexture(gameWidth, gameHeight);
+	SetTextureFilter(Win.renderTarget.texture, TEXTURE_FILTER_POINT);  // Texture scale filter to use
+}
+
+void InitMagmaWindow(int winWidth, int winHeight, const char* title) {
+	Win.winSize = { (float)winWidth, (float)winHeight };
+	Win.gameSize = Win.winSize;
+	Win.unscaled = true;
+
+	assert(winWidth > 0 && winHeight > 0);
+
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	InitWindow(winWidth, winHeight, title);
+	SetWindowMinSize(winWidth / 2, winHeight / 2);
+	SetWindowPosition((GetMonitorWidth(0) - winWidth) / 2, (GetMonitorHeight(0) - winHeight) / 2);
+	SetWindowSize(winWidth, winHeight);
+
+	SetExitKey(KEY_DELETE);
+
+	// Render texture initialization, used to hold the rendering result so we can easily resize it
+	Win.renderTarget = LoadRenderTexture(winWidth, winHeight);
 	SetTextureFilter(Win.renderTarget.texture, TEXTURE_FILTER_POINT);  // Texture scale filter to use
 }
 
@@ -166,8 +186,8 @@ void Palette::DrawPreview(Rectangle region) {
 }
 
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor) {
-	int width = Window.gameSize.x;
-	int height = Window.gameSize.y;
+	int width = Win.unscaled ? GetScreenWidth() : Window.gameSize.x;
+	int height = Win.unscaled ? GetScreenHeight() : Window.gameSize.y;
 
 	float offset = GetTime()*tileSize;
 

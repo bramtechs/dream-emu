@@ -79,6 +79,7 @@ struct MagmaWindow {
 	RenderTexture2D renderTarget;
 
 	float scale;
+    bool unscaled;
 	Vector2 scaledMouse;
 };
 extern MagmaWindow Window;
@@ -238,7 +239,6 @@ struct EntityGroup {
 	size_t DrawGroup(Camera camera, bool drawOutlines);
 };
 
-
 struct PlayerFPS {
     Camera camera;
     float eyeHeight;
@@ -259,11 +259,14 @@ struct PlayerFPS {
     void SetAngle(float lookAtDeg);
     void SetFov(float fovDeb);
 };
+
 void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
+Color InvertColor(Color col, bool invertAlpha = false);
 
 void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
+void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
 
 void BeginMagmaDrawing();

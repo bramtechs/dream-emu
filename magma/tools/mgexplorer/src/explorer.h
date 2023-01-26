@@ -1,21 +1,53 @@
 #include "deflated_assets.h"
 
 struct Explorer {
-    const int BAR_WIDTH = 150;
+	const int FONT_SIZE = 18;
+	const float BUTTON_HEIGHT = 24;
 
-    DeflationPack* pack;
-     
-    Explorer(const char* filePath) {
-        pack = new DeflationPack(filePath); 
-    }
+	float barWidth;
+	float barOffsetY;
 
-    ~Explorer(){
-        delete pack;
-    }
+	DeflationPack* pack;
+	std::vector<std::string> names;
 
-    void update_and_render(float delta) {
-        ClearBackground(SKYBLUE);
+	Explorer(const char* filePath) {
+		pack = new DeflationPack(filePath);
+		names = pack->GetAssetNames();
+		barOffsetY = 0;
 
-        DrawRectangle(0,0,BAR_WIDTH,HEIGHT, RAYWHITE);
-    }
+		// determine width of bar
+		barWidth = 100;
+		for (auto& name : names) {
+			float len = MeasureText(name.c_str(), FONT_SIZE);
+			if (len > barWidth) {
+				barWidth = len;
+			}
+		}
+	}
+
+	~Explorer() {
+		delete pack;
+	}
+
+	void update_and_render(float delta) {
+		ClearBackground(SKYBLUE);
+
+		float y = 10;
+		for (auto& name : names) {
+			DrawButton(name.c_str(), { 0,y,barWidth,BUTTON_HEIGHT });
+			y += BUTTON_HEIGHT+5;
+		}
+
+		barOffsetY += GetMouseWheelMove()*BUTTON_HEIGHT;
+	}
+
+	void DrawButton(const char* name, Rectangle region) {
+		Vector2 mouse = GetMousePosition();
+
+		bool mouseOver = CheckCollisionPointRec(mouse, region);
+		Color tint = mouseOver ? RAYWHITE : GRAY;
+
+		DrawRectangle(region.x,region.y+barOffsetY,region.width,region.height, tint);
+		DrawText(name, region.x + 5, region.y + 5, FONT_SIZE, BLACK);
+	}
 };

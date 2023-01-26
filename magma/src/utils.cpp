@@ -117,3 +117,13 @@ void CheckAllocations() {
 		WARN("%d allocations did not get freed!", Allocations);
 	}
 }
+
+Color InvertColor(Color col, bool invertAlpha) {
+	col.r = 255 - col.r;
+	col.g = 255 - col.g;
+	col.b = 255 - col.b;
+	if (invertAlpha) {
+		col.a = 255 - col.a;
+	}
+	return col;
+}

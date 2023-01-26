@@ -38,7 +38,7 @@ int main()
     SetTraceLogLevel(LOG_DEBUG);
     assert(ChangeDirectory("X:\\temple"));
 
-    InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Magma Explorer");
+    InitMagmaWindow(WIDTH, HEIGHT, "Magma Explorer");
 
     INFO("Launched at %s", GetWorkingDirectory());
 
@@ -56,7 +56,7 @@ int main()
         float delta = GetFrameTime();
         float time = GetTime();
 
-        BeginMagmaDrawing();
+        BeginDrawing();
 
         ClearBackground(SKYBLUE);
 
@@ -104,13 +104,11 @@ int main()
                 break;
         }
 
-        EndMagmaDrawing();
         UpdateAndDrawLog();
         EndDrawing();
-
     }
 
-    CloseMagmaWindow();
+    CloseWindow();
 
     return 0;
 }

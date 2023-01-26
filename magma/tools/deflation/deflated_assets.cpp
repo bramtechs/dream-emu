@@ -126,6 +126,14 @@ RawAsset DeflationPack::RequestCustom(const char* name, const char* ext) {
 	return *asset;
 }
 
+std::vector<std::string> DeflationPack::GetAssetNames() {
+	std::vector<std::string> names;
+	for (auto& item : assets) {
+		names.push_back(item.path);
+	}
+	return names;
+}
+
 const RawAsset* DeflationPack::QueryAsset(const char* name) {
 	for (const auto &item : assets) {
 		auto base = GetFileNameWithoutExt(item.path);

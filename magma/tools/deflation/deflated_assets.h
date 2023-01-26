@@ -36,6 +36,7 @@ public:
 	Image RequestImage(const char* name);
 	Texture RequestTexture(const char* name); // NOTE: GL context required!
 	RawAsset RequestCustom(const char* name, const char* ext=NULL);
+	std::vector<std::string> GetAssetNames();
 
 private:
 	const RawAsset* QueryAsset(const char* name);
