@@ -32,7 +32,7 @@ DeflationPack::DeflationPack(const char* filePath) {
 
 	bool isCompressed = false;
 	// >> compressed flag
-	stream.read((char*) isCompressed,sizeof(bool));
+	stream.read((char*) &isCompressed,sizeof(bool));
 
 	// >> items
 	for (auto i = 0; i < count; i++) {
@@ -47,7 +47,8 @@ DeflationPack::DeflationPack(const char* filePath) {
 		stream.read((char*)loaded, asset.size);
 
 		if (isCompressed) {
-			asset.data = (char*) DecompressData(loaded, asset.size, NULL);
+			int size = 0;
+			asset.data = (char*) DecompressData(loaded, asset.size, &size);
 			MemFree(loaded);
 		}
 		else {

@@ -1,5 +1,21 @@
-#include "magma.h"
+#include "deflated_assets.h"
 
-#define WIDTH 640
-#define HEIGHT 480
-#define SCALE 1.2
+struct Explorer {
+    const int BAR_WIDTH = 150;
+
+    DeflationPack* pack;
+     
+    Explorer(const char* filePath) {
+        pack = new DeflationPack(filePath); 
+    }
+
+    ~Explorer(){
+        delete pack;
+    }
+
+    void update_and_render(float delta) {
+        ClearBackground(SKYBLUE);
+
+        DrawRectangle(0,0,BAR_WIDTH,HEIGHT, RAYWHITE);
+    }
+};
