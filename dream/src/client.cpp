@@ -22,7 +22,7 @@ int main()
     SetTraceLogLevel(LOG_DEBUG);
 
     if (LoadAssets()) {
-        UserPrefs::Load();
+        LoadUserPrefs();
         LoadMagmaSettings();
 
         //Scene* scene = dream_init_hub();
@@ -79,7 +79,7 @@ int main()
             //
         }
 
-        UserPrefs::Save();
+        SaveUserPrefs();
 
         SaveMagmaSettings();
 

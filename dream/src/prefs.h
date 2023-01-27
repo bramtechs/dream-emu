@@ -11,9 +11,9 @@ struct UserPrefs {
     bool drawOutlines;
     bool freeCam;
     bool editorVisible;
-
-    static void Save();
-    static void Load();
 };
 
 extern UserPrefs Prefs;
+
+void SaveUserPrefs();
+void LoadUserPrefs();
