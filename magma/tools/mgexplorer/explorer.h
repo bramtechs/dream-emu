@@ -1,5 +1,3 @@
-#include "deflated_assets.h"
-
 struct Explorer {
     const int FONT_SIZE = 18;
 
@@ -9,14 +7,13 @@ struct Explorer {
     Camera3D cam3;
     Camera2D cam2;
 
-    Assets* assets;
-
     size_t selectedIndex;
 
     std::vector<std::string> paths;
 
     Explorer(const char* filePath) {
-        assets = Assets::Init(filePath);
+        ImportAssets(filePath);
+
         paths = assets->pack.GetAssetPaths();
         selectedIndex = 0;
         listOffsetY = 0;
@@ -30,7 +27,7 @@ struct Explorer {
     }
 
     ~Explorer() {
-        Assets::Dispose();
+        Dispose();
     }
 
     void UpdateAndRender(float delta) {
@@ -61,11 +58,11 @@ struct Explorer {
         const char* selectedName = GetFileNameWithoutExt(selectedPath);
         switch (GetAssetType(selectedPath)){
             case TEXTURE:
-                Texture texture = Assets::RequestTexture(selectedName);
+                Texture texture = RequestTexture(selectedName);
                 DrawTexture(texture,400,150,WHITE);
                 break;
             case MODEL:
-                Model model = Assets::RequestModel(selectedName);
+                Model model = RequestModel(selectedName);
                 UpdateCamera(&cam3);
                 BeginMode3D(cam3);
                     DrawModel(model,Vector3Zero(),1.0f,WHITE);

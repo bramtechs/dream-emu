@@ -1,212 +1,212 @@
 #include "magma.h"
 
 Base::Base(EntityID id) {
-	Base::Base(id, Vector3Zero(), WHITE);
+    Base::Base(id, Vector3Zero(), WHITE);
 }
 
 Base::Base(EntityID id, Vector3 pos, Color tint) {
-	BoundingBox box = {
-		pos,
-		Vector3Add(pos,Vector3One())
-	};
+    BoundingBox box = {
+        pos,
+        Vector3Add(pos,Vector3One())
+    };
 
-	this->id = id;
-	this->bounds = box;
-	this->tint = tint;
+    this->id = id;
+    this->bounds = box;
+    this->tint = tint;
 }
 
 void Base::Translate(Vector3 offset) {
-	bounds.min = Vector3Add(bounds.min, offset);
-	bounds.max = Vector3Add(bounds.max, offset);
+    bounds.min = Vector3Add(bounds.min, offset);
+    bounds.max = Vector3Add(bounds.max, offset);
 }
 inline void Base::TranslateX(float x) {
-	Translate({ x,0,0 });
+    Translate({ x,0,0 });
 }
 inline void Base::TranslateY(float y) {
-	Translate({ 0,y,0 });
+    Translate({ 0,y,0 });
 }
 inline void Base::TranslateZ(float z) {
-	Translate({ 0,0,z });
+    Translate({ 0,0,z });
 }
 inline void Base::TranslateXYZ(float x, float y, float z) {
-	Translate({ x,y,z });
+    Translate({ x,y,z });
 }
 
 void Base::SetCenter(Vector3 pos) {
-	bounds.min = Vector3Subtract(pos, halfSize());
-	bounds.max = Vector3Add(pos, halfSize());
+    bounds.min = Vector3Subtract(pos, halfSize());
+    bounds.max = Vector3Add(pos, halfSize());
 }
 inline void Base::ResetTranslation() {
-	SetCenter(Vector3Zero());
+    SetCenter(Vector3Zero());
 }
 
 inline Vector3 Base::center() {
-	return Vector3Add(bounds.min, halfSize());
+    return Vector3Add(bounds.min, halfSize());
 }
 
 inline Vector3 Base::size() {
-	return Vector3Subtract(bounds.max, bounds.min);
+    return Vector3Subtract(bounds.max, bounds.min);
 }
 
 inline Vector3 Base::halfSize() {
-	return Vector3Scale(size(), 0.5f);
+    return Vector3Scale(size(), 0.5f);
 }
 
 RayCollision Base::GetMouseRayCollision(Camera camera) {
-	Ray ray = GetWindowMouseRay(camera);
-	return GetRayCollisionBox(ray, bounds);
+    Ray ray = GetWindowMouseRay(camera);
+    return GetRayCollisionBox(ray, bounds);
 }
 
 ModelRenderer::ModelRenderer(EntityID id, const char* modelPath, Base* base) {
-	Model model = Assets::RequestModel(modelPath);
+    Model model = RequestModel(modelPath);
 
-	// make the base big enough to hold the model
-	BoundingBox modelBox = GetModelBoundingBox(model);
+    // make the base big enough to hold the model
+    BoundingBox modelBox = GetModelBoundingBox(model);
 
-	Vector3 size = Vector3Subtract(modelBox.max, modelBox.min);
-	base->bounds.max = Vector3Add(base->bounds.min, size);
+    Vector3 size = Vector3Subtract(modelBox.max, modelBox.min);
+    base->bounds.max = Vector3Add(base->bounds.min, size);
 
-	Vector3 modelCenter = Vector3Add(modelBox.min, Vector3Scale(size, 0.5f));
-	Vector3 offset = Vector3Subtract(base->center(), modelCenter);
+    Vector3 modelCenter = Vector3Add(modelBox.min, Vector3Scale(size, 0.5f));
+    Vector3 offset = Vector3Subtract(base->center(), modelCenter);
 
-	this->id = id;
-	this->model = modelPath;
-	this->accurate = false;
-	this->offset = offset;
+    this->id = id;
+    this->model = modelPath;
+    this->accurate = false;
+    this->offset = offset;
 }
 
 RayCollision EntityGroup::GetRayCollision(Ray ray) {
-	float closestDistance = 10000000;
-	RayCollision hit = { 0 };
+    float closestDistance = 10000000;
+    RayCollision hit = { 0 };
 
-	for (const auto& comp : comps) {
-		if (comp.first == COMP_MODEL_RENDERER) {
-			auto render = (ModelRenderer*)comp.second;
-			auto base = (Base*)GetEntityComponent(render->id, COMP_BASE);
-			Model model = Assets::RequestModel(render->model);
+    for (const auto& comp : comps) {
+        if (comp.first == COMP_MODEL_RENDERER) {
+            auto render = (ModelRenderer*)comp.second;
+            auto base = (Base*)GetEntityComponent(render->id, COMP_BASE);
+            Model model = RequestModel(render->model);
 
-			if (render->accurate) { // do per triangle collisions
+            if (render->accurate) { // do per triangle collisions
 
-				Vector3 offset = Vector3Add(base->center(), render->offset);
-				for (int j = 0; j < model.meshCount; j++) {
-					RayCollision col = GetRayCollisionMesh(ray, model.meshes[j],
-						MatrixTranslate(offset.x, offset.y, offset.z));
+                Vector3 offset = Vector3Add(base->center(), render->offset);
+                for (int j = 0; j < model.meshCount; j++) {
+                    RayCollision col = GetRayCollisionMesh(ray, model.meshes[j],
+                        MatrixTranslate(offset.x, offset.y, offset.z));
 
-					if (col.hit && col.distance < closestDistance) {
-						closestDistance = col.distance;
-						hit = col;
-					}
-				}
-			}
-			else { // do bounds collision
-				RayCollision col = GetRayCollisionBox(ray, base->bounds);
-				if (col.hit && col.distance < closestDistance) {
-					closestDistance = col.distance;
-					hit = col;
-				}
-			}
-		}
-	}
-	return hit;
+                    if (col.hit && col.distance < closestDistance) {
+                        closestDistance = col.distance;
+                        hit = col;
+                    }
+                }
+            }
+            else { // do bounds collision
+                RayCollision col = GetRayCollisionBox(ray, base->bounds);
+                if (col.hit && col.distance < closestDistance) {
+                    closestDistance = col.distance;
+                    hit = col;
+                }
+            }
+        }
+    }
+    return hit;
 }
 
 
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
-	RayCollision col = { 0 };
-	return GetMousePickedBaseEx(camera, result, &col);
+    RayCollision col = { 0 };
+    return GetMousePickedBaseEx(camera, result, &col);
 }
 
 bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col) {
-	for (const auto& entry : comps) {
-		auto base = (Base*)entry.second;
-		RayCollision rayCol = base->GetMouseRayCollision(camera);
+    for (const auto& entry : comps) {
+        auto base = (Base*)entry.second;
+        RayCollision rayCol = base->GetMouseRayCollision(camera);
 
-		if (rayCol.hit) {
-			*result = base;
-			*col = rayCol;
-			return true;
-		}
-	}
-	*result = NULL;
-	return false;
+        if (rayCol.hit) {
+            *result = base;
+            *col = rayCol;
+            return true;
+        }
+    }
+    *result = NULL;
+    return false;
 }
 
 void EntityGroup::LoadGroup(const char* fileName) {
-	comps.clear();
-	INFO("Loaded entitygroup from %s", fileName);
+    comps.clear();
+    INFO("Loaded entitygroup from %s", fileName);
 }
 
 void EntityGroup::SaveGroup(const char* fileName) {
-	// TODO
-	INFO("TODO");
-	INFO("Exported entity component to %s", fileName);
+    // TODO
+    INFO("TODO");
+    INFO("Exported entity component to %s", fileName);
 }
 
 EntityID EntityGroup::AddEntity() {
-	EntityID id = entityCount;
-	entityCount++;
-	return id;
+    EntityID id = entityCount;
+    entityCount++;
+    return id;
 }
 
 void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
-	for (const auto& comp : comps) {
-		// TODO dirty hack 
-		EntityID otherId = *((EntityID*)comp.second);
-		if (otherId == id) {
-			return comp.second;
-		}
-	}
-	return NULL;
+    for (const auto& comp : comps) {
+        // TODO dirty hack 
+        EntityID otherId = *((EntityID*)comp.second);
+        if (otherId == id) {
+            return comp.second;
+        }
+    }
+    return NULL;
 }
 
 
 size_t EntityGroup::UpdateGroup(float delta) {
-	for (const auto& comp : comps) {
-		switch (comp.first) {
-		case COMP_BASE:
-		{
-			auto base = (Base*)comp.second;
-		} break;
-		default:
-			break;
-		}
-	}
-	return entityCount;
+    for (const auto& comp : comps) {
+        switch (comp.first) {
+        case COMP_BASE:
+        {
+            auto base = (Base*)comp.second;
+        } break;
+        default:
+            break;
+        }
+    }
+    return entityCount;
 }
 
 size_t EntityGroup::DrawGroup(Camera camera, bool drawOutlines) {
-	for (const auto& comp : comps) {
-		switch (comp.first) {
-		case COMP_MODEL_RENDERER:
-		{
-			// draw modelrenderers
-			auto renderer = (ModelRenderer*)comp.second;
-			auto base = (Base*)GetEntityComponent(renderer->id, COMP_BASE);
+    for (const auto& comp : comps) {
+        switch (comp.first) {
+        case COMP_MODEL_RENDERER:
+        {
+            // draw modelrenderers
+            auto renderer = (ModelRenderer*)comp.second;
+            auto base = (Base*)GetEntityComponent(renderer->id, COMP_BASE);
 
-			if (base == NULL) {
-				assert(false); // model renderer has no base! TODO shouldn't crash
-			}
+            if (base == NULL) {
+                assert(false); // model renderer has no base! TODO shouldn't crash
+            }
 
-			Model model = Assets::RequestModel(renderer->model);
-			DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
-				Vector3Zero(), 0, Vector3One(), base->tint);
+            Model model = RequestModel(renderer->model);
+            DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
+                Vector3Zero(), 0, Vector3One(), base->tint);
 
-		} break;
-		case COMP_BASE:
-		{
-			if (drawOutlines) {
-				auto base = (Base*)comp.second;
-				RayCollision col = base->GetMouseRayCollision(camera);
-				Color tint = col.hit ? WHITE : GRAY;
-				DrawBoundingBox(base->bounds, tint);
-				DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
-			}
-		} break;
-		default:
-			break;
-		}
-	}
-	return entityCount;
+        } break;
+        case COMP_BASE:
+        {
+            if (drawOutlines) {
+                auto base = (Base*)comp.second;
+                RayCollision col = base->GetMouseRayCollision(camera);
+                Color tint = col.hit ? WHITE : GRAY;
+                DrawBoundingBox(base->bounds, tint);
+                DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
+            }
+        } break;
+        default:
+            break;
+        }
+    }
+    return entityCount;
 }
 
 PlayerFPS::PlayerFPS(float eyeHeight) {

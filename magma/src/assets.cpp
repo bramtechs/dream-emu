@@ -1,53 +1,126 @@
 #include "magma.h"
 
-static Assets* _Assets;
+#define PATH_MAX_LEN 128
 
-bool try_init_assets(const char* file) {
-    if (FileExists(file)) {
-       INFO("Found assets at file %s ...",file);
-       return true;
+#define CUSTOM    -1
+#define TEXTURE 0
+#define MODEL    1
+#define SOUND    2
+
+struct RawAsset {
+    char path[PATH_MAX_LEN];
+    int64_t size;
+    char* data;
+};
+
+struct GameAssets {
+    std::vector<RawAsset> assets;
+
+    // caches
+    std::map<std::string, Texture> textures;
+    std::map<std::string, Model> models;
+};
+
+static GameAssets Assets = {};
+static Texture PlaceholderTexture = {};
+
+// TODO work with filters instead?
+const RawAsset* QueryAsset(const char* name) {
+    std::string wot = std::string(name); // do not remove this line or you will get weird bugs, because const char* likes to change value for some reason
+    for (const auto &item : Assets.assets) {
+        auto base = GetFileNameWithoutExt(item.path);
+        auto ext = GetFileExtension(item.path);
+
+        // skip .mtl files
+        if (TextIsEqual(ext,".mtl")){
+            continue;
+        }
+
+        if (TextIsEqual(base,wot.c_str())) {
+            return &item;
+        }
     }
-    WARN("Did not find assets at %s, keep searching...",file);
-    return false;
-}
-
-Assets* Assets::Init(const char* file) {
-    INFO("Loading assets...");
-
-    if (try_init_assets(file)) {
-        _Assets = new Assets(file);
-        return _Assets;
-    }
-
-    // visual studio
-    if (try_init_assets("../../assets.mga")) {
-        _Assets = new Assets("../../assets.mga");
-        return _Assets;
-    }
-
     return NULL;
 }
 
-void Assets::Dispose() {
-    delete _Assets;
+bool LoadAssets() {
+    INFO("Loading assets...");
+
+    if (!LoadAssetPackage("assets.mga")){
+        // visual studio
+        return LoadAssetPackage("../../assets.mga");
+    }
+    return true;
 }
 
-Assets::Assets(const char* file): pack(file) {
+bool LoadAssetPackage(const char* filePath){
+    std::ifstream stream;
+    try {
+        stream = std::ifstream(filePath,std::ifstream::binary);
+    }
+    catch (const std::ifstream::failure& e) {
+        TraceLog(LOG_ERROR,"Exception opening asset package at %s",filePath);
+        return false;
+    }
+
+    // >> size
+    int64_t count = -1;
+    stream.read((char*) &count,sizeof(int64_t));
+
+    bool isCompressed = false;
+    // >> compressed flag
+    stream.read((char*) &isCompressed,sizeof(bool));
+
+    // >> items
+    for (auto i = 0; i < count; i++) {
+        // >> item
+        RawAsset asset = {};
+        stream.read(asset.path, PATH_MAX_LEN);
+
+        stream.read((char*)&asset.size, sizeof(int64_t));
+        assert(asset.size > 0); // TODO handle errors properly
+
+        unsigned char* loaded = (unsigned char*) MemAlloc(asset.size);
+        stream.read((char*)loaded, asset.size);
+
+        if (isCompressed) {
+            int size = 0;
+            asset.data = (char*) DecompressData(loaded, asset.size, &size);
+            asset.size = size;
+            MemFree(loaded);
+        }
+        else {
+            asset.data = (char*) loaded;
+        }
+
+        Assets.assets.push_back(asset);
+        TraceLog(LOG_DEBUG,"Loaded asset %s", asset.path);
+    }
+
+    TraceLog(LOG_INFO,("Loaded asset pack %s", filePath));
+    stream.close();
+
+    return true;
 }
 
-Assets::~Assets() {
-    for (const auto& item : textures) {
+void DisposeAssets() {
+    for (const auto& item : Assets.assets) {
+        MemFree(item.data);
+    }
+    for (const auto& item : Assets.textures) {
         UnloadTexture(item.second);
     }
-    for (const auto& item : models) {
+    for (const auto& item : Assets.models) {
         UnloadModel(item.second);
     }
+
+    TraceLog(LOG_DEBUG,("Disposed asset pack"));
+    UnloadTexture(PlaceholderTexture);
 }
 
-Texture Assets::RequestTexture(const char* name) {
-
+Texture RequestTexture(const char* name) {
     // ATTEMPT 1: get cached texture
-    for (const auto& item : _Assets->textures) {
+    for (const auto& item : Assets.textures) {
         if (item.first == name) {
             return item.second;
         }
@@ -55,8 +128,17 @@ Texture Assets::RequestTexture(const char* name) {
 
     // ATTEMPT 2: load texture from package
     Texture texture = {};
-    if (_Assets->pack.AssetExists(name)) {
-        texture = _Assets->pack.RequestTexture(name);
+    if (IsAssetLoaded(name)) {
+        Image img = RequestImage(name);
+        if (img.width == 0){ // loading image failed show placeholder
+            if (PlaceholderTexture.width == 0){
+                Image img = GenImageColor(16,16,RED);
+                PlaceholderTexture = LoadTextureFromImage(img);
+                UnloadImage(img);
+            }
+            return PlaceholderTexture;
+        }
+        texture = LoadTextureFromImage(img);
     }
     else {
         // ATTEMPT 3: load texture from disk
@@ -71,16 +153,26 @@ Texture Assets::RequestTexture(const char* name) {
     }
 
     // push into texture array
-    _Assets->textures.insert({ name,texture });
+    Assets.textures.insert({ name,texture });
     return texture;
 }
 
-Image Assets::RequestImage(const char* name) {
-
+Image RequestImage(const char* name) {
     // ATTEMPT 1: load image from package
     Image image = {};
-    if (_Assets->pack.AssetExists(name)) {
-        image = _Assets->pack.RequestImage(name);
+    if (IsAssetLoaded(name)) {
+        // check if exists
+        const RawAsset* asset = QueryAsset(name);
+        if (asset == NULL) {
+            TraceLog(LOG_ERROR,"Packaged image with name %s not found!", name);
+            return GenImageColor(16,16,PURPLE);
+        }
+        if (GetAssetType(asset->path) != TEXTURE) {
+            TraceLog(LOG_ERROR,"Packaged asset with name %s is not an image/texture!", name);
+            return GenImageColor(16,16,PINK);
+        }
+        const char* ext = GetFileExtension(asset->path);
+        image = LoadImageFromMemory(ext, (const unsigned char*) asset->data, asset->size);
     }
     else {
         // ATTEMPT 2: load image from disk
@@ -95,10 +187,10 @@ Image Assets::RequestImage(const char* name) {
     return image;
 }
 
-Model Assets::RequestModel(const char* name) {
+Model RequestModel(const char* name) {
 
     // ATTEMPT 1: get cached model
-    for (const auto& item : _Assets->models) {
+    for (const auto& item : Assets.models) {
         if (item.first == name) {
             return item.second;
         }
@@ -106,8 +198,19 @@ Model Assets::RequestModel(const char* name) {
 
     Model model = {};
     // ATTEMPT 2: Load model from package
-    if (_Assets->pack.AssetExists(name)){
-        model = _Assets->pack.RequestModel(name);
+    if (IsAssetLoaded(name)){
+        // check if exists
+        const RawAsset* asset = QueryAsset(name);
+        if (asset == NULL) {
+            TraceLog(LOG_ERROR,"Packaged model with name %s not found!", name);
+            return LoadModel(""); // force raylib to return default cube
+        }
+        if (GetAssetType(asset->path) != MODEL) {
+            TraceLog(LOG_ERROR,"Packaged asset with name %s is not a model!", name);
+            return LoadModel(""); // force raylib to return default cube
+        }
+        const char* ext = GetFileExtension(asset->path);
+        model = LoadModelFromMemory(ext, (const unsigned char*) asset->data, asset->size);
     }
     else{
         // ATTEMPT 3: Load model from disk
@@ -118,16 +221,16 @@ Model Assets::RequestModel(const char* name) {
     // raylib automatically handles if model isn't found
 
     // push into model cache array
-    _Assets->models.insert({ name,model });
+    Assets.models.insert({ name,model });
     return model;
 }
 
-Shader Assets::RequestShader(const char* name){
+Shader RequestShader(const char* name){
     Shader shader = LoadShader(0, name);
     return shader;
 }
 
-Palette Assets::ParsePalette(const char* text) {
+Palette ParsePalette(char* text) {
     std::string bloat(text);
     std::stringstream stream(bloat);
 
@@ -139,17 +242,19 @@ Palette Assets::ParsePalette(const char* text) {
         }
         lineIndex++;
     }
+    // TODO
+    assert(false);
     return {};
 }
 
-Palette Assets::RequestPalette(const char* name) {
+Palette RequestPalette(const char* name) {
     // ATTEMPT 1: load palette from package
-    if (_Assets->pack.AssetExists(name)) {
-        RawAsset asset = _Assets->pack.RequestCustom(name, ".pal");
-        assert(asset.data != NULL);
+    if (IsAssetLoaded(name)) {
+        size_t size = 0; 
+        char* data = RequestCustom(name, &size, ".pal");
 
         // todo load palette in
-        Palette pal = ParsePalette(asset.data);
+        Palette pal = ParsePalette(data);
         return pal;
     }
 
@@ -164,22 +269,97 @@ Palette Assets::RequestPalette(const char* name) {
     return {};
 }
 
-// TODO inline
-FilePathList Assets::IndexModels(){
-    FilePathList list =  LoadDirectoryFilesEx(".", ".obj", true);
-    for (int i = 0; i < list.count; i++){
-        DEBUG(">>> %s",list.paths[i]);
-    }
-    // TODO dispose
-    return list;
-}
-
-void Assets::EnterFailScreen(int width, int height) {
+void ShowFailScreen(const char* text) {
     while (!WindowShouldClose()) {
         BeginMagmaDrawing();
-        DrawCheckeredBackground(32, "Could not find 'assets.mga'.\nPlease extract your download.",
-            PURPLE, DARKPURPLE, PINK);
+        DrawCheckeredBackground(32, text, PURPLE, DARKPURPLE, PINK);
         EndMagmaDrawing();
         EndDrawing();
     }
+}
+
+char* RequestCustom(const char* name, size_t* size, const char* ext) {
+    // check if exists
+    const RawAsset* asset = QueryAsset(name);
+    if (asset == NULL) {
+        TraceLog(LOG_ERROR,"Packaged palette with name %s not found!", name);
+        return {};
+    }
+    if (GetAssetType(asset->path) != CUSTOM) {
+        TraceLog(LOG_ERROR,"Packaged asset with name %s is not custom!", name);
+        return {};
+    }
+
+    // check extension
+    if (ext != NULL) {
+        const char* fext = ext;
+        if (ext[0] != '.') {
+            fext = TextFormat(".%s", ext);
+        }
+        if (!TextIsEqual(GetFileExtension(asset->path), fext)) {
+            TraceLog(LOG_ERROR,"Custom packaged asset is not of type %s", fext);
+            return {};
+        }
+    }
+
+    // return memory
+    *size = asset->size;
+    return asset->data;
+}
+
+std::vector<std::string> GetAssetPaths() {
+    std::vector<std::string> names;
+    for (auto& item : Assets.assets) {
+        names.push_back(item.path);
+    }
+    return names;
+}
+
+static std::string GetTempDirectory() {
+    std::filesystem::path path = std::filesystem::temp_directory_path();
+    std::string tempFolStr = path.string();
+    return tempFolStr;
+}
+
+// This is a very dumb implementation, but might work
+Model LoadModelFromMemory(const char* fileType, const unsigned char *fileData, int dataSize){
+    // write file to temp location
+    std::string tempDir = GetTempDirectory();
+    const char* fileName = TextFormat("%s/model_%d%s", tempDir.c_str(), GetRandomValue(0, 10000), fileType);
+    if (SaveFileData(fileName, (void*)fileData, dataSize)) {
+        
+    }
+    else {
+        return LoadModel("");
+    }
+    
+    // hijjack raylib to load textures from asset manager instead from disk
+    
+
+    // undo hack
+    return LoadModel("");
+}
+
+int GetAssetType(const char* name) {
+    std::string ext = GetFileExtension(name);
+    if (ext == ".png" || ext == ".gif" || ext == ".jpg" ||ext == ".jpeg") {
+        return TEXTURE;
+    }
+    if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") {
+        return SOUND;
+    }
+    if (ext == ".obj" || ext == ".fbx") {
+        return MODEL;
+    }
+    return CUSTOM;
+}
+
+void PrintAssetList() {
+    for (const auto& item : Assets.assets) {
+        TraceLog(LOG_INFO,"asset --> %s (size %d bytes)",item.path,item.size);
+    }
+}
+
+size_t GetAssetCount() {
+    return Assets.assets.size();
 }

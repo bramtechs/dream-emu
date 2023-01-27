@@ -8,7 +8,7 @@ set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 
 # Declaring our executable
-FILE(GLOB THESAUCE src/*.cpp src/*.h)
+FILE(GLOB THESAUCE *.cpp *.h)
 add_executable(${PROJECT_NAME} ${THESAUCE})
 
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})

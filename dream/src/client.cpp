@@ -21,7 +21,7 @@ int main()
 
     SetTraceLogLevel(LOG_DEBUG);
 
-    if (Assets::Init("assets.mga") != NULL) {
+    if (LoadAssets()) {
         UserPrefs::Load();
         LoadMagmaSettings();
 
@@ -83,7 +83,7 @@ int main()
 
         SaveMagmaSettings();
 
-        Assets::Dispose();
+        DisposeAssets();
 
     }
     else {

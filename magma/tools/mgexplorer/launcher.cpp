@@ -32,6 +32,8 @@ bool validate_dropped_file(std::string *filePath) {
         return valid;
 }
 
+// TODO instant loading with startup commands
+
 int main()
 {
     SetTraceLogCallback(MagmaLogger);

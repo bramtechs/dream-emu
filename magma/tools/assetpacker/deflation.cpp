@@ -15,15 +15,15 @@
 namespace fs = std::filesystem;
 
 std::vector<std::string> get_supported_formats() {
-	return {
-		".png",
-		".mpg",
-		".comps",
-		".obj",
-		".mtl",
-		".wav",
-		".mp3" 
-	};
+    return {
+        ".png",
+        ".mpg",
+        ".comps",
+        ".obj",
+        ".mtl",
+        ".wav",
+        ".mp3" 
+    };
 };
 
 typedef std::vector<RawAsset> PackList;
@@ -43,12 +43,12 @@ bool create_directory(const char* path) {
 }
 
 bool should_include(char const* ext) {
-	for (auto format : get_supported_formats()) {
-		if (TextIsEqual(ext, format.c_str())) {
-			return true;
-		}
-	}
-	return false;
+    for (auto format : get_supported_formats()) {
+        if (TextIsEqual(ext, format.c_str())) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void process(PackList& pack, std::string path, std::string shortPath, bool compress=false) {

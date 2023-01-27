@@ -8,13 +8,11 @@
 #include <memory>
 #include <cassert>
 #include <sstream>
+#include <fstream>
 
 // the all powerful raylib
 #include "raylib.h"
 #include "raymath.h"
-
-// tooling
-#include "deflated_assets.h"
 
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
@@ -108,31 +106,6 @@ constexpr Palette INVALID_PALETTE = {
         255,0,0,
         255,0,255
     }
-};
-
-struct Assets {
-    DeflationPack pack;
-
-    std::map<std::string, Texture> textures;
-    std::map<std::string, Model> models;
-
-    Assets(const char* file);
-    ~Assets();
-
-    static Assets* Init(const char* file);
-    static void Dispose();
-
-    static Texture RequestTexture(const char* name);
-    static Image RequestImage(const char* name);
-    static Model RequestModel(const char* name);
-    static Shader RequestShader(const char* name);
-    static Palette RequestPalette(const char* name);
-
-    static FilePathList IndexModels();
-    static void EnterFailScreen(int width, int height); // do not run in game loop
-
-private:
-    static Palette ParsePalette(const char* text);
 };
 
 struct LogLine {
@@ -263,6 +236,28 @@ struct PlayerFPS {
 void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
+
+bool LoadAssets();
+void DisposeAssets();
+bool LoadAssetPackage(const char* filePath);
+std::vector<std::string> GetAssetPaths();
+size_t GetAssetCount();
+
+Texture RequestTexture(const char* name);
+Image RequestImage(const char* name);
+Model RequestModel(const char* name);
+Shader RequestShader(const char* name);
+char* RequestCustom(const char* name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
+Palette RequestPalette(const char* name);
+Palette ParsePalette(char* text);
+
+Model LoadModelFromMemory(const char *fileType, const unsigned char *fileData, int dataSize); // very scuffed and hacky, not recommended
+int GetAssetType(const char* name);
+
+void PrintAssetList();
+bool IsAssetLoaded(const char* name);
+
+void ShowFailScreen(const char* text); // do not run in game loop
 
 Color InvertColor(Color col, bool invertAlpha = false);
 Color ColorLerp(Color src, Color dst, float factor);
