@@ -114,6 +114,22 @@ Image DeflationPack::RequestImage(const char* name) {
     return img;
 }
 
+Model DeflationPack::RequestModel(const char* name) {
+    // check if exists
+    const RawAsset* asset = QueryAsset(name);
+    if (asset == NULL) {
+        TraceLog(LOG_ERROR,"Packaged model with name %s not found!", name);
+        return LoadModel(""); // force raylib to return default cube
+    }
+    if (GetAssetType(asset->path) != MODEL) {
+        TraceLog(LOG_ERROR,"Packaged asset with name %s is not a model!", name);
+        return LoadModel(""); // force raylib to return default cube
+    }
+    const char* ext = GetFileExtension(asset->path);
+    Model model = LoadModelFromMemory(ext, (const unsigned char*) asset->data, asset->size);
+    return model;
+}
+
 RawAsset DeflationPack::RequestCustom(const char* name, const char* ext) {
     // check if exists
     const RawAsset* asset = QueryAsset(name);
@@ -152,13 +168,46 @@ size_t DeflationPack::GetAssetCount() {
     return assets.size();
 }
 
+// TODO work with filters instead?
 const RawAsset* DeflationPack::QueryAsset(const char* name) {
     std::string wot = std::string(name); // do not remove this line or you will get weird bugs, because const char* likes to change value for some reason
     for (const auto &item : assets) {
         auto base = GetFileNameWithoutExt(item.path);
+        auto ext = GetFileExtension(item.path);
+
+        // skip .mtl files
+        if (TextIsEqual(ext,".mtl")){
+            continue;
+        }
+
         if (TextIsEqual(base,wot.c_str())) {
             return &item;
         }
     }
     return NULL;
+}
+
+static std::string GetTempDirectory() {
+    std::filesystem::path path = std::filesystem::temp_directory_path();
+    std::string tempFolStr = path.string();
+    return tempFolStr;
+}
+
+// This is a very dumb implementation, but might work
+Model LoadModelFromMemory(const char* fileType, const unsigned char *fileData, int dataSize){
+    // write file to temp location
+    std::string tempDir = GetTempDirectory();
+    const char* fileName = TextFormat("%s/model_%d%s", tempDir.c_str(), GetRandomValue(0, 10000), fileType);
+    if (SaveFileData(fileName, (void*)fileData, dataSize)) {
+        
+    }
+    else {
+        return LoadModel("");
+    }
+    
+    // hijjack raylib to load textures from asset manager instead from disk
+    
+
+    // undo hack
+    return LoadModel("");
 }

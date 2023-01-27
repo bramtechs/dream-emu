@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cassert>
 #include <vector>
+#include <filesystem>
 
 #include "raylib.h"
 
@@ -34,6 +35,7 @@ public:
 
     bool AssetExists(const char* name);
     Image RequestImage(const char* name);
+    Model RequestModel(const char* name);
     Texture RequestTexture(const char* name); // NOTE: GL context required!
     RawAsset RequestCustom(const char* name, const char* ext=NULL);
 
@@ -43,5 +45,7 @@ public:
 private:
     const RawAsset* QueryAsset(const char* name);
 };
+
+Model LoadModelFromMemory(const char *fileType, const unsigned char *fileData, int dataSize); // very scuffed and hacky, not recommended
 
 int GetAssetType(const char* name);

@@ -1,1 +1,0 @@
-- [ ] write python script that converts absolute obj materials paths to relative ones!

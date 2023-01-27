@@ -142,3 +142,9 @@ Color ColorLerp(Color src, Color dst, float factor){
     
     return src;
 }
+
+std::string GetTempDirectory() {
+    std::filesystem::path path = std::filesystem::temp_directory_path();
+    std::string tempFolStr = path.string();
+    return tempFolStr;
+}

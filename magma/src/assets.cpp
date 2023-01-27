@@ -96,19 +96,28 @@ Image Assets::RequestImage(const char* name) {
 }
 
 Model Assets::RequestModel(const char* name) {
-    // get cached model
+
+    // ATTEMPT 1: get cached model
     for (const auto& item : _Assets->models) {
         if (item.first == name) {
             return item.second;
         }
     }
 
-    Model model = LoadModel(name);
+    Model model = {};
+    // ATTEMPT 2: Load model from package
+    if (_Assets->pack.AssetExists(name)){
+        model = _Assets->pack.RequestModel(name);
+    }
+    else{
+        // ATTEMPT 3: Load model from disk
+        const char* path = TextFormat("raw_assets/%s", name);
+        model = LoadModel(name);
+    }
 
     // raylib automatically handles if model isn't found
-    // NOTE memcopying models doesn't seem to work so you'll have to dispose these things manually for now
-    
-    // push into model array
+
+    // push into model cache array
     _Assets->models.insert({ name,model });
     return model;
 }

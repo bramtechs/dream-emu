@@ -288,3 +288,5 @@ bool LoggerIsOpen();
 void SaveMagmaSettings();
 void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
+
+std::string GetTempDirectory();

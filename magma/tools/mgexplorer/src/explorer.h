@@ -6,6 +6,9 @@ struct Explorer {
     float barWidth;
     float listOffsetY;
 
+    Camera3D cam3;
+    Camera2D cam2;
+
     Assets* assets;
 
     size_t selectedIndex;
@@ -17,6 +20,13 @@ struct Explorer {
         paths = assets->pack.GetAssetPaths();
         selectedIndex = 0;
         listOffsetY = 0;
+
+        SetCameraMode(cam3, CAMERA_ORBITAL);
+        cam3.position = { 0, 0, -10 };
+        cam3.target = Vector3Zero();
+        cam3.up = { 0, 1, 0 };
+        cam3.fovy = 80;
+        cam3.projection = CAMERA_PERSPECTIVE;
     }
 
     ~Explorer() {
@@ -55,6 +65,11 @@ struct Explorer {
                 DrawTexture(texture,400,150,WHITE);
                 break;
             case MODEL:
+                Model model = Assets::RequestModel(selectedName);
+                UpdateCamera(&cam3);
+                BeginMode3D(cam3);
+                    DrawModel(model,Vector3Zero(),1.0f,WHITE);
+                EndMode3D();
                 break;
             case SOUND:
                 break;
