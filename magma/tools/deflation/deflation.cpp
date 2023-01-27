@@ -5,7 +5,6 @@
 #include <memory>
 #include <fstream>
 
-#include "deflated_assets.h"
 #include "magma.h"
 
 // CLI: tool to generate "Deflation" packages

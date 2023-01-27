@@ -1,18 +1,5 @@
 #include "magma.h"
 
-#define PATH_MAX_LEN 128
-
-#define CUSTOM    -1
-#define TEXTURE 0
-#define MODEL    1
-#define SOUND    2
-
-struct RawAsset {
-    char path[PATH_MAX_LEN];
-    int64_t size;
-    char* data;
-};
-
 struct GameAssets {
     std::vector<RawAsset> assets;
 
@@ -24,9 +11,11 @@ struct GameAssets {
 static GameAssets Assets = {};
 static Texture PlaceholderTexture = {};
 
-// TODO work with filters instead?
 const RawAsset* QueryAsset(const char* name) {
-    std::string wot = std::string(name); // do not remove this line or you will get weird bugs, because const char* likes to change value for some reason
+    std::string wot = std::string(name); // do not remove this line or you will get weird bugs,
+                                         // because const char* likes to change value for some reason
+                                         // no idea why this happens lol
+
     for (const auto &item : Assets.assets) {
         auto base = GetFileNameWithoutExt(item.path);
         auto ext = GetFileExtension(item.path);
@@ -46,14 +35,14 @@ const RawAsset* QueryAsset(const char* name) {
 bool LoadAssets() {
     INFO("Loading assets...");
 
-    if (!LoadAssetPackage("assets.mga")){
+    if (!ImportAssetPackage("assets.mga")){
         // visual studio
-        return LoadAssetPackage("../../assets.mga");
+        return ImportAssetPackage("../../assets.mga");
     }
     return true;
 }
 
-bool LoadAssetPackage(const char* filePath){
+bool ImportAssetPackage(const char* filePath){
     std::ifstream stream;
     try {
         stream = std::ifstream(filePath,std::ifstream::binary);
@@ -145,7 +134,7 @@ Texture RequestTexture(const char* name) {
         const char* path = TextFormat("raw_assets/%s", name);
         texture = LoadTexture(name);
         if (texture.width == 0) {
-            // FAILED: generate placeholder instead
+            // generate placeholder on fail
             Image temp = GenImageChecked(32, 32, 4, 4, RED, WHITE);
             texture = LoadTextureFromImage(temp);
             UnloadImage(temp);
@@ -167,7 +156,7 @@ Image RequestImage(const char* name) {
             TraceLog(LOG_ERROR,"Packaged image with name %s not found!", name);
             return GenImageColor(16,16,PURPLE);
         }
-        if (GetAssetType(asset->path) != TEXTURE) {
+        if (GetAssetType(asset->path) != ASSET_TEXTURE) {
             TraceLog(LOG_ERROR,"Packaged asset with name %s is not an image/texture!", name);
             return GenImageColor(16,16,PINK);
         }
@@ -179,7 +168,7 @@ Image RequestImage(const char* name) {
         const char* path = TextFormat("raw_assets/%s", name);
         image = LoadImage(name);
         if (image.width == 0) {
-            // FAILED: generate placeholder instead
+            // generate placeholder instead on fail
             image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
         }
     }
@@ -205,7 +194,7 @@ Model RequestModel(const char* name) {
             TraceLog(LOG_ERROR,"Packaged model with name %s not found!", name);
             return LoadModel(""); // force raylib to return default cube
         }
-        if (GetAssetType(asset->path) != MODEL) {
+        if (GetAssetType(asset->path) != ASSET_MODEL) {
             TraceLog(LOG_ERROR,"Packaged asset with name %s is not a model!", name);
             return LoadModel(""); // force raylib to return default cube
         }
@@ -285,7 +274,7 @@ char* RequestCustom(const char* name, size_t* size, const char* ext) {
         TraceLog(LOG_ERROR,"Packaged palette with name %s not found!", name);
         return {};
     }
-    if (GetAssetType(asset->path) != CUSTOM) {
+    if (GetAssetType(asset->path) != ASSET_CUSTOM) {
         TraceLog(LOG_ERROR,"Packaged asset with name %s is not custom!", name);
         return {};
     }
@@ -343,15 +332,15 @@ Model LoadModelFromMemory(const char* fileType, const unsigned char *fileData, i
 int GetAssetType(const char* name) {
     std::string ext = GetFileExtension(name);
     if (ext == ".png" || ext == ".gif" || ext == ".jpg" ||ext == ".jpeg") {
-        return TEXTURE;
+        return ASSET_TEXTURE;
     }
     if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") {
-        return SOUND;
+        return ASSET_SOUND;
     }
     if (ext == ".obj" || ext == ".fbx") {
-        return MODEL;
+        return ASSET_MODEL;
     }
-    return CUSTOM;
+    return ASSET_CUSTOM;
 }
 
 void PrintAssetList() {
@@ -362,4 +351,8 @@ void PrintAssetList() {
 
 size_t GetAssetCount() {
     return Assets.assets.size();
+}
+
+inline bool IsAssetLoaded(const char* name){
+    return QueryAsset(name) != NULL;
 }

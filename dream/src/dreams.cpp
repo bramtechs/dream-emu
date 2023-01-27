@@ -4,7 +4,7 @@ Model scene_gen_skybox_model(const char* skybox) {
     // TODO put skybox in struct, and dispose properly
     Mesh mesh = GenMeshSphere(-150, 10, 10);
     Model model = LoadModelFromMesh(mesh);
-    Texture texture = Assets::RequestTexture(skybox);
+    Texture texture = RequestTexture(skybox);
 
     Image img = LoadImageFromTexture(texture);
     ImageRotateCCW(&img);

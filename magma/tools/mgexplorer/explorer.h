@@ -12,9 +12,9 @@ struct Explorer {
     std::vector<std::string> paths;
 
     Explorer(const char* filePath) {
-        ImportAssets(filePath);
+        ImportAssetPackage(filePath);
 
-        paths = assets->pack.GetAssetPaths();
+        paths = GetAssetPaths();
         selectedIndex = 0;
         listOffsetY = 0;
 
@@ -27,7 +27,7 @@ struct Explorer {
     }
 
     ~Explorer() {
-        Dispose();
+        DisposeAssets();
     }
 
     void UpdateAndRender(float delta) {
@@ -48,7 +48,7 @@ struct Explorer {
         listOffsetY += GetMouseWheelMove()*FONT_SIZE;
 
         // confine selectedIndex
-        selectedIndex = Wrap(selectedIndex, 0, assets->pack.GetAssetCount());
+        selectedIndex = Wrap(selectedIndex, 0, GetAssetCount());
 
         // draw selected asset
         const char* selectedPath = paths.at(selectedIndex).c_str();
@@ -57,20 +57,20 @@ struct Explorer {
         
         const char* selectedName = GetFileNameWithoutExt(selectedPath);
         switch (GetAssetType(selectedPath)){
-            case TEXTURE:
+            case ASSET_TEXTURE:
                 Texture texture = RequestTexture(selectedName);
                 DrawTexture(texture,400,150,WHITE);
                 break;
-            case MODEL:
+            case ASSET_MODEL:
                 Model model = RequestModel(selectedName);
                 UpdateCamera(&cam3);
                 BeginMode3D(cam3);
                     DrawModel(model,Vector3Zero(),1.0f,WHITE);
                 EndMode3D();
                 break;
-            case SOUND:
+            case ASSET_SOUND:
                 break;
-            case CUSTOM:
+            case ASSET_CUSTOM:
                 break;
         }
     }
@@ -91,13 +91,13 @@ struct Explorer {
 
     Color GetAssetTypeColor(const char* path){
         switch (GetAssetType(path)){
-            case CUSTOM:
+            case ASSET_CUSTOM:
                 return PINK;
-            case TEXTURE:
+            case ASSET_TEXTURE:
                 return GREEN;
-            case MODEL:
+            case ASSET_MODEL:
                 return RED;
-            case SOUND:
+            case ASSET_SOUND:
                 return BLUE;
             default:
                 return WHITE;

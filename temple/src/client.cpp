@@ -91,7 +91,7 @@ int main()
 
         SaveMagmaSettings();
 
-        Dispose();
+        DisposeAssets();
 
     }
     else {

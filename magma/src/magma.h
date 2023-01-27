@@ -35,17 +35,18 @@
 
 #define MAGMA_CONF_PATH "../save/engine_conf.dat"
 
-#define MAX_ASSETS     512 
-#define ASSET_CUSTOM   0
-#define ASSET_TEXTURE  1
-#define ASSET_MESH     2
-#define ASSET_AUDIO    3
-
 #define COMP_ALL                0
 #define COMP_BASE               1
 #define COMP_MODEL_RENDERER     2
 
 #define COLORS_PER_PALETTE 256 
+
+#define PATH_MAX_LEN 128
+
+#define ASSET_CUSTOM    -1
+#define ASSET_TEXTURE    0
+#define ASSET_MODEL      1
+#define ASSET_SOUND      2
 
 #define BeginCouroutine() \
     static float CTARGET = 0.f; \
@@ -87,6 +88,12 @@ struct MagmaSettings {
     bool skipIntro;
 };
 extern MagmaSettings Settings;
+
+struct RawAsset {
+    char path[PATH_MAX_LEN];
+    int64_t size;
+    char* data;
+};
 
 struct Palette {
     const char name[64];
@@ -239,7 +246,7 @@ void CheckAllocations();
 
 bool LoadAssets();
 void DisposeAssets();
-bool LoadAssetPackage(const char* filePath);
+bool ImportAssetPackage(const char* filePath);
 std::vector<std::string> GetAssetPaths();
 size_t GetAssetCount();
 
@@ -255,7 +262,7 @@ Model LoadModelFromMemory(const char *fileType, const unsigned char *fileData, i
 int GetAssetType(const char* name);
 
 void PrintAssetList();
-bool IsAssetLoaded(const char* name);
+inline bool IsAssetLoaded(const char* name);
 
 void ShowFailScreen(const char* text); // do not run in game loop
 

@@ -88,7 +88,7 @@ int main()
     }
     else {
         // render fail screen until game close
-        Assets::EnterFailScreen(WIDTH,HEIGHT);
+        ShowFailScreen("Could not find 'assets.mga'.\nPlease extract your download.");
     }
     CheckAllocations();
 
