@@ -1,5 +1,7 @@
 #include "deflated_assets.h"
 
+static Texture PlaceholderTexture;
+
 int GetAssetType(const char* name) {
     std::string ext = GetFileExtension(name);
     if (ext == ".png" || ext == ".gif" || ext == ".jpg" ||ext == ".jpeg") {
@@ -49,6 +51,7 @@ DeflationPack::DeflationPack(const char* filePath) {
         if (isCompressed) {
             int size = 0;
             asset.data = (char*) DecompressData(loaded, asset.size, &size);
+            asset.size = size;
             MemFree(loaded);
         }
         else {
@@ -68,6 +71,8 @@ DeflationPack::~DeflationPack() {
         MemFree(item.data);
     }
     TraceLog(LOG_DEBUG,("Disposed asset pack"));
+
+    UnloadTexture(PlaceholderTexture);
 }
 
 void DeflationPack::PrintAssetList() {
@@ -82,6 +87,14 @@ bool DeflationPack::AssetExists(const char* name) {
 
 Texture DeflationPack::RequestTexture(const char* name) {
     Image img = RequestImage(name);
+    if (img.width == 0){ // loading image failed show placeholder
+        if (PlaceholderTexture.width == 0){
+            Image img = GenImageColor(16,16,RED);
+            PlaceholderTexture = LoadTextureFromImage(img);
+            UnloadImage(img);
+        }
+        return PlaceholderTexture;
+    }
     return LoadTextureFromImage(img);
 }
 
@@ -97,7 +110,8 @@ Image DeflationPack::RequestImage(const char* name) {
         return GenImageColor(16,16,PURPLE);
     }
     const char* ext = GetFileExtension(asset->path);
-    return LoadImageFromMemory(ext, (const unsigned char*) asset->data, asset->size);
+    Image img = LoadImageFromMemory(ext, (const unsigned char*) asset->data, asset->size);
+    return img;
 }
 
 RawAsset DeflationPack::RequestCustom(const char* name, const char* ext) {
@@ -126,7 +140,7 @@ RawAsset DeflationPack::RequestCustom(const char* name, const char* ext) {
     return *asset;
 }
 
-std::vector<std::string> DeflationPack::GetAssetNames() {
+std::vector<std::string> DeflationPack::GetAssetPaths() {
     std::vector<std::string> names;
     for (auto& item : assets) {
         names.push_back(item.path);
@@ -134,10 +148,15 @@ std::vector<std::string> DeflationPack::GetAssetNames() {
     return names;
 }
 
+size_t DeflationPack::GetAssetCount() {
+    return assets.size();
+}
+
 const RawAsset* DeflationPack::QueryAsset(const char* name) {
+    std::string wot = std::string(name); // do not remove this line or you will get weird bugs, because const char* likes to change value for some reason
     for (const auto &item : assets) {
         auto base = GetFileNameWithoutExt(item.path);
-        if (TextIsEqual(base,name)) {
+        if (TextIsEqual(base,wot.c_str())) {
             return &item;
         }
     }

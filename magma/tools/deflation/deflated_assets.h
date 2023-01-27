@@ -37,7 +37,8 @@ public:
     Texture RequestTexture(const char* name); // NOTE: GL context required!
     RawAsset RequestCustom(const char* name, const char* ext=NULL);
 
-    std::vector<std::string> GetAssetNames();
+    std::vector<std::string> GetAssetPaths();
+    size_t GetAssetCount();
 
 private:
     const RawAsset* QueryAsset(const char* name);

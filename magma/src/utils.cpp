@@ -97,6 +97,10 @@ void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
     }
 }
 
+bool LoggerIsOpen(){
+    return ShowLogger;
+}
+
 void* M_MemAlloc(size_t size) {
     void* ptr = MemAlloc(size);
     Allocations++;

@@ -74,13 +74,13 @@ typedef uint EntityID;
 extern size_t Allocations;
 
 struct MagmaWindow {
-	Vector2 gameSize;
-	Vector2 winSize;
-	RenderTexture2D renderTarget;
+    Vector2 gameSize;
+    Vector2 winSize;
+    RenderTexture2D renderTarget;
 
-	float scale;
+    float scale;
     bool unscaled;
-	Vector2 scaledMouse;
+    Vector2 scaledMouse;
 };
 extern MagmaWindow Window;
 
@@ -91,20 +91,20 @@ struct MagmaSettings {
 extern MagmaSettings Settings;
 
 struct Palette {
-	const char name[64];
-	int colors[COLORS_PER_PALETTE * 3];
+    const char name[64];
+    int colors[COLORS_PER_PALETTE * 3];
 
-	Color GetColor(int index);
-	Color GetIndexColor(int index);
-	void MapImage(Image img);
-	void DrawPreview(Rectangle region);
-	int MapColorLoosely(Color color);
-	int MapColor(Color color);
+    Color GetColor(int index);
+    Color GetIndexColor(int index);
+    void MapImage(Image img);
+    void DrawPreview(Rectangle region);
+    int MapColorLoosely(Color color);
+    int MapColor(Color color);
 
 };
 constexpr Palette INVALID_PALETTE = {
-	"invalid",
-	{
+    "invalid",
+    {
         255,0,0,
         255,0,255
     }
@@ -122,13 +122,13 @@ struct Assets {
     static Assets* Init(const char* file);
     static void Dispose();
 
-	static Texture RequestTexture(const char* name);
-	static Image RequestImage(const char* name);
-	static Model RequestModel(const char* name);
-	static Shader RequestShader(const char* name);
-	static Palette RequestPalette(const char* name);
+    static Texture RequestTexture(const char* name);
+    static Image RequestImage(const char* name);
+    static Model RequestModel(const char* name);
+    static Shader RequestShader(const char* name);
+    static Palette RequestPalette(const char* name);
 
-	static FilePathList IndexModels();
+    static FilePathList IndexModels();
     static void EnterFailScreen(int width, int height); // do not run in game loop
 
 private:
@@ -158,16 +158,16 @@ struct MainMenuConfig {
 struct MainMenu {
     MainMenuConfig config;
 
-	bool skipSplash;
-	bool isDone;
-	float timer;
-	float alpha;
+    bool skipSplash;
+    bool isDone;
+    float timer;
+    float alpha;
 
-	size_t state;
-	size_t curSplash;
+    size_t state;
+    size_t curSplash;
 
-	std::vector<Texture> splashTextures;
-	Texture bgTexture;
+    std::vector<Texture> splashTextures;
+    Texture bgTexture;
     Color saveCol;
 
     MainMenu(MainMenuConfig config, bool skipSplash=false);
@@ -195,7 +195,7 @@ struct Base {
     void SetCenter(Vector3 pos);
     inline void ResetTranslation();
 
-	RayCollision GetMouseRayCollision(Camera camera);
+    RayCollision GetMouseRayCollision(Camera camera);
 
     inline Vector3 center();
     inline Vector3 size();
@@ -215,28 +215,28 @@ struct EntityGroup {
     uint entityCount;
     std::multimap<ItemType, void*> comps;
 
-	RayCollision GetRayCollision(Ray ray);
+    RayCollision GetRayCollision(Ray ray);
 
-	bool GetMousePickedBase(Camera camera, Base** result);
-	bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
+    bool GetMousePickedBase(Camera camera, Base** result);
+    bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
 
-	void LoadGroup(const char* fileName);
-	void SaveGroup(const char* fileName);
+    void LoadGroup(const char* fileName);
+    void SaveGroup(const char* fileName);
 
-	EntityID AddEntity();
+    EntityID AddEntity();
 
     // TODO dispose functions
-	template <typename T>
-	void AddEntityComponent(ItemType type, EntityID id, T data) {
+    template <typename T>
+    void AddEntityComponent(ItemType type, EntityID id, T data) {
         auto ptr = M_MemAlloc(sizeof(T));
         memcpy(ptr, &data, sizeof(T));
-		comps.insert({ type, ptr });
-	}
+        comps.insert({ type, ptr });
+    }
 
-	void* GetEntityComponent(EntityID id, ItemType filter);
+    void* GetEntityComponent(EntityID id, ItemType filter);
 
-	size_t UpdateGroup(float delta);
-	size_t DrawGroup(Camera camera, bool drawOutlines);
+    size_t UpdateGroup(float delta);
+    size_t DrawGroup(Camera camera, bool drawOutlines);
 };
 
 struct PlayerFPS {
@@ -252,9 +252,9 @@ struct PlayerFPS {
     PlayerFPS(float eyeHeight=1.8f);
     Vector3 Update(void* group, float delta);
 
-	void Focus();
-	void Unfocus();
-	void Teleport(Vector3 position);
+    void Focus();
+    void Unfocus();
+    void Teleport(Vector3 position);
 
     void SetAngle(float lookAtDeg);
     void SetFov(float fovDeb);
@@ -283,6 +283,7 @@ void MagmaLogger(int msgType, const char* text, va_list args);
 void ClearLog();
 void DrawLog(float offsetX, float offsetY, int fontSize);
 void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
+bool LoggerIsOpen();
 
 void SaveMagmaSettings();
 void LoadMagmaSettings();

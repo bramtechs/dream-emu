@@ -59,15 +59,15 @@ Texture Assets::RequestTexture(const char* name) {
         texture = _Assets->pack.RequestTexture(name);
     }
     else {
-		// ATTEMPT 3: load texture from disk
+        // ATTEMPT 3: load texture from disk
         const char* path = TextFormat("raw_assets/%s", name);
-		texture = LoadTexture(name);
-		if (texture.width == 0) {
-			// FAILED: generate placeholder instead
-			Image temp = GenImageChecked(32, 32, 4, 4, RED, WHITE);
-			texture = LoadTextureFromImage(temp);
-			UnloadImage(temp);
-		}
+        texture = LoadTexture(name);
+        if (texture.width == 0) {
+            // FAILED: generate placeholder instead
+            Image temp = GenImageChecked(32, 32, 4, 4, RED, WHITE);
+            texture = LoadTextureFromImage(temp);
+            UnloadImage(temp);
+        }
     }
 
     // push into texture array
@@ -83,13 +83,13 @@ Image Assets::RequestImage(const char* name) {
         image = _Assets->pack.RequestImage(name);
     }
     else {
-		// ATTEMPT 2: load image from disk
+        // ATTEMPT 2: load image from disk
         const char* path = TextFormat("raw_assets/%s", name);
-		image = LoadImage(name);
-		if (image.width == 0) {
-			// FAILED: generate placeholder instead
-			image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
-		}
+        image = LoadImage(name);
+        if (image.width == 0) {
+            // FAILED: generate placeholder instead
+            image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
+        }
     }
 
     return image;
@@ -144,12 +144,12 @@ Palette Assets::RequestPalette(const char* name) {
         return pal;
     }
 
-	// ATTEMPT 2: load image from disk
-	const char* path = TextFormat("raw_assets/%s", name);
+    // ATTEMPT 2: load image from disk
+    const char* path = TextFormat("raw_assets/%s", name);
     if (FileExists(path)) {
-		char* paletteText = LoadFileText(path);
-		Palette pal = ParsePalette(paletteText);
-		UnloadFileText(paletteText);
+        char* paletteText = LoadFileText(path);
+        Palette pal = ParsePalette(paletteText);
+        UnloadFileText(paletteText);
         return pal;
     }
     return {};
@@ -166,11 +166,11 @@ FilePathList Assets::IndexModels(){
 }
 
 void Assets::EnterFailScreen(int width, int height) {
-	while (!WindowShouldClose()) {
-		BeginMagmaDrawing();
+    while (!WindowShouldClose()) {
+        BeginMagmaDrawing();
         DrawCheckeredBackground(32, "Could not find 'assets.mga'.\nPlease extract your download.",
             PURPLE, DARKPURPLE, PINK);
-		EndMagmaDrawing();
-		EndDrawing();
-	}
+        EndMagmaDrawing();
+        EndDrawing();
+    }
 }

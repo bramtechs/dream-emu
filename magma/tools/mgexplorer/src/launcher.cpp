@@ -97,7 +97,7 @@ int main()
                     explorer = new Explorer(filePath.c_str());
                 }
 
-                explorer->update_and_render(delta);
+                explorer->UpdateAndRender(delta);
             }
                 break;
             default:
