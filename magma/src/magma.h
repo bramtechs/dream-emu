@@ -251,14 +251,13 @@ std::vector<std::string> GetAssetPaths();
 size_t GetAssetCount();
 
 Texture RequestTexture(const char* name);
-Image RequestImage(const char* name);
+Image RequestImage(const char* name, bool *succeeded=NULL);
 Model RequestModel(const char* name);
 Shader RequestShader(const char* name);
 char* RequestCustom(const char* name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
 Palette RequestPalette(const char* name);
 Palette ParsePalette(char* text);
 
-Model LoadModelFromMemory(const char *fileType, const unsigned char *fileData, int dataSize); // very scuffed and hacky, not recommended
 int GetAssetType(const char* name);
 
 void PrintAssetList();
@@ -282,6 +281,7 @@ Ray GetWindowMouseRay(Camera camera);
 Vector2 GetWindowTopLeft();
 
 void MagmaLogger(int msgType, const char* text, va_list args);
+void SetTraceLogAssertLevel(TraceLogLevel level);
 void ClearLog();
 void DrawLog(float offsetX, float offsetY, int fontSize);
 void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);

@@ -65,22 +65,29 @@ struct Explorer {
         selectedIndex = Wrap(selectedIndex, 0, GetAssetCount());
 
         // draw selected asset
-        const char* selectedPath = paths.at(selectedIndex).c_str();
-        Color typeColor = GetAssetTypeColor(selectedPath);
-        DrawText(selectedPath, 400, 50, 30, typeColor);
+        auto& selectedPath = paths.at(selectedIndex);
+
+        Color typeColor = GetAssetTypeColor(selectedPath.c_str());
+        DrawText(selectedPath.c_str(), 400, 50, 30, typeColor);
         
-        const char* selectedName = GetFileNameWithoutExt(selectedPath);
-        switch (GetAssetType(selectedPath)){
+        const char* selectedName = GetFileNameWithoutExt(selectedPath.c_str());
+        switch (GetAssetType(selectedPath.c_str())){
             case ASSET_TEXTURE:
-                Texture texture = RequestTexture(selectedName);
-                DrawTexture(texture,400,150,WHITE);
+                {
+                    const char* selectedName = GetFileNameWithoutExt(selectedPath.c_str());
+                    Texture texture = RequestTexture(selectedName);
+                    DrawTexture(texture, 400, 150, WHITE);
+                }
                 break;
             case ASSET_MODEL:
-                Model model = RequestModel(selectedName);
-                UpdateCamera(&cam3);
-                BeginMode3D(cam3);
-                    DrawModel(model,Vector3Zero(),1.0f,WHITE);
-                EndMode3D();
+                {
+                    const char* selectedName = GetFileNameWithoutExt(selectedPath.c_str());
+                    Model model = RequestModel(selectedName);
+                    UpdateCamera(&cam3);
+                    BeginMode3D(cam3);
+                        DrawModel(model, Vector3Zero(), 1.0f, WHITE);
+                    EndMode3D();
+                }
                 break;
             case ASSET_SOUND:
                 break;

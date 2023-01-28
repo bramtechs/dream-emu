@@ -4,6 +4,7 @@ static std::vector<LogLine> Buffer;
 static size_t Allocations = 0;
 static bool ShowLogger = false;
 static float LoggerOffsetY = 0.f;
+static TraceLogLevel AssertLevel = LOG_NONE;
 
 bool CreateDirectory(const char* path) {
     if (DirectoryExists(path)) {
@@ -52,6 +53,14 @@ void MagmaLogger(int msgType, const char* text, va_list args)
     if (msgType == LOG_ERROR || msgType == LOG_WARNING ) {
         ShowLogger = true;
     }
+
+    if (msgType == AssertLevel) {
+        assert(false);
+    }
+}
+
+void SetTraceLogAssertLevel(TraceLogLevel level) {
+    AssertLevel = level;
 }
 
 void ClearLog() {

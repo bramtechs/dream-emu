@@ -54,6 +54,7 @@ int launch(std::vector<std::string> args){
     }
 
     SetTraceLogCallback(MagmaLogger);
+    //SetTraceLogAssertLevel(LOG_ERROR);
     SetTraceLogLevel(LOG_DEBUG);
 
     InitMagmaWindow(WIDTH, HEIGHT, "Magma Explorer");
