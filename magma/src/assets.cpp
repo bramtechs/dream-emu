@@ -11,20 +11,20 @@ struct GameAssets {
 static GameAssets Assets = {};
 static Texture PlaceholderTexture = {};
 
-RawAsset QueryAsset(std::string name, std::string filterExt = "") {
+static RawAsset QueryAsset(std::string name, std::string filterExt = "") {
+	std::string baseName = GetFileNameWithoutExt(name.c_str());
 
-	for (const auto& item : Assets.assets) {
-		const char* base = GetFileNameWithoutExt(item.path);
-		const char* ext = GetFileExtension(item.path);
-
-		if (filterExt.empty() || TextIsEqual(ext, filterExt.c_str())) {
-			if (TextIsEqual(base, name.c_str())) {
+	for (int i = 0; i < Assets.assets.size(); i++) {
+		RawAsset item = Assets.assets.at(i);
+		std::string base = GetFileNameWithoutExt(item.path);
+		std::string ext = GetFileExtension(item.path);
+		if (filterExt.empty() || ext == filterExt) {
+			if (base == baseName) {
 				RawAsset a;
 				memcpy(&a, &item, sizeof(RawAsset));
 				return a;
 			}
 		}
-
 	}
 	assert(false);
 	return {};
@@ -105,7 +105,7 @@ void DisposeAssets() {
 	UnloadTexture(PlaceholderTexture);
 }
 
-Texture RequestTexture(const char* name) {
+Texture RequestTexture(std::string name) {
 	// ATTEMPT 1: get cached texture
 	for (const auto& item : Assets.textures) {
 		if (item.first == name) {
@@ -116,9 +116,8 @@ Texture RequestTexture(const char* name) {
 	// ATTEMPT 2: load texture from package
 	Texture texture = {};
 	if (IsAssetLoaded(name)) {
-		bool succeeded = false;
-		Image img = RequestImage(name, &succeeded);
-		if (!succeeded || img.width == 0) { // loading image failed show placeholder
+		Image img = RequestImage(name);
+		if (img.width == 0) { // loading image failed show placeholder
 			if (PlaceholderTexture.width == 0) {
 				Image img = GenImageColor(16, 16, RED);
 				PlaceholderTexture = LoadTextureFromImage(img);
@@ -131,7 +130,7 @@ Texture RequestTexture(const char* name) {
 	else {
 		// ATTEMPT 3: load texture from disk
 		const char* path = TextFormat("raw_assets/%s", name);
-		texture = LoadTexture(name);
+		texture = LoadTexture(name.c_str());
 		if (texture.width == 0) {
 			// generate placeholder on fail
 			Image temp = GenImageChecked(32, 32, 4, 4, RED, WHITE);
@@ -145,7 +144,7 @@ Texture RequestTexture(const char* name) {
 	return texture;
 }
 
-Image RequestImage(const char* name, bool* succeeded) {
+Image RequestImage(std::string name) {
 	// ATTEMPT 1: load image from package
 	Image image = {};
 	if (IsAssetLoaded(name)) {
@@ -153,28 +152,22 @@ Image RequestImage(const char* name, bool* succeeded) {
 		RawAsset asset = QueryAsset(name, ".png");
 		if (asset.data == NULL) {
 			TraceLog(LOG_ERROR, "Packaged image with name %s not found!", name);
-			if (succeeded != NULL) *succeeded = false;
-			return GenImageColor(16, 16, PURPLE);
+			return {};
 		}
 		if (GetAssetType(asset.path) != ASSET_TEXTURE) {
 			TraceLog(LOG_ERROR, "Packaged asset with name %s is not an image/texture!", name);
-			if (succeeded != NULL) *succeeded = false;
-			return GenImageColor(16, 16, PINK);
+			return {};
 		}
 		const char* ext = GetFileExtension(asset.path);
 		image = LoadImageFromMemory(ext, (const unsigned char*)asset.data, asset.size);
-		if (image.width != 0) {
-			if (succeeded != NULL) *succeeded = true;
-		}
 	}
 	else {
 		// ATTEMPT 2: load image from disk
 		const char* path = TextFormat("raw_assets/%s", name);
-		image = LoadImage(name);
+		image = LoadImage(name.c_str());
 		if (image.width == 0) {
 			image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
 		}
-		if (succeeded != NULL) *succeeded = false;
 	}
 
 	return image;
@@ -197,7 +190,7 @@ char* load_filetext_from_pack(const char* fileName) {
 	return (char*)TextFormat("%s\0", data); // add a null-terminator, just to be sure
 }
 
-Model RequestModel(const char* name) {
+Model RequestModel(std::string name) {
 
 	// ATTEMPT 1: get cached model
 	for (const auto& item : Assets.models) {
@@ -228,9 +221,9 @@ Model RequestModel(const char* name) {
 
 		size_t size = 0;
 		char* mtlData = RequestCustom(name, &size, ".mtl");
-		if (size == 0) {
-			const char* fileName = TextFormat("%s.mtl", name);
-			SaveFileData(fileName, mtlData, size);
+		if (size != 0) {
+			const char* fileName = TextFormat("%s.mtl", name.c_str());
+			assert(SaveFileData(fileName, mtlData, size));
 		}
 
 		const char* ext = GetFileExtension(asset.path);
@@ -239,19 +232,17 @@ Model RequestModel(const char* name) {
 		SetLoadFileDataCallback(load_filedata_from_pack);
 		SetLoadFileTextCallback(load_filetext_from_pack);
 
-		Model model = LoadModel(asset.path);
+		model = LoadOBJFromMemory(asset.path);
 
 		SetLoadFileTextCallback(NULL);
 		SetLoadFileDataCallback(NULL);
 
 		assert(ChangeDirectory(origDir));
-
-		return model;
 	}
 	else {
 		// ATTEMPT 3: Load model from disk
 		const char* path = TextFormat("raw_assets/%s", name);
-		model = LoadModel(name);
+		model = LoadModel(name.c_str());
 	}
 
 	// raylib automatically handles if model isn't found
@@ -305,16 +296,16 @@ Palette RequestPalette(const char* name) {
 	return {};
 }
 
-void ShowFailScreen(const char* text) {
+void ShowFailScreen(std::string text) {
 	while (!WindowShouldClose()) {
 		BeginMagmaDrawing();
-		DrawCheckeredBackground(32, text, PURPLE, DARKPURPLE, PINK);
+		DrawCheckeredBackground(32, text.c_str(), PURPLE, DARKPURPLE, PINK);
 		EndMagmaDrawing();
 		EndDrawing();
 	}
 }
 
-char* RequestCustom(const char* name, size_t* size, const char* ext) {
+char* RequestCustom(std::string name, size_t* size, const char* ext) {
 	// check if exists
 	RawAsset asset = QueryAsset(name, ext);
 	if (asset.data == NULL) {
@@ -380,7 +371,7 @@ size_t GetAssetCount() {
 	return Assets.assets.size();
 }
 
-inline bool IsAssetLoaded(const char* name) {
+inline bool IsAssetLoaded(std::string name) {
 	RawAsset asset = QueryAsset(name);
 	return asset.data != NULL;
 }

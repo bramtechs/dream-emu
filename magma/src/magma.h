@@ -250,20 +250,22 @@ bool ImportAssetPackage(const char* filePath);
 std::vector<std::string> GetAssetPaths();
 size_t GetAssetCount();
 
-Texture RequestTexture(const char* name);
-Image RequestImage(const char* name, bool *succeeded=NULL);
-Model RequestModel(const char* name);
+Texture RequestTexture(std::string name);
+Image RequestImage(std::string name);
+Model RequestModel(std::string name);
 Shader RequestShader(const char* name);
-char* RequestCustom(const char* name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
+char* RequestCustom(std::string name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
 Palette RequestPalette(const char* name);
 Palette ParsePalette(char* text);
+
+Model LoadOBJFromMemory(const char* fileName);
 
 int GetAssetType(const char* name);
 
 void PrintAssetList();
-inline bool IsAssetLoaded(const char* name);
+inline bool IsAssetLoaded(std::string name);
 
-void ShowFailScreen(const char* text); // do not run in game loop
+void ShowFailScreen(std::string text); // do not run in game loop
 
 Color InvertColor(Color col, bool invertAlpha = false);
 Color ColorLerp(Color src, Color dst, float factor);

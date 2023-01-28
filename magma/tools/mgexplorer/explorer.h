@@ -23,7 +23,7 @@ struct Explorer {
         listOffsetY = 0;
 
         SetCameraMode(cam3, CAMERA_ORBITAL);
-        cam3.position = { 0, 0, -10 };
+        cam3.position = { 0, 10, -10 };
         cam3.target = Vector3Zero();
         cam3.up = { 0, 1, 0 };
         cam3.fovy = 80;
@@ -83,7 +83,9 @@ struct Explorer {
                 {
                     const char* selectedName = GetFileNameWithoutExt(selectedPath.c_str());
                     Model model = RequestModel(selectedName);
+                    model.transform = MatrixIdentity();
                     UpdateCamera(&cam3);
+                    ClearBackground(SKYBLUE);
                     BeginMode3D(cam3);
                         DrawModel(model, Vector3Zero(), 1.0f, WHITE);
                     EndMode3D();
