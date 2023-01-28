@@ -1,6 +1,8 @@
 struct Explorer {
     const int FONT_SIZE = 18;
 
+    bool testMode;
+
     float barWidth;
     float listOffsetY;
 
@@ -11,7 +13,9 @@ struct Explorer {
 
     std::vector<std::string> paths;
 
-    Explorer(const char* filePath) {
+    Explorer(const char* filePath, bool testMode=false) {
+        this->testMode = testMode;
+
         ImportAssetPackage(filePath);
 
         paths = GetAssetPaths();
@@ -46,6 +50,16 @@ struct Explorer {
         }
 
         listOffsetY += GetMouseWheelMove()*FONT_SIZE;
+
+        // TEST MODE
+        if (testMode){
+            DrawText("test mode",360,10,12,ORANGE);
+            selectedIndex++;
+            if (selectedIndex >= GetAssetCount()){
+                WARN("TEST COMPLETE");
+                CloseWindow();
+            }
+        }
 
         // confine selectedIndex
         selectedIndex = Wrap(selectedIndex, 0, GetAssetCount());

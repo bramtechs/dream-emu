@@ -15,4 +15,5 @@ cmake --build build -j $Env:NUMBER_OF_PROCESSORS --config Release
 Copy-Item -Force -Recurse assets.mga $BUILD_DIR
 
 # make ZIP
+Copy-Item -Force -Recurse .\mgtools\* $BUILD_DIR
 Compress-Archive -Force -Path $BUILD_DIR\* -DestinationPath .\build\DREAM_EMU.ZIP

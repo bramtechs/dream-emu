@@ -4,6 +4,8 @@
 #define HEIGHT 480
 #define SCALE 1.2
 
+#define TEST_MODE false
+
 #include "explorer.h"
 
 enum State {
@@ -33,12 +35,26 @@ bool validate_dropped_file(std::string *filePath) {
 }
 
 // TODO instant loading with startup commands
+int launch(std::vector<std::string> args){
 
-int main()
-{
+    std::string filePath;
+    bool testMode = false;
+
+    for (auto& arg : args){
+        if (arg == "--test") {
+            testMode = true;
+        }else if (filePath.empty() &&
+                TextIsEqual(GetFileExtension(arg.c_str()),".mga")) {
+            filePath = arg;
+        }
+    }
+    if (testMode && filePath.empty()){
+        std::cout << "File path is required to perform a test!" << std::endl;
+        return -1;
+    }
+
     SetTraceLogCallback(MagmaLogger);
     SetTraceLogLevel(LOG_DEBUG);
-    assert(ChangeDirectory("X:\\temple"));
 
     InitMagmaWindow(WIDTH, HEIGHT, "Magma Explorer");
 
@@ -47,11 +63,9 @@ int main()
     State curState = INTRO;
     bool showError = false;
 
-    Explorer* explorer = NULL;
-    std::string filePath;
+    // TODO remove OOP design
 
-    // TODO bypass for testing
-    filePath = "X:\\assets.mga";
+    Explorer* explorer = NULL;
 
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
@@ -76,7 +90,7 @@ int main()
                     }
                 }
                 else {
-                    DrawCheckeredBackground(32,"Drag and drop a .mga asset pack\ninto this window to explore!",
+                    DrawCheckeredBackground(32,"Drag and drop an .mga asset pack\ninto this window to explore!",
                                             GREEN,DARKGREEN,LIME);
                 }
 
@@ -96,7 +110,7 @@ int main()
             case EXPLORER:
             {
                 if (explorer == NULL){
-                    explorer = new Explorer(filePath.c_str());
+                    explorer = new Explorer(filePath.c_str(),testMode);
                 }
 
                 explorer->UpdateAndRender(delta);
@@ -113,4 +127,22 @@ int main()
     CloseWindow();
 
     return 0;
+}
+
+int main(int argc, char** argv)
+{
+    std::vector<std::string> args;
+
+    if (TEST_MODE){
+        args.push_back("X:\\temple\\raw_assets");
+        args.push_back("X:\\temple\\assets.mga");
+    }
+    else {
+        // parse args
+        for (int i = 0; i < argc; i++){
+            args.push_back(argv[i]);
+        }
+    }
+
+    launch(args);
 }
