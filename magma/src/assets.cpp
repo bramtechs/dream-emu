@@ -6,6 +6,8 @@ struct GameAssets {
 	// caches
 	std::map<std::string, Texture> textures;
 	std::map<std::string, Model> models;
+	std::map<std::string, Palette> palettes;
+
 };
 
 static GameAssets Assets = {};
@@ -26,7 +28,6 @@ static RawAsset QueryAsset(std::string name, std::string filterExt = "") {
 			}
 		}
 	}
-	assert(false);
 	return {};
 }
 
@@ -267,43 +268,97 @@ Shader RequestShader(const char* name) {
 	return shader;
 }
 
-Palette ParsePalette(char* text) {
+// TODO put in engine
+std::vector<std::string> split(const std::string& s, char delim) {
+	std::vector<std::string> result;
+	std::stringstream ss(s);
+	std::string item;
+
+	while (getline(ss, item, delim)) {
+		result.push_back(item);
+	}
+
+	return result;
+}
+
+bool parse_triple_ints(std::string line, std::vector<int>* results) {
+	auto members = split(line, ' ');
+	if (members.size() != 3) {
+		WARN("Parse triple ints has no three members");
+		return false;
+	}
+	for (const auto& item : members) {
+		int conv = 0;
+		try {
+			conv = std::stoi(item);
+		}
+		catch (std::exception e) {
+			WARN("Failed to parse triple ints");
+			return false;
+		}
+		results->push_back(conv);
+	}
+	return true;
+}
+
+Palette ParsePalette(char* text, const char* name) {
 	std::string bloat(text);
 	std::stringstream stream(bloat);
 
+	int colors[COLORS_PER_PALETTE * 3] = {};
+
+	// TODO check if third line (color count) does not exceed 256
+
+	int colIndex = 0;
 	int lineIndex = 0;
 	std::string line;
 	while (std::getline(stream, line, '\n')) {
-		if (lineIndex >= 2) {
-			std::cout << line << std::endl;
+		if (lineIndex >= 3) {
+
+			// parse the line
+			std::vector<int> members;
+			if (parse_triple_ints(line, &members)) {
+				colors[colIndex++] = members[0];
+				colors[colIndex++] = members[1];
+				colors[colIndex++] = members[2];
+			}
 		}
 		lineIndex++;
 	}
-	// TODO
-	assert(false);
-	return {};
+
+	Palette pal = {};
+	memcpy(pal.colors, colors, sizeof(colors));
+	return pal;
 }
 
-Palette RequestPalette(const char* name) {
-	// ATTEMPT 1: load palette from package
+Palette RequestPalette(std::string name) {
+	
+	// ATTEMPT 1: load palette from cache
+	for (const auto& item : Assets.palettes) {
+		if (item.first == name) {
+			return item.second;
+		}
+	}
+
+	Palette pal = {};
+
+	// ATTEMPT 2: load palette from package
 	if (IsAssetLoaded(name)) {
 		size_t size = 0;
 		char* data = RequestCustom(name, &size, ".pal");
-
-		// todo load palette in
-		Palette pal = ParsePalette(data);
-		return pal;
+		pal = ParsePalette(data,name.c_str());
 	}
-
-	// ATTEMPT 2: load image from disk
-	const char* path = TextFormat("raw_assets/%s", name);
-	if (FileExists(path)) {
-		char* paletteText = LoadFileText(path);
-		Palette pal = ParsePalette(paletteText);
-		UnloadFileText(paletteText);
-		return pal;
+	else {
+		// ATTEMPT 3: load image from disk
+		const char* path = TextFormat("raw_assets/%s", name.c_str());
+		if (FileExists(path)) {
+			char* paletteText = LoadFileText(path);
+			pal = ParsePalette(paletteText, name.c_str());
+			UnloadFileText(paletteText);
+		}
 	}
-	return {};
+	Assets.palettes.insert({ name, pal });
+	return pal;
 }
 
 void ShowFailScreen(std::string text) {

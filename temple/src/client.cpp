@@ -1,16 +1,19 @@
 #include "magma.h"
 #include "client.hpp"
 
+// TODO implement palette shadering into engine
+// TODO implement tilemaps into engine
+
 struct TempleGame {
     Texture blockTexture;
 
     Shader shader;
 
     TempleGame() {
-        Image blockImage = RequestImage("spr_block_2");
+        Image blockImage = RequestImage("spr_block_fg");
 
         // force texture into palette
-        Palette palette = RequestPalette("pal_warm1.pal");
+        Palette palette = RequestPalette("pal_warm1");
         palette.MapImage(blockImage);
 
         blockTexture = LoadTextureFromImage(blockImage);
@@ -45,6 +48,8 @@ int main()
 {
     SetTraceLogCallback(MagmaLogger);
     SetTraceLogLevel(LOG_DEBUG);
+    SetTraceLogOpenLevel(LOG_ERROR);
+
     assert(ChangeDirectory("X:\\temple"));
 
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");

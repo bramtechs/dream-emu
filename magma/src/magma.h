@@ -96,7 +96,7 @@ struct RawAsset {
 };
 
 struct Palette {
-    const char name[64];
+    char name[64];
     int colors[COLORS_PER_PALETTE * 3];
 
     Color GetColor(int index);
@@ -105,8 +105,8 @@ struct Palette {
     void DrawPreview(Rectangle region);
     int MapColorLoosely(Color color);
     int MapColor(Color color);
-
 };
+
 constexpr Palette INVALID_PALETTE = {
     "invalid",
     {
@@ -255,8 +255,8 @@ Image RequestImage(std::string name);
 Model RequestModel(std::string name);
 Shader RequestShader(const char* name);
 char* RequestCustom(std::string name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
-Palette RequestPalette(const char* name);
-Palette ParsePalette(char* text);
+Palette RequestPalette(std::string name);
+Palette ParsePalette(char* text, const char* name="unnamed");
 
 Model LoadOBJFromMemory(const char* fileName);
 

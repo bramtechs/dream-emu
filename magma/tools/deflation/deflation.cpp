@@ -21,7 +21,8 @@ std::vector<std::string> get_supported_formats() {
         ".obj",
         ".mtl",
         ".wav",
-        ".mp3" 
+        ".mp3",
+        ".pal"
     };
 };
 

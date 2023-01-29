@@ -13,11 +13,6 @@ std::pair<bool, std::string> check_paths(const char* input, const char* output) 
 	if (ext != ".pal") {
 		return std::make_pair(false, "Output file needs have extension .pal");
 	}
-	const char* base = GetPrevDirectoryPath(output);
-	if (!DirectoryExists(base)) {
-		std::string msg = TextFormat("Output path %s doesn't exist.", base);
-		return std::make_pair(false, msg);
-	}
 	return std::make_pair(true, "");
 }
 
@@ -77,6 +72,7 @@ int execute_with_args(int argc, char* argv[]) {
 	if (argc >= 2) {
 		const char* input = argv[argc - 2];
 		const char* output = argv[argc - 1];
+
 		auto check = check_paths(input, output);
 		if (check.first) {
 			auto result = extract_from_path(input, output);
