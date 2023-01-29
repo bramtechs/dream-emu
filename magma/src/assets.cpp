@@ -1,442 +1,512 @@
 #include "magma.h"
 
 struct GameAssets {
-	std::vector<RawAsset> assets;
+    std::vector<RawAsset> assets;
 
-	// caches
-	std::map<std::string, Texture> textures;
-	std::map<std::string, Model> models;
-	std::map<std::string, Palette> palettes;
-
+    // caches
+    std::map<std::string, Texture> textures;
+    std::map<std::string, Model> models;
+    std::map<std::string, Palette> palettes;
+    std::map<std::string, Shader> shaders;
 };
 
 static GameAssets Assets = {};
 static Texture PlaceholderTexture = {};
 
-static RawAsset QueryAsset(std::string name, std::string filterExt = "") {
-	std::string baseName = GetFileNameWithoutExt(name.c_str());
+static RawAsset QueryAsset(const std::string& name, std::string filterExt = "") {
+    std::string baseName = GetFileNameWithoutExt(name.c_str());
 
-	for (int i = 0; i < Assets.assets.size(); i++) {
-		RawAsset item = Assets.assets.at(i);
-		std::string base = GetFileNameWithoutExt(item.path);
-		std::string ext = GetFileExtension(item.path);
-		if (filterExt.empty() || ext == filterExt) {
-			if (base == baseName) {
-				RawAsset a;
-				memcpy(&a, &item, sizeof(RawAsset));
-				return a;
-			}
-		}
-	}
-	return {};
+    for (int i = 0; i < Assets.assets.size(); i++) {
+        RawAsset item = Assets.assets.at(i);
+        std::string base = GetFileNameWithoutExt(item.path);
+        std::string ext = GetFileExtension(item.path);
+        if (filterExt.empty() || ext == filterExt) {
+            if (base == baseName) {
+                RawAsset a;
+                memcpy(&a, &item, sizeof(RawAsset));
+                return a;
+            }
+        }
+    }
+    return {};
 }
 
 bool LoadAssets() {
-	INFO("Loading assets...");
+    INFO("Loading assets...");
 
-	if (!ImportAssetPackage("assets.mga")) {
-		// visual studio
-		return ImportAssetPackage("../../assets.mga");
-	}
-	return true;
+    if (!ImportAssetPackage("assets.mga")) {
+        // visual studio
+        return ImportAssetPackage("../../assets.mga");
+    }
+    return true;
 }
 
 bool ImportAssetPackage(const char* filePath) {
-	std::ifstream stream;
-	try {
-		stream = std::ifstream(filePath, std::ifstream::binary);
-	}
-	catch (const std::ifstream::failure& e) {
-		TraceLog(LOG_ERROR, "Exception opening asset package at %s", filePath);
-		return false;
-	}
+    std::ifstream stream;
+    try {
+        stream = std::ifstream(filePath, std::ifstream::binary);
+    }
+    catch (const std::ifstream::failure& e) {
+        TraceLog(LOG_ERROR, "Exception opening asset package at %s", filePath);
+        return false;
+    }
 
-	// >> size
-	int64_t count = -1;
-	stream.read((char*)&count, sizeof(int64_t));
-	if (count <= 0)
-	{
-		ERROR("Malformed package, could not determine number of items! (wrong version?)");
-		return false;
-	}
+    // >> size
+    int64_t count = -1;
+    stream.read((char*)&count, sizeof(int64_t));
+    if (count <= 0)
+    {
+        ERROR("Malformed package, could not determine number of items! (wrong version?)");
+        return false;
+    }
 
-	bool isCompressed = false;
-	// >> compressed flag
-	stream.read((char*)&isCompressed, sizeof(bool));
+    bool isCompressed = false;
+    // >> compressed flag
+    stream.read((char*)&isCompressed, sizeof(bool));
 
-	// >> items
-	for (auto i = 0; i < count; i++) {
-		// >> item
-		RawAsset asset = {};
-		stream.read(asset.path, PATH_MAX_LEN);
+    // >> items
+    for (auto i = 0; i < count; i++) {
+        // >> item
+        RawAsset asset = {};
+        stream.read(asset.path, PATH_MAX_LEN);
 
-		stream.read((char*)&asset.size, sizeof(int64_t));
-		if (asset.size <= 0)
-		{
-			WARN("Malformed package item %s",asset.path);
-		}
+        stream.read((char*)&asset.size, sizeof(int64_t));
+        if (asset.size <= 0)
+        {
+            WARN("Malformed package item %s",asset.path);
+        }
 
-		unsigned char* loaded = (unsigned char*)MemAlloc(asset.size);
-		stream.read((char*)loaded, asset.size);
+        unsigned char* loaded = (unsigned char*)MemAlloc(asset.size);
+        stream.read((char*)loaded, asset.size);
 
-		if (isCompressed) {
-			int size = 0;
-			asset.data = (char*)DecompressData(loaded, asset.size, &size);
-			asset.size = size;
-			MemFree(loaded);
-		}
-		else {
-			asset.data = (char*)loaded;
-		}
+        if (isCompressed) {
+            int size = 0;
+            asset.data = (char*)DecompressData(loaded, asset.size, &size);
+            asset.size = size;
+            MemFree(loaded);
+        }
+        else {
+            asset.data = (char*)loaded;
+        }
 
-		Assets.assets.push_back(asset);
-		TraceLog(LOG_DEBUG, "Loaded asset %s", asset.path);
-	}
+        Assets.assets.push_back(asset);
+        TraceLog(LOG_DEBUG, "Loaded asset %s", asset.path);
+    }
 
-	TraceLog(LOG_INFO, ("Loaded asset pack %s", filePath));
-	stream.close();
+    TraceLog(LOG_INFO, ("Loaded asset pack %s", filePath));
+    stream.close();
 
-	return true;
+    return true;
 }
 
 void DisposeAssets() {
-	for (const auto& item : Assets.assets) {
-		if (item.size > 0) {
-			MemFree(item.data);
-		}
-	}
-	for (const auto& item : Assets.textures) {
-		UnloadTexture(item.second);
-	}
-	for (const auto& item : Assets.models) {
-		UnloadModel(item.second);
-	}
+    for (const auto& item : Assets.assets) {
+        if (item.size > 0) {
+            MemFree(item.data);
+        }
+    }
+    for (const auto& item : Assets.textures) {
+        UnloadTexture(item.second);
+    }
+    for (const auto& item : Assets.models) {
+        UnloadModel(item.second);
+    }
+    for (const auto& item : Assets.shaders) {
+        UnloadShader(item.second);
+    }
 
-	TraceLog(LOG_DEBUG, ("Disposed asset pack"));
-	UnloadTexture(PlaceholderTexture);
+    TraceLog(LOG_DEBUG, ("Disposed asset pack"));
+    UnloadTexture(PlaceholderTexture);
 }
 
-Texture RequestTexture(std::string name) {
-	// ATTEMPT 1: get cached texture
-	for (const auto& item : Assets.textures) {
-		if (item.first == name) {
-			return item.second;
-		}
-	}
+Texture RequestTexture(const std::string& name) {
+    // ATTEMPT 1: get cached texture
+    for (const auto& item : Assets.textures) {
+        if (item.first == name) {
+            return item.second;
+        }
+    }
 
-	// ATTEMPT 2: load texture from package
-	Texture texture = {};
-	if (IsAssetLoaded(name)) {
-		Image img = RequestImage(name);
-		if (img.width == 0) { // loading image failed show placeholder
-			if (PlaceholderTexture.width == 0) {
-				Image img = GenImageColor(16, 16, RED);
-				PlaceholderTexture = LoadTextureFromImage(img);
-				UnloadImage(img);
-			}
-			return PlaceholderTexture;
-		}
-		texture = LoadTextureFromImage(img);
-	}
-	else {
-		// ATTEMPT 3: load texture from disk
-		const char* path = TextFormat("raw_assets/%s", name);
-		texture = LoadTexture(name.c_str());
-		if (texture.width == 0) {
-			// generate placeholder on fail
-			Image temp = GenImageChecked(32, 32, 4, 4, RED, WHITE);
-			texture = LoadTextureFromImage(temp);
-			UnloadImage(temp);
-		}
-	}
+    // ATTEMPT 2: load texture from package
+    Texture texture = {};
+    if (IsAssetLoaded(name)) {
+        Image img = RequestImage(name);
+        if (img.width == 0) { // loading image failed show placeholder
+            if (PlaceholderTexture.width == 0) {
+                Image img = GenImageColor(16, 16, RED);
+                PlaceholderTexture = LoadTextureFromImage(img);
+                UnloadImage(img);
+            }
+            return PlaceholderTexture;
+        }
+        texture = LoadTextureFromImage(img);
+    }
+    else {
+        // ATTEMPT 3: load texture from disk
+        const char* path = TextFormat("raw_assets/%s", name);
+        texture = LoadTexture(name.c_str());
+        if (texture.width == 0) {
+            // generate placeholder on fail
+            Image temp = GenImageChecked(32, 32, 4, 4, RED, WHITE);
+            texture = LoadTextureFromImage(temp);
+            UnloadImage(temp);
+        }
+    }
 
-	// push into texture array
-	Assets.textures.insert({ name,texture });
-	return texture;
+    // push into texture array
+    Assets.textures.insert({ name,texture });
+    return texture;
 }
 
-Image RequestImage(std::string name) {
-	// ATTEMPT 1: load image from package
-	Image image = {};
-	if (IsAssetLoaded(name)) {
-		// check if exists
-		RawAsset asset = QueryAsset(name, ".png");
-		if (asset.data == NULL) {
-			TraceLog(LOG_ERROR, "Packaged image with name %s not found!", name);
-			return {};
-		}
-		if (GetAssetType(asset.path) != ASSET_TEXTURE) {
-			TraceLog(LOG_ERROR, "Packaged asset with name %s is not an image/texture!", name);
-			return {};
-		}
-		const char* ext = GetFileExtension(asset.path);
-		image = LoadImageFromMemory(ext, (const unsigned char*)asset.data, asset.size);
-	}
-	else {
-		// ATTEMPT 2: load image from disk
-		const char* path = TextFormat("raw_assets/%s", name);
-		image = LoadImage(name.c_str());
-		if (image.width == 0) {
-			image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
-		}
-	}
+Image RequestImage(const std::string& name) {
+    // ATTEMPT 1: load image from package
+    Image image = {};
+    if (IsAssetLoaded(name)) {
+        // check if exists
+        RawAsset asset = QueryAsset(name, ".png");
+        if (asset.data == NULL) {
+            TraceLog(LOG_ERROR, "Packaged image with name %s not found!", name);
+            return {};
+        }
+        if (GetAssetType(asset.path) != ASSET_TEXTURE) {
+            TraceLog(LOG_ERROR, "Packaged asset with name %s is not an image/texture!", name);
+            return {};
+        }
+        const char* ext = GetFileExtension(asset.path);
+        image = LoadImageFromMemory(ext, (const unsigned char*)asset.data, asset.size);
+    }
+    else {
+        // ATTEMPT 2: load image from disk
+        const char* path = TextFormat("raw_assets/%s", name);
+        image = LoadImage(name.c_str());
+        if (image.width == 0) {
+            image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
+        }
+    }
 
-	return image;
+    return image;
 }
 
 // This is a very dumb implementation, but might work
 unsigned char* load_filedata_from_pack(const char* fileName, unsigned int* bytesRead) {
-	const char* name = GetFileNameWithoutExt(fileName);
-	const char* ext = GetFileExtension(fileName);
-	char* data = RequestCustom(name, (size_t*)bytesRead, ext);
-	DEBUG("Rerouting file data %s from memory...", fileName);
-	return (unsigned char*)data;
+    const char* name = GetFileNameWithoutExt(fileName);
+    const char* ext = GetFileExtension(fileName);
+    char* data = RequestCustom(name, (size_t*)bytesRead, ext);
+    DEBUG("Rerouting file data %s from memory...", fileName);
+    return (unsigned char*)data;
 }
 
 char* load_filetext_from_pack(const char* fileName) {
-	const char* name = GetFileNameWithoutExt(fileName);
-	const char* ext = GetFileExtension(fileName);
-	char* data = RequestCustom(name, NULL, ext);
-	DEBUG("Rerouting file text %s from memory...", fileName);
-	return (char*)TextFormat("%s\0", data); // add a null-terminator, just to be sure
+    const char* name = GetFileNameWithoutExt(fileName);
+    const char* ext = GetFileExtension(fileName);
+    char* data = RequestCustom(name, NULL, ext);
+    DEBUG("Rerouting file text %s from memory...", fileName);
+    return (char*)TextFormat("%s\0", data); // add a null-terminator, just to be sure
 }
 
-Model RequestModel(std::string name) {
+Model RequestModel(const std::string& name) {
 
-	// ATTEMPT 1: get cached model
-	for (const auto& item : Assets.models) {
-		if (item.first == name) {
-			return item.second;
-		}
-	}
+    // ATTEMPT 1: get cached model
+    for (const auto& item : Assets.models) {
+        if (item.first == name) {
+            return item.second;
+        }
+    }
 
-	Model model = {};
-	// ATTEMPT 2: Load model from package
-	if (IsAssetLoaded(name)) {
-		// check if exists
-		RawAsset asset = QueryAsset(name, ".obj");
-		if (asset.data == NULL) {
-			TraceLog(LOG_ERROR, "Packaged model with name %s not found!", name);
-			return LoadModel(""); // force raylib to return default cube
-		}
-		if (GetAssetType(asset.path) != ASSET_MODEL) {
-			TraceLog(LOG_ERROR, "Packaged asset with name %s is not a model!", name);
-			return LoadModel(""); // force raylib to return default cube
-		}
+    Model model = {};
+    // ATTEMPT 2: Load model from package
+    if (IsAssetLoaded(name)) {
+        // check if exists
+        RawAsset asset = QueryAsset(name, ".obj");
+        if (asset.data == NULL) {
+            TraceLog(LOG_ERROR, "Packaged model with name %s not found!", name);
+            return LoadModel(""); // force raylib to return default cube
+        }
+        if (GetAssetType(asset.path) != ASSET_MODEL) {
+            TraceLog(LOG_ERROR, "Packaged asset with name %s is not a model!", name);
+            return LoadModel(""); // force raylib to return default cube
+        }
 
-		// write material file to temp location
-		std::string tempDir = GetTempDirectory();
+        // write material file to temp location
+        std::string tempDir = GetTempDirectory();
 
-		const char* origDir = GetWorkingDirectory();
-		assert(ChangeDirectory(tempDir.c_str()));
+        const char* origDir = GetWorkingDirectory();
+        assert(ChangeDirectory(tempDir.c_str()));
 
-		size_t size = 0;
-		char* mtlData = RequestCustom(name, &size, ".mtl");
-		if (size != 0) {
-			const char* fileName = TextFormat("%s.mtl", name.c_str());
-			assert(SaveFileData(fileName, mtlData, size));
-		}
+        size_t size = 0;
+        char* mtlData = RequestCustom(name, &size, ".mtl");
+        if (size != 0) {
+            const char* fileName = TextFormat("%s.mtl", name.c_str());
+            assert(SaveFileData(fileName, mtlData, size));
+        }
 
-		const char* ext = GetFileExtension(asset.path);
+        const char* ext = GetFileExtension(asset.path);
 
-		// load textures from memory instead of disk
-		SetLoadFileDataCallback(load_filedata_from_pack);
-		SetLoadFileTextCallback(load_filetext_from_pack);
+        // load textures from memory instead of disk
+        SetLoadFileDataCallback(load_filedata_from_pack);
+        SetLoadFileTextCallback(load_filetext_from_pack);
 
-		model = LoadOBJFromMemory(asset.path);
+        model = LoadOBJFromMemory(asset.path);
 
-		SetLoadFileTextCallback(NULL);
-		SetLoadFileDataCallback(NULL);
+        SetLoadFileTextCallback(NULL);
+        SetLoadFileDataCallback(NULL);
 
-		assert(ChangeDirectory(origDir));
-	}
-	else {
-		// ATTEMPT 3: Load model from disk
-		const char* path = TextFormat("raw_assets/%s", name);
-		model = LoadModel(name.c_str());
-	}
+        assert(ChangeDirectory(origDir));
+    }
+    else {
+        // ATTEMPT 3: Load model from disk
+        const char* path = TextFormat("raw_assets/%s", name);
+        model = LoadModel(name.c_str());
+    }
 
-	// raylib automatically handles if model isn't found
+    // raylib automatically handles if model isn't found
 
-	// push into model cache array
-	Assets.models.insert({ name,model });
-	return model;
+    // push into model cache array
+    Assets.models.insert({ name,model });
+    return model;
 }
 
-Shader RequestShader(const char* name) {
-	Shader shader = LoadShader(0, name);
-	return shader;
+Shader RequestShader(const std::string& name) {
+    // ATTEMPT 1: Load shader from cache
+    for (const auto &item : Assets.shaders){
+        if (item.first == name){
+            return item.second;
+        }
+    }
+
+    // ATTEMPT 2: Load from asset package 
+    
+    // fragment shader
+    std::string frag = "";
+
+    if (IsAssetLoaded(name)){
+        RawAsset asset = QueryAsset(name, ".fs");
+        if (asset.data != NULL) {
+            if (GetAssetType(asset.path) == ASSET_FRAG_SHADER) {
+                // read from memory
+                frag = std::string(asset.data,asset.size);
+            }
+            else {
+                TraceLog(LOG_ERROR, "Packaged asset with name %s is not a fragment shader!", name);
+            }
+        }
+    }
+    else{
+        // ATTEMPT 3: Load fragment shader from disk
+        const char* fragPath = TextFormat("%s.fs",name.c_str());
+        if (FileExists(fragPath)){
+            char* fragC = LoadFileText(fragPath);
+            frag = fragC;
+            UnloadFileText(fragC);
+        }
+    }
+
+    // vertex shader
+    std::string vert = "";
+
+    if (IsAssetLoaded(name)){
+        RawAsset asset = QueryAsset(name, ".vs");
+        if (asset.data != NULL) {
+            if (GetAssetType(asset.path) == ASSET_VERT_SHADER) {
+                // read from memory
+                frag = std::string(asset.data,asset.size);
+            }
+            else {
+                TraceLog(LOG_ERROR, "Packaged asset with name %s is not a vertex shader!", name);
+            }
+        }
+    }
+    else{
+        // ATTEMPT 3: Load fragment shader from disk
+        const char* vertPath = TextFormat("%s.vs",name.c_str());
+        if (FileExists(vertPath)){
+            char* vertC = LoadFileText(vertPath);
+            vert = vertC;
+            UnloadFileText(vertC);
+        }
+    }
+
+    // finally load the shader
+    Shader shader = LoadShaderFromMemory(vert.empty() ? NULL:vert.c_str(), frag.empty() ? NULL:frag.c_str());
+    Assets.shaders.insert({name,shader});
+    return shader;
 }
 
 // TODO put in engine
 std::vector<std::string> split(const std::string& s, char delim) {
-	std::vector<std::string> result;
-	std::stringstream ss(s);
-	std::string item;
+    std::vector<std::string> result;
+    std::stringstream ss(s);
+    std::string item;
 
-	while (getline(ss, item, delim)) {
-		result.push_back(item);
-	}
+    while (getline(ss, item, delim)) {
+        result.push_back(item);
+    }
 
-	return result;
+    return result;
 }
 
-bool parse_triple_ints(std::string line, std::vector<int>* results) {
-	auto members = split(line, ' ');
-	if (members.size() != 3) {
-		WARN("Parse triple ints has no three members");
-		return false;
-	}
-	for (const auto& item : members) {
-		int conv = 0;
-		try {
-			conv = std::stoi(item);
-		}
-		catch (std::exception e) {
-			WARN("Failed to parse triple ints");
-			return false;
-		}
-		results->push_back(conv);
-	}
-	return true;
+bool parse_triple_ints(const std::string& line, std::vector<int>* results) {
+    auto members = split(line, ' ');
+    if (members.size() != 3) {
+        WARN("Parse triple ints has no three members");
+        return false;
+    }
+    for (const auto& item : members) {
+        int conv = 0;
+        try {
+            conv = std::stoi(item);
+        }
+        catch (std::exception e) {
+            WARN("Failed to parse triple ints");
+            return false;
+        }
+        results->push_back(conv);
+    }
+    return true;
 }
 
 Palette ParsePalette(char* text, const char* name) {
-	std::string bloat(text);
-	std::stringstream stream(bloat);
+    std::string bloat(text);
+    std::stringstream stream(bloat);
 
-	int colors[COLORS_PER_PALETTE * 3] = {};
+    int colors[COLORS_PER_PALETTE * 3] = {};
 
-	// TODO check if third line (color count) does not exceed 256
+    // TODO check if third line (color count) does not exceed 256
 
-	int colIndex = 0;
-	int lineIndex = 0;
-	std::string line;
-	while (std::getline(stream, line, '\n')) {
-		if (lineIndex >= 3) {
+    int colIndex = 0;
+    int lineIndex = 0;
+    std::string line;
+    while (std::getline(stream, line, '\n')) {
+        if (lineIndex >= 3) {
 
-			// parse the line
-			std::vector<int> members;
-			if (parse_triple_ints(line, &members)) {
-				colors[colIndex++] = members[0];
-				colors[colIndex++] = members[1];
-				colors[colIndex++] = members[2];
-			}
-		}
-		lineIndex++;
-	}
+            // parse the line
+            std::vector<int> members;
+            if (parse_triple_ints(line, &members)) {
+                colors[colIndex++] = members[0];
+                colors[colIndex++] = members[1];
+                colors[colIndex++] = members[2];
+            }
+        }
+        lineIndex++;
+    }
 
-	Palette pal = {};
-	memcpy(pal.colors, colors, sizeof(colors));
-	return pal;
+    Palette pal = {};
+    memcpy(pal.colors, colors, sizeof(colors));
+    return pal;
 }
 
-Palette RequestPalette(std::string name) {
-	
-	// ATTEMPT 1: load palette from cache
-	for (const auto& item : Assets.palettes) {
-		if (item.first == name) {
-			return item.second;
-		}
-	}
+Palette RequestPalette(const std::string& name) {
+    
+    // ATTEMPT 1: load palette from cache
+    for (const auto& item : Assets.palettes) {
+        if (item.first == name) {
+            return item.second;
+        }
+    }
 
-	Palette pal = {};
+    Palette pal = {};
 
-	// ATTEMPT 2: load palette from package
-	if (IsAssetLoaded(name)) {
-		size_t size = 0;
-		char* data = RequestCustom(name, &size, ".pal");
-		pal = ParsePalette(data,name.c_str());
-	}
-	else {
-		// ATTEMPT 3: load image from disk
-		const char* path = TextFormat("raw_assets/%s", name.c_str());
-		if (FileExists(path)) {
-			char* paletteText = LoadFileText(path);
-			pal = ParsePalette(paletteText, name.c_str());
-			UnloadFileText(paletteText);
-		}
-	}
-	Assets.palettes.insert({ name, pal });
-	return pal;
+    // ATTEMPT 2: load palette from package
+    if (IsAssetLoaded(name)) {
+        size_t size = 0;
+        char* data = RequestCustom(name, &size, ".pal");
+        pal = ParsePalette(data,name.c_str());
+    }
+    else {
+        // ATTEMPT 3: load image from disk
+        const char* path = TextFormat("raw_assets/%s", name.c_str());
+        if (FileExists(path)) {
+            char* paletteText = LoadFileText(path);
+            pal = ParsePalette(paletteText, name.c_str());
+            UnloadFileText(paletteText);
+        }
+    }
+    Assets.palettes.insert({ name, pal });
+    return pal;
 }
 
-void ShowFailScreen(std::string text) {
-	while (!WindowShouldClose()) {
-		BeginMagmaDrawing();
-		DrawCheckeredBackground(32, text.c_str(), PURPLE, DARKPURPLE, PINK);
-		EndMagmaDrawing();
-		EndDrawing();
-	}
+void ShowFailScreen(const std::string& text) {
+    while (!WindowShouldClose()) {
+        BeginMagmaDrawing();
+        DrawCheckeredBackground(32, text.c_str(), PURPLE, DARKPURPLE, PINK);
+        EndMagmaDrawing();
+        EndDrawing();
+    }
 }
 
-char* RequestCustom(std::string name, size_t* size, const char* ext) {
-	// check if exists
-	RawAsset asset = QueryAsset(name, ext);
-	if (asset.data == NULL) {
-		TraceLog(LOG_ERROR, "Packaged custom with name %s not found!", name);
-		return {};
-	}
+char* RequestCustom(const std::string& name, size_t* size, const char* ext) {
+    // check if exists
+    RawAsset asset = QueryAsset(name, ext);
+    if (asset.data == NULL) {
+        TraceLog(LOG_ERROR, "Packaged custom with name %s not found!", name);
+        return {};
+    }
 
-	// check extension
-	if (ext != NULL) {
-		const char* fext = ext;
-		if (ext[0] != '.') {
-			fext = TextFormat(".%s", ext);
-		}
-		if (!TextIsEqual(GetFileExtension(asset.path), fext)) {
-			TraceLog(LOG_ERROR, "Custom packaged asset is not of type %s", fext);
-			return {};
-		}
-	}
+    // check extension
+    if (ext != NULL) {
+        const char* fext = ext;
+        if (ext[0] != '.') {
+            fext = TextFormat(".%s", ext);
+        }
+        if (!TextIsEqual(GetFileExtension(asset.path), fext)) {
+            TraceLog(LOG_ERROR, "Custom packaged asset is not of type %s", fext);
+            return {};
+        }
+    }
 
-	// return memory
-	if (size != NULL) {
-		*size = asset.size;
-	}
+    // return memory
+    if (size != NULL) {
+        *size = asset.size;
+    }
 
-	return asset.data;
+    return asset.data;
 }
 
 std::vector<std::string> GetAssetPaths() {
-	std::vector<std::string> names;
-	for (auto& item : Assets.assets) {
-		names.push_back(item.path);
-	}
-	return names;
+    std::vector<std::string> names;
+    for (auto& item : Assets.assets) {
+        names.push_back(item.path);
+    }
+    return names;
 }
 
 static std::string GetTempDirectory() {
-	std::filesystem::path path = std::filesystem::temp_directory_path();
-	std::string tempFolStr = path.string();
-	return tempFolStr;
+    std::filesystem::path path = std::filesystem::temp_directory_path();
+    std::string tempFolStr = path.string();
+    return tempFolStr;
 }
 
 int GetAssetType(const char* name) {
-	std::string ext = GetFileExtension(name);
-	if (ext == ".png" || ext == ".gif" || ext == ".jpg" || ext == ".jpeg") {
-		return ASSET_TEXTURE;
-	}
-	if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") {
-		return ASSET_SOUND;
-	}
-	if (ext == ".obj" || ext == ".fbx") {
-		return ASSET_MODEL;
-	}
-	return ASSET_CUSTOM;
+    std::string ext = GetFileExtension(name);
+    if (ext == ".png" || ext == ".gif" || ext == ".jpg" || ext == ".jpeg") {
+        return ASSET_TEXTURE;
+    }
+    if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") {
+        return ASSET_SOUND;
+    }
+    if (ext == ".obj" || ext == ".fbx") {
+        return ASSET_MODEL;
+    }
+    if (ext == ".fs") {
+        return ASSET_FRAG_SHADER;
+    }
+    if (ext == ".vs") {
+        return ASSET_VERT_SHADER;
+    }
+    return ASSET_CUSTOM;
 }
 
 void PrintAssetList() {
-	for (const auto& item : Assets.assets) {
-		TraceLog(LOG_INFO, "asset --> %s (size %d bytes)", item.path, item.size);
-	}
+    for (const auto& item : Assets.assets) {
+        TraceLog(LOG_INFO, "asset --> %s (size %d bytes)", item.path, item.size);
+    }
 }
 
 size_t GetAssetCount() {
-	return Assets.assets.size();
+    return Assets.assets.size();
 }
 
-inline bool IsAssetLoaded(std::string name) {
-	RawAsset asset = QueryAsset(name);
-	return asset.data != NULL;
+inline bool IsAssetLoaded(const std::string& name) {
+    RawAsset asset = QueryAsset(name);
+    return asset.data != NULL;
 }

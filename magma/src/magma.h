@@ -43,10 +43,12 @@
 
 #define PATH_MAX_LEN 128
 
-#define ASSET_CUSTOM    -1
-#define ASSET_TEXTURE    0
-#define ASSET_MODEL      1
-#define ASSET_SOUND      2
+#define ASSET_CUSTOM          -1
+#define ASSET_TEXTURE          0
+#define ASSET_MODEL            1
+#define ASSET_SOUND            2
+#define ASSET_FRAG_SHADER      3
+#define ASSET_VERT_SHADER      4
 
 #define BeginCouroutine() \
     static float CTARGET = 0.f; \
@@ -250,12 +252,12 @@ bool ImportAssetPackage(const char* filePath);
 std::vector<std::string> GetAssetPaths();
 size_t GetAssetCount();
 
-Texture RequestTexture(std::string name);
-Image RequestImage(std::string name);
-Model RequestModel(std::string name);
-Shader RequestShader(const char* name);
-char* RequestCustom(std::string name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
-Palette RequestPalette(std::string name);
+Texture RequestTexture(const std::string& name);
+Image RequestImage(const std::string& name);
+Model RequestModel(const std::string& name);
+Shader RequestShader(const std::string& name);
+char* RequestCustom(const std::string& name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
+Palette RequestPalette(const std::string& name);
 Palette ParsePalette(char* text, const char* name="unnamed");
 
 Model LoadOBJFromMemory(const char* fileName);
@@ -263,9 +265,9 @@ Model LoadOBJFromMemory(const char* fileName);
 int GetAssetType(const char* name);
 
 void PrintAssetList();
-inline bool IsAssetLoaded(std::string name);
+inline bool IsAssetLoaded(const std::string& name);
 
-void ShowFailScreen(std::string text); // do not run in game loop
+void ShowFailScreen(const std::string& text); // do not run in game loop
 
 Color InvertColor(Color col, bool invertAlpha = false);
 Color ColorLerp(Color src, Color dst, float factor);

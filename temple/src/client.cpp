@@ -20,7 +20,7 @@ struct TempleGame {
         UnloadImage(blockImage);
 
         INFO("LOADING SHADER");
-        shader = LoadShader(0, "raw_assets/frag_palette_switch.fs");
+        shader = RequestShader("frag_palette_switch");
 
         int paletteLoc = GetShaderLocation(shader, "palette");
         SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);

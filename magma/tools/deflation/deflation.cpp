@@ -22,7 +22,9 @@ std::vector<std::string> get_supported_formats() {
         ".mtl",
         ".wav",
         ".mp3",
-        ".pal"
+        ".pal",
+        ".fs",
+        ".vs"
     };
 };
 
