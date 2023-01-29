@@ -143,7 +143,7 @@ int run(std::vector<std::string> args) {
 
     deflate(inputFolder.c_str(), exportFolder.c_str(), doCompress);
 
-    INFO("Exported %scompressed package to %s", doCompress ? "":"un", exportFolder);
+    INFO("Exported %scompressed package to %s", doCompress ? "":"un", exportFolder.c_str());
 
     return 0;
 }

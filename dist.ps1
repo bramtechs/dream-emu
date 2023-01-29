@@ -1,19 +1,27 @@
 $BUILD_DIR= ".\build\dream\Release"
 $ErrorActionPreference = "Stop"
 
+# download all dependencies
 .\deps.ps1
  
+# build everything in release mode
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022"
 cmake --build build -j $Env:NUMBER_OF_PROCESSORS --config Release
-  
+
+# build and copy tools
 .\tools.ps1
+New-Item -ItemType Directory -Path $BUILD_DIR\tools -Force
+Copy-Item -Force -Recurse .\mgtools\* $BUILD_DIR\tools
 
-# package assets
-#.\mgtools\deflation.exe raw_assets assets.mga --compress
-.\mgtools\deflation.exe raw_assets assets.mga
+# build dream
+New-Item -ItemType Directory -Path $BUILD_DIR\dream -Force
+.\mgtools\deflation.exe raw_assets $BUILD_DIR\dream\assets.mga
+Move-Item $BUILD_DIR\dream.exe $BUILD_DIR\dream\dream.exe -Force
 
-Copy-Item -Force -Recurse assets.mga $BUILD_DIR
+# build and include temple as well
+New-Item -ItemType Directory -Path $BUILD_DIR\temple -Force
+Copy-Item -Force -Recurse .\build\temple\Release\temple.exe $BUILD_DIR\temple
+.\mgtools\deflation.exe temple\raw_assets $BUILD_DIR\temple\assets.mga
 
 # make ZIP
-Copy-Item -Force -Recurse .\mgtools\* $BUILD_DIR
 Compress-Archive -Force -Path $BUILD_DIR\* -DestinationPath .\build\DREAM_EMU.ZIP
