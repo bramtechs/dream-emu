@@ -53,6 +53,11 @@ bool ImportAssetPackage(const char* filePath) {
 	// >> size
 	int64_t count = -1;
 	stream.read((char*)&count, sizeof(int64_t));
+	if (count <= 0)
+	{
+		ERROR("Malformed package, could not determine number of items! (wrong version?)");
+		return false;
+	}
 
 	bool isCompressed = false;
 	// >> compressed flag
@@ -65,7 +70,10 @@ bool ImportAssetPackage(const char* filePath) {
 		stream.read(asset.path, PATH_MAX_LEN);
 
 		stream.read((char*)&asset.size, sizeof(int64_t));
-		assert(asset.size > 0); // TODO handle errors properly
+		if (asset.size <= 0)
+		{
+			WARN("Malformed package item %s",asset.path);
+		}
 
 		unsigned char* loaded = (unsigned char*)MemAlloc(asset.size);
 		stream.read((char*)loaded, asset.size);
@@ -92,7 +100,9 @@ bool ImportAssetPackage(const char* filePath) {
 
 void DisposeAssets() {
 	for (const auto& item : Assets.assets) {
-		MemFree(item.data);
+		if (item.size > 0) {
+			MemFree(item.data);
+		}
 	}
 	for (const auto& item : Assets.textures) {
 		UnloadTexture(item.second);

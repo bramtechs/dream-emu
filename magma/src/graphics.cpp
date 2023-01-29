@@ -30,7 +30,7 @@ void InitMagmaWindow(int winWidth, int winHeight, const char* title) {
 
 	assert(winWidth > 0 && winHeight > 0);
 
-	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 	InitWindow(winWidth, winHeight, title);
 	SetWindowMinSize(winWidth / 2, winHeight / 2);
 	SetWindowPosition((GetMonitorWidth(0) - winWidth) / 2, (GetMonitorHeight(0) - winHeight) / 2);
@@ -79,6 +79,14 @@ void EndMagmaDrawing() {
 void CloseMagmaWindow() {
 	UnloadRenderTexture(Win.renderTarget);
 	CloseWindow();
+}
+
+Rectangle GetScreenBounds() {
+	return {
+		0,0,
+		(float)GetScreenWidth(),
+		(float)GetScreenHeight()
+	};
 }
 
 Vector2 GetWindowTopLeft() {

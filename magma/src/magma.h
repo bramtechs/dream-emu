@@ -273,6 +273,7 @@ Color ColorLerp(Color src, Color dst, float factor);
 void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
 void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
+Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
 
 void BeginMagmaDrawing();
 void EndMagmaDrawing();
@@ -284,8 +285,9 @@ Vector2 GetWindowTopLeft();
 
 void MagmaLogger(int msgType, const char* text, va_list args);
 void SetTraceLogAssertLevel(TraceLogLevel level);
+void SetTraceLogOpenLevel(TraceLogLevel level);
 void ClearLog();
-void DrawLog(float offsetX, float offsetY, int fontSize);
+void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG = true);
 void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
 bool LoggerIsOpen();
 

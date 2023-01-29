@@ -2,7 +2,7 @@
 
 #define WIDTH 640
 #define HEIGHT 480
-#define SCALE 1.2
+#define SCALE 1.4
 
 #define TEST_MODE false
 
@@ -55,6 +55,7 @@ int launch(std::vector<std::string> args){
 
     SetTraceLogCallback(MagmaLogger);
     //SetTraceLogAssertLevel(LOG_ERROR);
+    SetTraceLogOpenLevel(LOG_ERROR);
     SetTraceLogLevel(LOG_DEBUG);
 
     InitMagmaWindow(WIDTH, HEIGHT, "Magma Explorer");
@@ -67,6 +68,7 @@ int launch(std::vector<std::string> args){
     // TODO remove OOP design
 
     Explorer* explorer = NULL;
+    int code = 0;
 
     while (!WindowShouldClose()) // Detect window close button or ESC key
     {
@@ -112,9 +114,21 @@ int launch(std::vector<std::string> args){
             {
                 if (explorer == NULL){
                     explorer = new Explorer(filePath.c_str(),testMode);
+                    if (!explorer->succeeded) { // abandon failed session
+                        filePath.clear();
+                        delete explorer;
+                        explorer = NULL;
+                        curState = INTRO;
+                        showError = true;
+                        if (testMode) { // test failed if this happened
+                            CloseWindow();
+                            code = -1;
+                        }
+                    }
                 }
-
-                explorer->UpdateAndRender(delta);
+                else {
+                    explorer->UpdateAndRender(delta);
+                }
             }
                 break;
             default:
@@ -127,7 +141,7 @@ int launch(std::vector<std::string> args){
 
     CloseWindow();
 
-    return 0;
+    return code;
 }
 
 int main(int argc, char** argv)

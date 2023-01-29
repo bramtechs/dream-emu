@@ -5,6 +5,7 @@ static size_t Allocations = 0;
 static bool ShowLogger = false;
 static float LoggerOffsetY = 0.f;
 static TraceLogLevel AssertLevel = LOG_NONE;
+static TraceLogLevel OpenLevel = LOG_NONE;
 
 bool CreateDirectory(const char* path) {
     if (DirectoryExists(path)) {
@@ -50,7 +51,7 @@ void MagmaLogger(int msgType, const char* text, va_list args)
     Buffer.push_back(line);
 
     // open logger on error
-    if (msgType == LOG_ERROR || msgType == LOG_WARNING ) {
+    if (msgType >= OpenLevel ) {
         ShowLogger = true;
     }
 
@@ -63,11 +64,28 @@ void SetTraceLogAssertLevel(TraceLogLevel level) {
     AssertLevel = level;
 }
 
+void SetTraceLogOpenLevel(TraceLogLevel level) {
+    OpenLevel = level;
+}
+
 void ClearLog() {
     Buffer.clear();
 }
 
-void DrawLog(float offsetX, float offsetY, int fontSize) {
+void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
+    static int bgWidth = 0;
+
+    // draw background
+    if (drawBG) {
+        Color bgCol = ColorAlpha(BLACK, 0.6f);
+        DrawRectangle(0, 0, bgWidth + 25, GetScreenHeight(),bgCol);
+
+        // draw tooltip
+        DrawText("Show/hide logs with F2\nScroll by holding LEFT SHIFT.", 10, GetScreenHeight() - 40, 16, WHITE);
+    }
+
+    // draw lines
+    bgWidth = 0;
     for (int i = 0; i < Buffer.size(); i++) {
         auto &line = Buffer.at(Buffer.size()-i-1);
         int y = i * (fontSize + 4);
@@ -90,6 +108,14 @@ void DrawLog(float offsetX, float offsetY, int fontSize) {
 
         const char* text = line.text.c_str();
         DrawText(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
+
+        // expand background if needed
+        if (drawBG) {
+            int len = MeasureText(text, fontSize);
+            if (len > bgWidth) {
+                bgWidth = len;
+            }
+        }
     }
 }
 
@@ -102,7 +128,9 @@ void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
         DrawLog(offsetX, offsetY, fontSize);
 
         // scrolling
-        LoggerOffsetY += GetMouseWheelMove() * 100;
+        if (IsKeyDown(KEY_LEFT_SHIFT)){
+            LoggerOffsetY += GetMouseWheelMove() * 100;
+        }
     }
 }
 
