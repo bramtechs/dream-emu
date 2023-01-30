@@ -159,6 +159,21 @@ void CheckAllocations() {
     }
 }
 
+Vector2 Vector2Absolute(Vector2 v2) {
+    return {
+        fabs(v2.x),
+        fabs(v2.y),
+    };
+}
+
+Vector3 Vector3Absolute(Vector3 v3) {
+    return {
+        fabs(v3.x),
+        fabs(v3.y),
+        fabs(v3.z),
+    };
+}
+
 Color InvertColor(Color col, bool invertAlpha) {
     col.r = 255 - col.r;
     col.g = 255 - col.g;

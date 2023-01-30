@@ -40,7 +40,10 @@ void Scene::update_and_render(float delta)
     update(delta);
 
     group.UpdateGroup(delta);
-    group.DrawGroup(player.camera,Prefs.drawOutlines);
+    group.DrawGroup();
+    if (Prefs.drawOutlines){
+        group.DrawGroupDebug(player.camera);
+    }
 
     EndMode3D();
 

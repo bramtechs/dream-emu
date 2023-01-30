@@ -1,9 +1,5 @@
 #include "magma.h"
 
-Base::Base(EntityID id) {
-    Base::Base(id, Vector3Zero(), WHITE);
-}
-
 Base::Base(EntityID id, Vector3 pos, Color tint) {
     BoundingBox box = {
         pos,
@@ -52,11 +48,66 @@ inline Vector3 Base::halfSize() {
     return Vector3Scale(size(), 0.5f);
 }
 
-RayCollision Base::GetMouseRayCollision(Camera camera) {
+RayCollision Base::GetMouseRayCollision(Camera3D camera) {
     Ray ray = GetWindowMouseRay(camera);
     return GetRayCollisionBox(ray, bounds);
 }
 
+// Sprite
+Sprite::Sprite(EntityID id, Vector2 pos, Color tint, int zOrder) {
+    BoundingBox2D box = {
+        pos,
+        Vector2Add(pos,Vector2One())
+    };
+
+    this->id = id;
+    this->zOrder = zOrder;
+    this->bounds = box;
+    this->tint = tint;
+}
+
+void Sprite::Translate(Vector2 offset) {
+    bounds.min = Vector2Add(bounds.min, offset);
+    bounds.max = Vector2Add(bounds.max, offset);
+}
+inline void Sprite::TranslateX(float x) {
+    Translate({ x,0 });
+}
+inline void Sprite::TranslateY(float y) {
+    Translate({ 0,y });
+}
+inline void Sprite::TranslateXY(float x, float y) {
+    Translate({ x,y });
+}
+inline void Sprite::ResetTranslation() {
+    SetCenter(Vector2Zero());
+}
+
+RayCollision Sprite::GetMouseRayCollision(Camera2D camera) {
+    //Ray ray = GetWindowMouseRay(camera);
+    //return GetRayCollisionBox(ray, bounds);
+    assert(false); // TODO not implemented
+    return {};
+}
+
+void Sprite::SetCenter(Vector2 pos) {
+    bounds.min = Vector2Subtract(pos, halfSize());
+    bounds.max = Vector2Add(pos, halfSize());
+}
+
+inline Vector2 Sprite::center() {
+    return Vector2Add(bounds.min, halfSize());
+}
+
+inline Vector2 Sprite::size() {
+    return Vector2Subtract(bounds.max, bounds.min);
+}
+
+inline Vector2 Sprite::halfSize() {
+    return Vector2Scale(size(), 0.5f);
+}
+
+// ModelRenderer
 ModelRenderer::ModelRenderer(EntityID id, const char* modelPath, Base* base) {
     Model model = RequestModel(modelPath);
 
@@ -110,6 +161,9 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
     return hit;
 }
 
+EntityGroup::EntityGroup() {
+    this->entityCount = 0;
+}
 
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
     RayCollision col = { 0 };
@@ -174,7 +228,7 @@ size_t EntityGroup::UpdateGroup(float delta) {
     return entityCount;
 }
 
-size_t EntityGroup::DrawGroup(Camera camera, bool drawOutlines) {
+size_t EntityGroup::DrawGroup() {
     for (const auto& comp : comps) {
         switch (comp.first) {
         case COMP_MODEL_RENDERER:
@@ -192,15 +246,42 @@ size_t EntityGroup::DrawGroup(Camera camera, bool drawOutlines) {
                 Vector3Zero(), 0, Vector3One(), base->tint);
 
         } break;
+        default:
+            break;
+        }
+    }
+    return entityCount;
+}
+
+size_t EntityGroup::DrawGroupDebug(Camera3D camera) {
+    for (const auto& comp : comps) {
+        switch (comp.first) {
         case COMP_BASE:
         {
-            if (drawOutlines) {
-                auto base = (Base*)comp.second;
-                RayCollision col = base->GetMouseRayCollision(camera);
-                Color tint = col.hit ? WHITE : GRAY;
-                DrawBoundingBox(base->bounds, tint);
-                DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
-            }
+            auto base = (Base*)comp.second;
+            RayCollision col = base->GetMouseRayCollision(camera);
+            Color tint = col.hit ? WHITE : GRAY;
+            DrawBoundingBox(base->bounds, tint);
+            DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
+        } break;
+        default:
+            break;
+        }
+    }
+    return entityCount;
+}
+
+size_t EntityGroup::DrawGroupDebug(Camera2D camera) {
+    for (const auto& comp : comps) {
+        switch (comp.first) {
+        case COMP_SPRITE:
+        {
+            auto sprite = (Sprite*)comp.second;
+            // RayCollision col = base->GetMouseRayCollision(camera);
+            // Color tint = col.hit ? WHITE : GRAY;
+            Color tint = WHITE;
+            DrawBoundingBox(sprite->bounds, tint);
+            DrawCircleV(sprite->center(), 2.f, RED);
         } break;
         default:
             break;

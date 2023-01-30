@@ -5,18 +5,24 @@
 // TODO implement tilemaps into engine
 
 struct TempleGame {
-    Texture blockTexture;
-
+    EntityGroup group;
     Shader shader;
+    Camera2D camera;
 
     TempleGame() {
         Image blockImage = RequestImage("spr_block_fg");
+
+        camera = {};
+        camera.offset = GetWindowCenter();          // Camera offset (displacement from target)
+        camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
+        camera.rotation = 0.f;                      // Camera rotation in degrees
+        camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
 
         // force texture into palette
         Palette palette = RequestPalette("pal_warm1");
         palette.MapImage(blockImage);
 
-        blockTexture = LoadTextureFromImage(blockImage);
+        Texture blockTexture = LoadTextureFromImage(blockImage);
         UnloadImage(blockImage);
 
         INFO("LOADING SHADER");
@@ -24,6 +30,11 @@ struct TempleGame {
 
         int paletteLoc = GetShaderLocation(shader, "palette");
         SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
+
+        // add single block
+        EntityID id = group.AddEntity();
+        Sprite sprite = Sprite(id);
+        group.AddEntityComponent(COMP_SPRITE, id, sprite);
     }
 
     void update_and_render(float delta) {
@@ -33,7 +44,9 @@ struct TempleGame {
 
         BeginShaderMode(shader);
 
-        DrawTexture(blockTexture, 20, 20, WHITE);
+        group.UpdateGroup(delta);
+        group.DrawGroup();
+        group.DrawGroupDebug(camera);
 
         EndShaderMode();
 

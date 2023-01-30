@@ -37,7 +37,8 @@
 
 #define COMP_ALL                0
 #define COMP_BASE               1
-#define COMP_MODEL_RENDERER     2
+#define COMP_SPRITE             2
+#define COMP_MODEL_RENDERER     3
 
 #define COLORS_PER_PALETTE 256 
 
@@ -160,13 +161,19 @@ private:
     void DrawBackground(Texture texture, Color tint);
 };
 
+struct BoundingBox2D {
+    Vector2 min;
+    Vector2 max;
+};
+
+
+// TODO get rid of entityID in components
 struct Base {
     EntityID id;
     BoundingBox bounds;
     Color tint;
 
-    Base(EntityID id);
-    Base(EntityID id, Vector3 pos, Color tint);
+    Base(EntityID id, Vector3 pos = {0,0,0}, Color tint = WHITE);
 
     void Translate(Vector3 offset);
     inline void TranslateX(float x);
@@ -177,11 +184,34 @@ struct Base {
     void SetCenter(Vector3 pos);
     inline void ResetTranslation();
 
-    RayCollision GetMouseRayCollision(Camera camera);
+    RayCollision GetMouseRayCollision(Camera3D camera);
 
     inline Vector3 center();
     inline Vector3 size();
     inline Vector3 halfSize();
+};
+
+struct Sprite {
+    EntityID id;
+    BoundingBox2D bounds;
+    int zOrder;
+    Color tint;
+
+    Sprite(EntityID id, Vector2 pos = {0,0}, Color tint = WHITE, int zOrder = 0);
+
+    void Translate(Vector2 offset);
+    inline void TranslateX(float x);
+    inline void TranslateY(float y);
+    inline void TranslateXY(float x, float y);
+
+    void SetCenter(Vector2 pos);
+    inline void ResetTranslation();
+
+    RayCollision GetMouseRayCollision(Camera2D camera);
+
+    inline Vector2 center();
+    inline Vector2 size();
+    inline Vector2 halfSize();
 };
 
 struct ModelRenderer{
@@ -196,6 +226,8 @@ struct ModelRenderer{
 struct EntityGroup {
     uint entityCount;
     std::multimap<ItemType, void*> comps;
+
+    EntityGroup::EntityGroup();
 
     RayCollision GetRayCollision(Ray ray);
 
@@ -218,7 +250,10 @@ struct EntityGroup {
     void* GetEntityComponent(EntityID id, ItemType filter);
 
     size_t UpdateGroup(float delta);
-    size_t DrawGroup(Camera camera, bool drawOutlines);
+
+    size_t DrawGroup();
+    size_t DrawGroupDebug(Camera3D camera);
+    size_t DrawGroupDebug(Camera2D camera);
 };
 
 struct PlayerFPS {
@@ -246,6 +281,12 @@ void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);
 void CheckAllocations();
 
+// math stuff
+Vector2 Vector2Absolute(Vector2 v2);
+Vector3 Vector3Absolute(Vector3 v3);
+Color InvertColor(Color col, bool invertAlpha = false);
+Color ColorLerp(Color src, Color dst, float factor);
+
 bool LoadAssets();
 void DisposeAssets();
 bool ImportAssetPackage(const char* filePath);
@@ -269,9 +310,6 @@ inline bool IsAssetLoaded(const std::string& name);
 
 void ShowFailScreen(const std::string& text); // do not run in game loop
 
-Color InvertColor(Color col, bool invertAlpha = false);
-Color ColorLerp(Color src, Color dst, float factor);
-
 void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
 void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
@@ -281,9 +319,11 @@ void BeginMagmaDrawing();
 void EndMagmaDrawing();
 
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor = WHITE);
+void DrawBoundingBox(BoundingBox2D bounds, Color tint);
 
 Ray GetWindowMouseRay(Camera camera);
 Vector2 GetWindowTopLeft();
+Vector2 GetWindowCenter();
 
 void MagmaLogger(int msgType, const char* text, va_list args);
 void SetTraceLogAssertLevel(TraceLogLevel level);
