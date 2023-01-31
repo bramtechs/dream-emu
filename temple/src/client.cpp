@@ -4,43 +4,57 @@
 // TODO implement palette shadering into engine
 // TODO implement tilemaps into engine
 
+EntityID spawn_block(EntityGroup& group, Vector3 pos){
+    // TODO remove this ====================
+    Image blockImage = RequestImage("spr_block_fg");
+
+    // force texture into palette
+    Palette palette = RequestPalette("pal_warm1");
+    palette.MapImage(blockImage);
+
+    Texture blockTexture = LoadTextureFromImage(blockImage);
+    UnloadImage(blockImage);
+    // | ====================================
+
+    EntityID id = group.AddEntity();
+    Sprite sprite = Sprite(id);
+    sprite.SetCenter(pos.x, pos.y);
+    sprite.SetTexture(blockTexture);
+    group.AddEntityComponent(COMP_SPRITE, id, sprite);
+    return id;
+}
+
 struct TempleGame {
     EntityGroup group;
     Shader shader;
     Camera2D camera;
 
     TempleGame() {
-        Image blockImage = RequestImage("spr_block_fg");
 
+        // setup camera
         camera = {};
         camera.offset = GetWindowCenter();          // Camera offset (displacement from target)
         camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
         camera.rotation = 0.f;                      // Camera rotation in degrees
         camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
 
-        // force texture into palette
-        Palette palette = RequestPalette("pal_warm1");
-        palette.MapImage(blockImage);
-
-        Texture blockTexture = LoadTextureFromImage(blockImage);
-        UnloadImage(blockImage);
-
         INFO("LOADING SHADER");
         shader = RequestShader("frag_palette_switch");
+
+        // setup shader palette
+        Palette palette = RequestPalette("pal_warm1");
 
         int paletteLoc = GetShaderLocation(shader, "palette");
         SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
 
-        for (int y = 0; y < 10; y++){
-            for (int x = 0; x < 10; x++){
-                // add block
-                EntityID id = group.AddEntity();
-                Sprite sprite = Sprite(id);
-                sprite.SetCenter(x*64.f,y*64.f);
-                sprite.SetTexture(blockTexture);
-                group.AddEntityComponent(COMP_SPRITE, id, sprite);
+        for (int y = 0; y < 3; y++){
+            for (int x = 0; x < 3; x++){
+                spawn_block(group,{x*64.f,y*64.f});
             }
         }
+
+        // setup editor
+        RegisterEntityBuilder(spawn_block);
     }
 
     void update_and_render(float delta) {
@@ -48,17 +62,26 @@ struct TempleGame {
 
         ClearBackground(SKYBLUE);
 
+        BeginMode2D(camera);
+
         BeginShaderMode(shader);
 
         group.UpdateGroup(delta);
         group.DrawGroup();
         //group.DrawGroupDebug(camera);
-
+        
         EndShaderMode();
+
+        UpdateAndRenderEditor(camera, delta);
+
+        EndMode2D();
 
         EndMagmaDrawing();
         UpdateAndDrawLog();
         RequestPalette("pal_warm1.pal").DrawPreview({ (float)GetScreenWidth() - 150,(float)GetScreenHeight() - 150,150,150});
+
+        UpdateAndRenderEditorGUI(delta);
+
         EndDrawing();
     }
 };
@@ -72,7 +95,7 @@ int main()
     assert(ChangeDirectory("X:\\temple"));
 
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");
-    SetWindowState(FLAG_WINDOW_MAXIMIZED);
+    //SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
     INFO("Launched at %s", GetWorkingDirectory());
 

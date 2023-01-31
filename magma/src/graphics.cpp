@@ -103,7 +103,7 @@ Vector2 GetWindowCenter(){
     };
 }
 
-Ray GetWindowMouseRay(Camera camera) {
+Ray GetWindowMouseRay(Camera3D camera) {
     Vector2 mouse = Win.scaledMouse;
 
     // TODO do some terribleness for this to work with letterboxing
@@ -112,6 +112,14 @@ Ray GetWindowMouseRay(Camera camera) {
     mouse = Vector2Add(mouse, GetWindowTopLeft());
 
     return GetMouseRay(mouse, camera);
+}
+
+// no idea why this works but it does
+Vector2 GetWindowMousePosition(Camera2D camera) {
+    Vector2 mouse = Win.scaledMouse;
+    Vector2 world = GetScreenToWorld2D(mouse, camera);
+    //world = Vector2Subtract(world, GetWindowTopLeft());
+    return world;
 }
 
 Color Palette::GetIndexColor(int index) {

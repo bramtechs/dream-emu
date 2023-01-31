@@ -349,7 +349,9 @@ void EndMagmaDrawing();
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor = WHITE);
 void DrawBoundingBox(BoundingBox2D bounds, Color tint);
 
-Ray GetWindowMouseRay(Camera camera);
+Ray GetWindowMouseRay(Camera3D camera);
+
+Vector2 GetWindowMousePosition(Camera2D camera);
 Vector2 GetWindowTopLeft();
 Vector2 GetWindowCenter();
 
@@ -366,11 +368,11 @@ void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
 
 // editor stuff
-typedef void (*EntityPrefabFunction)(Vector3 pos);
-void RegisterEditorPrefab();
+typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
+void RegisterEntityBuilder(EntityBuilderFunction func);
 
-void UpdateAndRenderEditor(float delta);
-
+bool UpdateAndRenderEditor(Camera3D camera, float delta);
+bool UpdateAndRenderEditor(Camera2D camera, float delta);
 void UpdateAndRenderEditorGUI(float delta);
 
 std::string GetTempDirectory();
