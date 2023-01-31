@@ -33,7 +33,7 @@ struct TempleGame {
 
         // setup camera
         camera = {};
-        camera.offset = GetWindowCenter();          // Camera offset (displacement from target)
+        camera.offset = Vector2Zero();          // Camera offset (displacement from target)
         camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
         camera.rotation = 0.f;                      // Camera rotation in degrees
         camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
@@ -72,7 +72,7 @@ struct TempleGame {
         
         EndShaderMode();
 
-        UpdateAndRenderEditor(camera, delta);
+        UpdateAndRenderEditor(camera, group, delta);
 
         EndMode2D();
 
@@ -80,7 +80,7 @@ struct TempleGame {
         UpdateAndDrawLog();
         RequestPalette("pal_warm1.pal").DrawPreview({ (float)GetScreenWidth() - 150,(float)GetScreenHeight() - 150,150,150});
 
-        UpdateAndRenderEditorGUI(delta);
+        UpdateAndRenderEditorGUI(group, delta);
 
         EndDrawing();
     }

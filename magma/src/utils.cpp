@@ -166,12 +166,36 @@ Vector2 Vector2Absolute(Vector2 v2) {
     };
 }
 
+Vector2 Vector2Snap(Vector2 v2, float gridSize){
+    Vector2 cell = {
+        (int) (v2.x / gridSize) * (float) gridSize,
+        (int) (v2.y / gridSize) * (float) gridSize,
+    };
+    cell.x -= cell.x < 0 ? gridSize : 0.f;
+    cell.y -= cell.y < 0 ? gridSize : 0.f;
+
+    return cell;
+}
+
 Vector3 Vector3Absolute(Vector3 v3) {
     return {
         fabs(v3.x),
         fabs(v3.y),
         fabs(v3.z),
     };
+}
+
+Vector3 Vector3Snap(Vector3 v3, float gridSize){
+    Vector3 cell = {
+        (int) (v3.x / gridSize) * (float) gridSize,
+        (int) (v3.y / gridSize) * (float) gridSize,
+        (int) (v3.z / gridSize) * (float) gridSize,
+    };
+    cell.x -= cell.x < 0 ? gridSize : 0.f;
+    cell.y -= cell.y < 0 ? gridSize : 0.f;
+    cell.z -= cell.z < 0 ? gridSize : 0.f;
+
+    return cell;
 }
 
 Color InvertColor(Color col, bool invertAlpha) {

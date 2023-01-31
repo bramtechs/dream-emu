@@ -103,8 +103,9 @@ RayCollision Sprite::GetMouseRayCollision(Camera2D camera) {
 }
 
 void Sprite::SetCenter(Vector2 pos) {
-    bounds.min = Vector2Subtract(pos, halfSize());
-    bounds.max = Vector2Add(pos, halfSize());
+    Vector2 hSize = halfSize();
+    bounds.min = Vector2Subtract(pos, hSize);
+    bounds.max = Vector2Add(pos, hSize);
 }
 void Sprite::SetCenter(float x, float y){
     SetCenter({x,y});
@@ -129,6 +130,11 @@ void Sprite::SetTexture(Texture texture, Rectangle srcRect){
     }
 
     SetSize(this->srcRect.width,this->srcRect.height);
+}
+
+Rectangle Sprite::region(){
+    Vector2 size = this->size();
+    return {bounds.min.x , bounds.min.y, size.x, size.y};
 }
 
 inline Vector2 Sprite::center() {

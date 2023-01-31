@@ -225,6 +225,7 @@ struct Sprite {
 
     void SetTexture(Texture texture, Rectangle srcRect={});
 
+    Rectangle region();
     inline Vector2 center();
     inline Vector2 size();
     inline Vector2 halfSize();
@@ -309,7 +310,10 @@ void CheckAllocations();
 
 // math stuff
 Vector2 Vector2Absolute(Vector2 v2);
+Vector2 Vector2Snap(Vector2 v2, float gridSize);
 Vector3 Vector3Absolute(Vector3 v3);
+Vector3 Vector3Snap(Vector3 v3, float gridSize);
+
 Color InvertColor(Color col, bool invertAlpha = false);
 Color ColorLerp(Color src, Color dst, float factor);
 Rectangle BoundingBoxToRect(BoundingBox box);
@@ -371,8 +375,8 @@ bool CreateDirectory(const char* path);
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
 void RegisterEntityBuilder(EntityBuilderFunction func);
 
-bool UpdateAndRenderEditor(Camera3D camera, float delta);
-bool UpdateAndRenderEditor(Camera2D camera, float delta);
-void UpdateAndRenderEditorGUI(float delta);
+bool UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta);
+bool UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta);
+void UpdateAndRenderEditorGUI(EntityGroup& group, float delta);
 
 std::string GetTempDirectory();
