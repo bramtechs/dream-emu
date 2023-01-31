@@ -5,6 +5,7 @@
 #include <vector>
 #include <filesystem>
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <cassert>
 #include <sstream>
@@ -74,6 +75,11 @@ typedef uint ItemType;
 typedef uint EntityID;
 
 extern size_t Allocations;
+
+struct BoundingBox2D {
+    Vector2 min;
+    Vector2 max;
+};
 
 struct MagmaWindow {
     Vector2 gameSize;
@@ -161,11 +167,6 @@ private:
     void DrawBackground(Texture texture, Color tint);
 };
 
-struct BoundingBox2D {
-    Vector2 min;
-    Vector2 max;
-};
-
 // TODO get rid of entityID in components
 struct Base {
     EntityID id;
@@ -238,9 +239,14 @@ struct ModelRenderer{
     ModelRenderer(EntityID id, const char* modelPath, Base* base);
 };
 
+struct CompContainer {
+    ItemType type;
+    void* data;
+};
+
 struct EntityGroup {
     uint entityCount;
-    std::multimap<ItemType, void*> comps;
+    std::multimap<EntityID, CompContainer> comps;
 
     EntityGroup::EntityGroup();
 
@@ -257,9 +263,14 @@ struct EntityGroup {
     // TODO dispose functions
     template <typename T>
     void AddEntityComponent(ItemType type, EntityID id, T data) {
-        auto ptr = M_MemAlloc(sizeof(T));
-        memcpy(ptr, &data, sizeof(T));
-        comps.insert({ type, ptr });
+        // make data stick with a malloc
+        CompContainer cont;
+        cont.type = type;
+        cont.data = M_MemAlloc(sizeof(T));
+        memcpy(cont.data, &data, sizeof(T));
+
+        // add component in system
+        comps.insert({id, cont});
     }
 
     void* GetEntityComponent(EntityID id, ItemType filter);
@@ -353,5 +364,13 @@ bool LoggerIsOpen();
 void SaveMagmaSettings();
 void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
+
+// editor stuff
+typedef void (*EntityPrefabFunction)(Vector3 pos);
+void RegisterEditorPrefab();
+
+void UpdateAndRenderEditor(float delta);
+
+void UpdateAndRenderEditorGUI(float delta);
 
 std::string GetTempDirectory();

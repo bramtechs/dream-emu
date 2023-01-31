@@ -168,12 +168,11 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
 
     for (const auto& comp : comps) {
         if (comp.first == COMP_MODEL_RENDERER) {
-            auto render = (ModelRenderer*)comp.second;
-            auto base = (Base*)GetEntityComponent(render->id, COMP_BASE);
+            auto render = (ModelRenderer*)comp.second.data;
+            auto base = (Base*)GetEntityComponent(comp.first, COMP_BASE);
             Model model = RequestModel(render->model);
 
             if (render->accurate) { // do per triangle collisions
-
                 Vector3 offset = Vector3Add(base->center(), render->offset);
                 for (int j = 0; j < model.meshCount; j++) {
                     RayCollision col = GetRayCollisionMesh(ray, model.meshes[j],
@@ -208,7 +207,7 @@ bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
 
 bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col) {
     for (const auto& entry : comps) {
-        auto base = (Base*)entry.second;
+        auto base = (Base*)entry.second.data;
         RayCollision rayCol = base->GetMouseRayCollision(camera);
 
         if (rayCol.hit) {
@@ -240,10 +239,8 @@ EntityID EntityGroup::AddEntity() {
 
 void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
     for (const auto& comp : comps) {
-        // TODO dirty hack 
-        EntityID otherId = *((EntityID*)comp.second);
-        if (otherId == id) {
-            return comp.second;
+        if (comp.first == id) {
+            return comp.second.data;
         }
     }
     return NULL;
@@ -255,7 +252,7 @@ size_t EntityGroup::UpdateGroup(float delta) {
         switch (comp.first) {
         case COMP_BASE:
         {
-            auto base = (Base*)comp.second;
+            auto base = (Base*)comp.second.data;
         } break;
         default:
             break;
@@ -266,11 +263,11 @@ size_t EntityGroup::UpdateGroup(float delta) {
 
 size_t EntityGroup::DrawGroup() {
     for (const auto& comp : comps) {
-        switch (comp.first) {
+        switch (comp.second.type) {
         case COMP_MODEL_RENDERER:
         {
             // draw modelrenderers
-            auto renderer = (ModelRenderer*)comp.second;
+            auto renderer = (ModelRenderer*)comp.second.data;
             auto base = (Base*)GetEntityComponent(renderer->id, COMP_BASE);
 
             if (base == NULL) {
@@ -284,7 +281,7 @@ size_t EntityGroup::DrawGroup() {
         } break;
         case COMP_SPRITE:
         {
-            auto sprite = (Sprite*) comp.second;
+            auto sprite = (Sprite*) comp.second.data;
 
             Color tint = WHITE;
             if (sprite->texture.width > 0) {
@@ -305,7 +302,7 @@ size_t EntityGroup::DrawGroupDebug(Camera3D camera) {
         switch (comp.first) {
         case COMP_BASE:
         {
-            auto base = (Base*)comp.second;
+            auto base = (Base*)comp.second.data;
             RayCollision col = base->GetMouseRayCollision(camera);
             Color tint = col.hit ? WHITE : GRAY;
             DrawBoundingBox(base->bounds, tint);
@@ -323,7 +320,7 @@ size_t EntityGroup::DrawGroupDebug(Camera2D camera) {
         switch (comp.first) {
         case COMP_SPRITE:
         {
-            auto sprite = (Sprite*)comp.second;
+            auto sprite = (Sprite*)comp.second.data;
             // RayCollision col = base->GetMouseRayCollision(camera);
             // Color tint = col.hit ? WHITE : GRAY;
             Color tint = WHITE;
@@ -335,109 +332,4 @@ size_t EntityGroup::DrawGroupDebug(Camera2D camera) {
         }
     }
     return entityCount;
-}
-
-PlayerFPS::PlayerFPS(float eyeHeight) {
-    this->eyeHeight = eyeHeight;
-    this->isFocused = true;
-
-    Camera* cam = &this->camera;
-    cam->projection = CAMERA_PERSPECTIVE;
-    cam->up = { 0.0f, 1.0f, 0.f };
-
-    SetCameraMode(*cam, CAMERA_CUSTOM);
-
-    SetAngle(0.f);
-    SetFov(80.f);
-
-    Focus();
-}
-
-void PlayerFPS::SetAngle(float lookAtDeg) {
-    Vector3 pos = camera.position;
-    Vector3 offset = {
-        cosf(lookAtDeg * DEG2RAD),
-        sinf(lookAtDeg * DEG2RAD),
-        0
-    };
-    camera.target = Vector3Add(pos, offset);
-}
-
-void PlayerFPS::SetFov(float fovDeg) {
-    camera.fovy = fovDeg;
-}
-
-// TODO shouldnt be a EntityGroup pointer but that doesnt compile for some reason
-Vector3 PlayerFPS::Update(void* group, float delta) {
-
-    // snap to the floor 
-    Ray ray = { 0 };
-
-    Vector3 offset = { 0,this->eyeHeight,0 };
-    ray.position = Vector3Add(this->camera.position, offset);
-    ray.direction = { 0,-1,0 };
-
-    RayCollision col = ((EntityGroup*)group)->GetRayCollision(ray);
-
-    // move player to hit point
-    feet = Vector3Add(col.point, offset);
-    camera.position = this->feet;
-
-    if (this->isFocused) {
-
-        // TODO naive use proper quaternions instead!
-
-        Vector2 mouse = Vector2Scale(Vector2Scale(GetMouseDelta(), delta), 3.f);
-        tilt -= mouse.y;
-        angle -= mouse.x;
-        SetMousePosition(GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f);
-
-        // look around
-        Vector3 angle = {
-            sinf(this->angle * DEG2RAD),
-            sinf(this->tilt * DEG2RAD) * 2,
-            cosf(this->angle * DEG2RAD)
-        };
-
-        // clamp
-        tilt = Clamp(tilt, -90, 90);
-
-        // movement
-        float axisX = 0;
-        bool pressed = false;
-        if (IsKeyDown(KEY_W)) {
-            axisX = 90;
-            pressed = true;
-        }
-        if (IsKeyDown(KEY_S)) {
-            axisX = 270;
-            pressed = true;
-        }
-        if (pressed) {
-            Vector3 offset = { cosf((this->angle - axisX) * DEG2RAD), 0, sinf((this->angle + axisX) * DEG2RAD) };
-            camera.position = Vector3Add(camera.position, Vector3Scale(Vector3Scale(offset, delta), 10));
-        }
-
-        // look
-        camera.target = Vector3Add(camera.position, angle);
-    }
-
-    // DrawText(TextFormat("%f\n%f\n\n%f\n%f\n%f horizontal movement not implemented lmao",player->angle,player->tilt,
-    //                                                                        player->camera.position.x,
-    //                                                                        player->camera.position.y,
-
-    return col.point;
-}
-
-void PlayerFPS::Focus() {
-    isFocused = true;
-    SetCameraMode(camera, CAMERA_CUSTOM);
-}
-
-void PlayerFPS::Unfocus() {
-    isFocused = false;
-}
-
-void PlayerFPS::Teleport(Vector3 pos) {
-    camera.position = pos;
 }
