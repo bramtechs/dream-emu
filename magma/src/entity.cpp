@@ -47,15 +47,15 @@ inline void Base::ResetTranslation() {
     SetCenter(Vector3Zero());
 }
 
-inline Vector3 Base::center() {
+Vector3 Base::center() {
     return Vector3Add(bounds.min, halfSize());
 }
 
-inline Vector3 Base::size() {
+Vector3 Base::size() {
     return Vector3Subtract(bounds.max, bounds.min);
 }
 
-inline Vector3 Base::halfSize() {
+Vector3 Base::halfSize() {
     return Vector3Scale(size(), 0.5f);
 }
 
@@ -137,15 +137,15 @@ Rectangle Sprite::region(){
     return {bounds.min.x , bounds.min.y, size.x, size.y};
 }
 
-inline Vector2 Sprite::center() {
+Vector2 Sprite::center() {
     return Vector2Add(bounds.min, halfSize());
 }
 
-inline Vector2 Sprite::size() {
+Vector2 Sprite::size() {
     return Vector2Subtract(bounds.max, bounds.min);
 }
 
-inline Vector2 Sprite::halfSize() {
+Vector2 Sprite::halfSize() {
     return Vector2Scale(size(), 0.5f);
 }
 

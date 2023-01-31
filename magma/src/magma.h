@@ -191,9 +191,9 @@ struct Base {
 
     RayCollision GetMouseRayCollision(Camera3D camera);
 
-    inline Vector3 center();
-    inline Vector3 size();
-    inline Vector3 halfSize();
+    Vector3 center();
+    Vector3 size();
+    Vector3 halfSize();
 };
 
 struct Sprite {
@@ -226,9 +226,9 @@ struct Sprite {
     void SetTexture(Texture texture, Rectangle srcRect={});
 
     Rectangle region();
-    inline Vector2 center();
-    inline Vector2 size();
-    inline Vector2 halfSize();
+    Vector2 center();
+    Vector2 size();
+    Vector2 halfSize();
 };
 
 struct ModelRenderer{
