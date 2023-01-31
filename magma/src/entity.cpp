@@ -32,6 +32,17 @@ void Base::SetCenter(Vector3 pos) {
     bounds.min = Vector3Subtract(pos, halfSize());
     bounds.max = Vector3Add(pos, halfSize());
 }
+inline void Base::SetCenter(float x, float y, float z){
+    SetSize({x,y,z});
+}
+
+void Base::SetSize(Vector3 size){
+    bounds.max = Vector3Add(bounds.min,size);
+}
+inline void Base::SetSize(float x, float y, float z){
+    SetSize({x,y,z});
+}
+
 inline void Base::ResetTranslation() {
     SetCenter(Vector3Zero());
 }
@@ -60,6 +71,7 @@ Sprite::Sprite(EntityID id, Vector2 pos, Color tint, int zOrder) {
         Vector2Add(pos,Vector2One())
     };
 
+    this->texture = {};
     this->id = id;
     this->zOrder = zOrder;
     this->bounds = box;
@@ -93,6 +105,30 @@ RayCollision Sprite::GetMouseRayCollision(Camera2D camera) {
 void Sprite::SetCenter(Vector2 pos) {
     bounds.min = Vector2Subtract(pos, halfSize());
     bounds.max = Vector2Add(pos, halfSize());
+}
+void Sprite::SetCenter(float x, float y){
+    SetCenter({x,y});
+}
+
+void Sprite::SetSize(Vector2 size){
+    bounds.max = Vector2Add(bounds.min,size);
+}
+void Sprite::SetSize(float x, float y){
+    SetSize({x,y});
+}
+
+void Sprite::SetTexture(Texture texture, Rectangle srcRect){
+    this->texture = texture;
+    if (srcRect.x == 0 && srcRect.y == 0 &&
+        srcRect.width == 0 && srcRect.height == 0){
+        this->srcRect = { 0.f, 0.f,
+                         (float) texture.width, (float) texture.height };
+    }
+    else{
+        this->srcRect = srcRect;
+    }
+
+    SetSize(this->srcRect.width,this->srcRect.height);
 }
 
 inline Vector2 Sprite::center() {
@@ -245,6 +281,17 @@ size_t EntityGroup::DrawGroup() {
             DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
                 Vector3Zero(), 0, Vector3One(), base->tint);
 
+        } break;
+        case COMP_SPRITE:
+        {
+            auto sprite = (Sprite*) comp.second;
+
+            Color tint = WHITE;
+            if (sprite->texture.width > 0) {
+                Rectangle dest = BoundingBoxToRect(sprite->bounds);
+                DrawTexturePro(sprite->texture, sprite->srcRect,
+                               dest, Vector2Zero(), 0.f, sprite->tint);
+            }
         } break;
         default:
             break;

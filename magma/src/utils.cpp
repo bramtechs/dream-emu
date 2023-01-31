@@ -195,6 +195,19 @@ Color ColorLerp(Color src, Color dst, float factor){
     return src;
 }
 
+Rectangle BoundingBoxToRect(BoundingBox box){
+    Vector2 pos = { box.min.x, box.min.y };
+    Vector3 size3 = Vector3Subtract(box.max, box.min);
+    Vector2 size = { size3.x, size3.y};
+    return { pos.x, pos.y, size.x, size.y };
+}
+
+Rectangle BoundingBoxToRect(BoundingBox2D box){
+    Vector2 pos = box.min;
+    Vector2 size = Vector2Subtract(box.max, box.min);
+    return { pos.x, pos.y, size.x, size.y };
+}
+
 std::string GetTempDirectory() {
     std::filesystem::path path = std::filesystem::temp_directory_path();
     std::string tempFolStr = path.string();

@@ -148,7 +148,7 @@ struct Explorer {
 
     void DrawButton(const char* text, size_t i, int x, int y, Color color = WHITE) {
         Vector2 textSize = MeasureTextEx(GetFontDefault(), text, FONT_SIZE, 3);
-        Rectangle region = { x, y, textSize.x, textSize.y };
+        Rectangle region = { (float) x, (float) y, textSize.x, textSize.y };
 
         bool mouseOver = CheckCollisionPointRec(GetMousePosition(), region);
         Color tint = mouseOver ? color : ColorBrightness(color, -0.3f);

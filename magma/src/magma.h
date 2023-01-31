@@ -166,7 +166,6 @@ struct BoundingBox2D {
     Vector2 max;
 };
 
-
 // TODO get rid of entityID in components
 struct Base {
     EntityID id;
@@ -182,6 +181,11 @@ struct Base {
     inline void TranslateXYZ(float x, float y, float z);
 
     void SetCenter(Vector3 pos);
+    inline void SetCenter(float x, float y, float z);
+
+    void SetSize(Vector3 pos);
+    inline void SetSize(float x, float y, float z);
+
     inline void ResetTranslation();
 
     RayCollision GetMouseRayCollision(Camera3D camera);
@@ -197,7 +201,11 @@ struct Sprite {
     int zOrder;
     Color tint;
 
-    Sprite(EntityID id, Vector2 pos = {0,0}, Color tint = WHITE, int zOrder = 0);
+    Texture texture;
+    Rectangle srcRect;
+
+    Sprite(EntityID id, Vector2 pos = {0,0},
+           Color tint = WHITE, int zOrder = 0);
 
     void Translate(Vector2 offset);
     inline void TranslateX(float x);
@@ -205,9 +213,16 @@ struct Sprite {
     inline void TranslateXY(float x, float y);
 
     void SetCenter(Vector2 pos);
+    void SetCenter(float x, float y);
+
+    void SetSize(Vector2 size);
+    void SetSize(float x, float y);
+
     inline void ResetTranslation();
 
     RayCollision GetMouseRayCollision(Camera2D camera);
+
+    void SetTexture(Texture texture, Rectangle srcRect={});
 
     inline Vector2 center();
     inline Vector2 size();
@@ -218,7 +233,7 @@ struct ModelRenderer{
     EntityID id;
     const char* model;
     bool accurate;
-    Vector3 offset; //from base center
+    Vector3 offset; // from base center
 
     ModelRenderer(EntityID id, const char* modelPath, Base* base);
 };
@@ -286,6 +301,8 @@ Vector2 Vector2Absolute(Vector2 v2);
 Vector3 Vector3Absolute(Vector3 v3);
 Color InvertColor(Color col, bool invertAlpha = false);
 Color ColorLerp(Color src, Color dst, float factor);
+Rectangle BoundingBoxToRect(BoundingBox box);
+Rectangle BoundingBoxToRect(BoundingBox2D box);
 
 bool LoadAssets();
 void DisposeAssets();

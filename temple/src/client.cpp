@@ -31,10 +31,16 @@ struct TempleGame {
         int paletteLoc = GetShaderLocation(shader, "palette");
         SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
 
-        // add single block
-        EntityID id = group.AddEntity();
-        Sprite sprite = Sprite(id);
-        group.AddEntityComponent(COMP_SPRITE, id, sprite);
+        for (int y = 0; y < 10; y++){
+            for (int x = 0; x < 10; x++){
+                // add block
+                EntityID id = group.AddEntity();
+                Sprite sprite = Sprite(id);
+                sprite.SetCenter(x*64.f,y*64.f);
+                sprite.SetTexture(blockTexture);
+                group.AddEntityComponent(COMP_SPRITE, id, sprite);
+            }
+        }
     }
 
     void update_and_render(float delta) {
@@ -46,7 +52,7 @@ struct TempleGame {
 
         group.UpdateGroup(delta);
         group.DrawGroup();
-        group.DrawGroupDebug(camera);
+        //group.DrawGroupDebug(camera);
 
         EndShaderMode();
 

@@ -226,6 +226,6 @@ void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color 
 }
 
 void DrawBoundingBox(BoundingBox2D bounds, Color tint) {
-    Vector2 size = Vector2Absolute(Vector2Subtract(bounds.max, bounds.min));
-    DrawRectangleLines(bounds.min.x, bounds.min.y, size.x, size.y, tint);
+    Rectangle rect = BoundingBoxToRect(bounds);
+    DrawRectangleLinesEx(rect, 1.f, tint);
 }
