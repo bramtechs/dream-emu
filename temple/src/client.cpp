@@ -66,13 +66,16 @@ struct TempleGame {
 
         BeginShaderMode(shader);
 
-        group.UpdateGroup(delta);
+        if (!GameShouldPause()){
+            group.UpdateGroup(delta);
+        }
         group.DrawGroup();
         //group.DrawGroupDebug(camera);
         
         EndShaderMode();
 
         UpdateAndRenderEditor(camera, group, delta);
+        UpdateAndRenderPopMenu(delta,{0,0,0,50});
 
         EndMode2D();
 

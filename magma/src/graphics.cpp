@@ -89,6 +89,15 @@ Rectangle GetScreenBounds() {
     };
 }
 
+Rectangle GetWindowBounds() {
+    return {
+        0,0,
+        (float)Win.gameSize.x,
+        (float)Win.gameSize.y
+    };
+}
+
+
 Vector2 GetWindowTopLeft() {
     return {
         (GetScreenWidth() - ((float)Win.gameSize.x * Win.scale)) * 0.5f,

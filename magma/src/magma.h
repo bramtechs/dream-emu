@@ -346,6 +346,7 @@ void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, 
 void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
 Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
+Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
 
 void BeginMagmaDrawing();
 void EndMagmaDrawing();
@@ -370,6 +371,10 @@ bool LoggerIsOpen();
 void SaveMagmaSettings();
 void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
+
+// gui
+void UpdateAndRenderPopMenu(float delta, Color bgColor=BLANK); // returns whether game should pause
+bool GameShouldPause();
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);

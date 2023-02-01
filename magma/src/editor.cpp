@@ -4,9 +4,11 @@ struct EditorSession {
     float gridSize;
     EntityID subjectID;
     bool hasSubject;
+    bool drawGrid;
+
     std::vector<EntityBuilderFunction> builders;
 
-    EditorSession() : gridSize(64.f){
+    EditorSession() : gridSize(64.f), drawGrid(true) {
     }
 };
 
@@ -45,6 +47,19 @@ bool UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
     // draw cursor grid cell
     Vector2 mouse = GetWindowMousePosition(camera);
     DrawGridCell(mouse, Session.gridSize);
+
+    // draw other cells
+    // TODO fix shoddyness
+    if (Session.drawGrid){
+        Color col = ColorAlpha(LIGHTGRAY,0.5f);
+        for (int y = -3; y < 3; y++){
+            for (int x = -3; x < 3; x++){
+                Vector2 offset = { x, y };
+                Vector2 cellPos = Vector2Add(mouse,Vector2Add(Vector2Scale(offset,Session.gridSize),offset));
+                DrawGridCell(cellPos, Session.gridSize, 1.f, col);
+            }
+        }
+    }
 
     // make grid smaller or bigger
     if (IsKeyPressed(KEY_PAGE_UP)){
