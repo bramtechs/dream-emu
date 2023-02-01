@@ -115,7 +115,7 @@ bool GameShouldPause(){
 // TODO make this stuff reusable
 // TODO make more customizable with 'MenuTheme' config struct
 
-void DrawMenuTriangle(Vector2 center, float scale=30.f, float oscil=0.f, bool tumble=false, Color color=WHITE){
+void DrawMenuTriangle(Vector2 center, float scale=30.f, Color color=WHITE, float oscil=0.f, bool tumble=false){
 
     Vector2 vertices[3] = {
         {-1,-1},
@@ -139,10 +139,56 @@ void DrawMenuTriangle(Vector2 center, float scale=30.f, float oscil=0.f, bool tu
     DrawTriangleStrip(vertices,3,color);
 }
 
+// TODO focus support
+struct ButtonGroup { // always assign as 'static'
+    int count; // only known after one frame
+    int selected;
+    int index;
+
+    bool goingUp; // dumb hack
+
+    ButtonGroup(){
+        selected = 0;
+        index = 0;
+        count = 0;
+        goingUp = false;
+    }
+
+    void reset(){ // call right after static constructor
+        count = index;
+        index = 0;
+
+        // move cursor up and down
+        if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
+            selected++;
+            goingUp = false;
+        }
+        if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)){
+            selected--;
+            goingUp = true;
+        }
+        selected = Wrap(selected,0,count);
+    }
+
+    // TODO put func as optional parameter 
+    bool next() {
+        index++;
+        return selected == index-1;
+    }
+
+    bool skip() { // use to skip stuff like labels
+        if (selected == index){
+            selected += goingUp ? -1:1;
+        }
+        index++;
+        return false;
+    }
+};
+
 constexpr int PADDING = 10;
 constexpr int ARROW_SIZE = 8;
 void DrawPopButton(Vector2 topLeft, const char* text, bool isSelected,
-                   Vector2* totalSize, bool selectable=true, int fontSize=16, Color color=WHITE){
+                   Vector2* totalSize, bool selectable=true, Color color=WHITE, int fontSize=16){
     Vector2 textPos = {
         topLeft.x+PADDING+ARROW_SIZE*3.f,
         topLeft.y+(*totalSize).y + PADDING,
@@ -153,7 +199,7 @@ void DrawPopButton(Vector2 topLeft, const char* text, bool isSelected,
         actualColor = ColorBrightness(color,-0.3);
     }
 
-    Vector2 textSize = MeasureTextEx(GetFontDefault(), text, fontSize, 1.f);    // Measure string size for Font
+    Vector2 textSize = MeasureTextEx(GetFontDefault(), text, fontSize, 1.5f);    // Measure string size for Font
     textSize.x += PADDING * 2 + ARROW_SIZE;
 
     if (isSelected){
@@ -161,7 +207,7 @@ void DrawPopButton(Vector2 topLeft, const char* text, bool isSelected,
             topLeft.x+PADDING+ARROW_SIZE,
             topLeft.y+(*totalSize).y + PADDING + textSize.y * 0.5f,
         };
-        DrawMenuTriangle(triPos, ARROW_SIZE);
+        DrawMenuTriangle(triPos, ARROW_SIZE, actualColor);
     }
 
     DrawText(text,textPos.x,textPos.y,fontSize,actualColor);
@@ -191,12 +237,17 @@ void UpdateAndRenderPopMenu(float delta, Color bgColor){
     DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
 
     size = {};
-    DrawPopButton(topLeft,"Reload",true,&size);
-    DrawPopButton(topLeft,"Quit",false,&size);
-    DrawPopButton(topLeft,"== DEV-TOOLS ==",false,&size,false);
-    DrawPopButton(topLeft,"Show/hide console",false,&size);
-    DrawPopButton(topLeft,"Show/hide editor",false,&size);
-    DrawPopButton(topLeft,"oh god, please change this default font",false,&size,false);
+
+    static auto group = ButtonGroup();
+    group.reset();
+
+    DrawPopButton(topLeft,"Reload",group.next(),&size);
+    DrawPopButton(topLeft,"Quit",group.next(),&size);
+    DrawPopButton(topLeft,"",group.skip(),&size,false,BLANK);
+    DrawPopButton(topLeft,"== DEV-TOOLS ==",group.skip(),&size,false);
+    DrawPopButton(topLeft,"Show/hide console",group.next(),&size);
+    DrawPopButton(topLeft,"Show/hide editor",group.next(),&size);
+    DrawPopButton(topLeft,"oh god, please change this default font",group.next(),&size,false);
 
     // apply bottom padding also
     size.y += PADDING * 2;
