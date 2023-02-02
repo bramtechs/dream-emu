@@ -1,8 +1,219 @@
 #include "magma.h"
 
-#define FADE_IN  0
-#define DISPLAY  1
-#define FADE_OUT 2
+// === ButtonGroup ===
+// do not combine ButtonGroup with PopMenu struct as we 
+// might want different type of ui components, buttons with images etc...
+
+// TODO: focus support if multiple ButtonGroup's are on screen
+ButtonGroup::ButtonGroup(){
+    selected = 0;
+    index = 0;
+    count = 0;
+    goingUp = false;
+}
+
+void ButtonGroup::reset(){
+    count = index;
+    index = 0;
+
+    // move cursor up and down
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
+        selected++;
+        goingUp = false;
+    }
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)){
+        selected--;
+        goingUp = true;
+    }
+    selected = Wrap(selected,0,count);
+}
+
+bool ButtonGroup::next() {
+    index++;
+    return selected == index-1;
+}
+
+bool ButtonGroup::skip() { // use to skip stuff like labels
+    if (selected == index){
+        selected += goingUp ? -1:1;
+    }
+    index++;
+    return false;
+}
+
+// WARN: does not account for disabled buttons
+bool ButtonGroup::IsButtonSelected(int* index){
+    if (IsKeyPressed(KEY_ENTER)){
+        *index = selected;
+        return true;
+    }
+    return false;
+}
+
+// === PopMenu + config ===
+PopMenuConfig::PopMenuConfig(Color bgColor, Color fgColor, Color textColor)
+        : backColor(bgColor), lineColor(fgColor), textColor(textColor){
+}
+
+PopMenu::PopMenu(){
+    this->config = PopMenuConfig();
+}
+
+PopMenu::PopMenu(PopMenuConfig config){
+    this->config = config;
+}
+
+void PopMenu::RenderPanel(){
+    Rectangle menuTarget = {
+        topLeft.x,topLeft.y,
+        size.x, size.y
+    };
+    DrawRectangleRec(menuTarget, BLACK);
+    DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
+
+    this->size = {};
+    this->group.reset();
+}
+
+void PopMenu::EndButtons(Vector2 panelPos) {
+    // apply bottom padding also
+    size.y += config.padding * 2;
+
+    // calculate bounds for next frame
+    topLeft.x = panelPos.x - size.x * 0.5f;
+    topLeft.y = panelPos.y - size.y * 0.5f;
+}
+
+void PopMenu::EndButtons(){
+    Vector2 pos = {
+        Window.gameSize.x * 0.5f,
+        Window.gameSize.y * 0.5f
+    };
+    EndButtons(pos);
+}
+
+void PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
+    Vector2 textPos = {
+        topLeft.x+config.padding+config.arrowPadding*3.f,
+        topLeft.y+size.y + config.padding,
+    };
+
+    Color actualColor = config.textColor;
+    if (!selectable){
+        actualColor = ColorBrightness(config.textColor,-0.3);
+    }
+
+    Vector2 textSize = MeasureTextEx(GetFontDefault(), text, config.fontSize, 1.5f);    // Measure string size for Font
+    textSize.x += config.padding * 2 + config.arrowPadding;
+
+    bool isSelected = isBlank ? group.skip() : group.next();
+    if (isSelected){
+        Vector2 triPos = {
+            topLeft.x+config.padding+config.arrowPadding,
+            topLeft.y+size.y + config.padding + textSize.y * 0.5f,
+        };
+        DrawMenuTriangle(triPos, actualColor);
+    }
+
+    DrawText(text,textPos.x,textPos.y,config.fontSize,actualColor);
+
+    if (size.x < textSize.x){
+        size.x = textSize.x;
+    }
+    size.y += textSize.y;
+}
+
+void PopMenu::DrawMenuTriangle(Vector2 center, Color color){
+    Vector2 vertices[3] = {
+        {-1,-1},
+        {-1, 1},
+        { 1, 0},
+    };
+
+    float offsetX = 0.f;
+    if (!config.arrowTumbleMode){
+        offsetX = (sinf(GetTime()*config.arrowOscil)+1)*0.5f*config.arrowOscil;
+    }
+
+    for (int i = 0; i < 3; i++){
+        if (config.arrowTumbleMode) {
+            vertices[i].y *= (sinf(GetTime()*3.f)+1)*0.5f;
+        }
+        vertices[i].x = center.x+offsetX+(vertices[i].x*config.arrowScale);
+        vertices[i].y = center.y+(vertices[i].y*config.arrowScale);
+    }
+
+    DrawTriangleStrip(vertices,3,color);
+}
+
+bool PopMenu::IsButtonSelected(int* index){
+    return group.IsButtonSelected(index);
+}
+
+// === Pause menu ===
+struct PauseMenuSession {
+    bool isOpened;
+    PopMenu menu = PopMenu();
+
+    PauseMenuSession() {
+        this->isOpened = false;
+        this->menu = PopMenu();
+    }
+};
+
+static PauseMenuSession PauseSession = PauseMenuSession();
+
+static const char* toggle(bool on, const char* suffix){
+    return TextFormat("%s %s",on ? "Hide":"Show",suffix);
+}
+
+void UpdateAndRenderPauseMenu(float delta, Color bgColor){
+    if (IsKeyPressed(KEY_ESCAPE)){
+        PauseSession.isOpened = !PauseSession.isOpened;
+    }
+    if (!PauseSession.isOpened) return;
+
+    // draw bg (if any)
+    DrawRectangleRec(GetWindowBounds(),bgColor);
+
+    PopMenu& menu = PauseSession.menu;
+    menu.RenderPanel();
+    menu.DrawPopButton("Reload", false);
+    menu.DrawPopButton("Quit");
+    menu.DrawPopButton("",false,false);
+    menu.DrawPopButton("== DEV-TOOLS ==",false,false);
+    menu.DrawPopButton(toggle(LoggerIsOpen(),"console"));
+    menu.DrawPopButton(toggle(EditorIsOpen(),"editor"));
+
+    // button actions
+    int index = 0;
+    menu.IsButtonSelected(&index);
+    switch (index){
+        case 0: // reload
+            // TODO: implement
+            break;
+        case 1: // quit
+            CloseWindow();
+            break;
+        case 4: // show/hide console
+            ToggleLogger();
+            break;
+        case 5: // show/hide console
+            ToggleEditor();
+            break;
+    }
+
+    menu.EndButtons();
+}
+
+bool GameShouldPause(){
+    return PauseSession.isOpened;
+}
+
+// === Main Menu ===
+constexpr int FADE_IN  =0;
+constexpr int DISPLAY  =1;
+constexpr int FADE_OUT =2;
 
 MainMenu::MainMenu(MainMenuConfig config, bool skipSplash) 
     : skipSplash(skipSplash), config(config) {
@@ -100,189 +311,4 @@ bool MainMenu::UpdateAndDraw(float delta) {
     EndDrawing();
 
     return false;
-}
-
-struct PopMenuConfig {
-    bool isOpened;
-};
-
-static PopMenuConfig PopConfig = {};
-
-bool GameShouldPause(){
-    return PopConfig.isOpened;
-}
-
-// TODO make this stuff reusable
-// TODO make more customizable with 'MenuTheme' config struct
-
-void DrawMenuTriangle(Vector2 center, float scale=30.f, Color color=WHITE, float oscil=0.f, bool tumble=false){
-
-    Vector2 vertices[3] = {
-        {-1,-1},
-        {-1, 1},
-        { 1, 0},
-    };
-
-    float offsetX = 0.f;
-    if (!tumble){
-        offsetX = (sinf(GetTime()*oscil)+1)*0.5f*oscil;
-    }
-
-    for (int i = 0; i < 3; i++){
-        if (tumble) {
-            vertices[i].y *= (sinf(GetTime()*3.f)+1)*0.5f;
-        }
-        vertices[i].x = center.x+offsetX+(vertices[i].x*scale);
-        vertices[i].y = center.y+(vertices[i].y*scale);
-    }
-
-    DrawTriangleStrip(vertices,3,color);
-}
-
-// TODO focus support
-struct ButtonGroup { // always assign as 'static'
-    int count; // only known after one frame
-    int selected;
-    int index;
-
-    bool goingUp; // dumb hack
-
-    ButtonGroup(){
-        selected = 0;
-        index = 0;
-        count = 0;
-        goingUp = false;
-    }
-
-    void reset(){ // call right after static constructor
-        count = index;
-        index = 0;
-
-        // move cursor up and down
-        if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
-            selected++;
-            goingUp = false;
-        }
-        if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)){
-            selected--;
-            goingUp = true;
-        }
-        selected = Wrap(selected,0,count);
-    }
-
-    bool next() {
-        index++;
-        return selected == index-1;
-    }
-
-    bool skip() { // use to skip stuff like labels
-        if (selected == index){
-            selected += goingUp ? -1:1;
-        }
-        index++;
-        return false;
-    }
-
-    // WARN: does not account for disabled buttons
-    bool IsButtonSelected(int* index){
-        if (IsKeyPressed(KEY_ENTER)){
-            *index = selected;
-            return true;
-        }
-        return false;
-    }
-};
-
-constexpr int PADDING = 10;
-constexpr int ARROW_SIZE = 8;
-void DrawPopButton(Vector2 topLeft, const char* text, bool isSelected,
-                   Vector2* totalSize, bool selectable=true, Color color=WHITE, int fontSize=16){
-    Vector2 textPos = {
-        topLeft.x+PADDING+ARROW_SIZE*3.f,
-        topLeft.y+(*totalSize).y + PADDING,
-    };
-
-    Color actualColor = color;
-    if (!selectable){
-        actualColor = ColorBrightness(color,-0.3);
-    }
-
-    Vector2 textSize = MeasureTextEx(GetFontDefault(), text, fontSize, 1.5f);    // Measure string size for Font
-    textSize.x += PADDING * 2 + ARROW_SIZE;
-
-    if (isSelected){
-        Vector2 triPos = {
-            topLeft.x+PADDING+ARROW_SIZE,
-            topLeft.y+(*totalSize).y + PADDING + textSize.y * 0.5f,
-        };
-        DrawMenuTriangle(triPos, ARROW_SIZE, actualColor);
-    }
-
-    DrawText(text,textPos.x,textPos.y,fontSize,actualColor);
-
-    if ((*totalSize).x < textSize.x){
-        (*totalSize).x = textSize.x;
-    }
-    (*totalSize).y += textSize.y;
-}
-
-const char* toggle(bool on, const char* suffix){
-    return TextFormat("%s %s",on ? "Hide":"Show",suffix);
-}
-
-void UpdateAndRenderPopMenu(float delta, Color bgColor){
-    if (IsKeyPressed(KEY_ESCAPE)){
-        PopConfig.isOpened = !PopConfig.isOpened;
-    }
-
-    // draw bg (if any)
-    DrawRectangleRec(GetWindowBounds(),bgColor);
-
-    static Vector2 topLeft = {};
-    static Vector2 size    = {};
-
-    Rectangle menuTarget = {
-        topLeft.x,topLeft.y,
-        size.x, size.y
-    };
-    DrawRectangleRec(menuTarget, BLACK);
-    DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
-
-    size = {};
-
-    static auto group = ButtonGroup();
-    group.reset();
-
-    DrawPopButton(topLeft,"Reload",group.next(),&size, false);
-    DrawPopButton(topLeft,"Quit",group.next(),&size);
-    DrawPopButton(topLeft,"",group.skip(),&size,false,BLANK);
-    DrawPopButton(topLeft,"== DEV-TOOLS ==",group.skip(),&size,false);
-    DrawPopButton(topLeft,toggle(LoggerIsOpen(),"console"),group.next(),&size);
-    DrawPopButton(topLeft,toggle(EditorIsOpen(),"editor"),group.next(),&size);
-    DrawPopButton(topLeft,"oh god, please change this default font",group.next(),&size,false);
-
-    // button actions
-    int index = 0;
-    group.IsButtonSelected(&index);
-    switch (index){
-        case 0: // reload
-            // TODO: implement
-            break;
-        case 1: // quit
-            CloseWindow();
-            break;
-        case 4: // show/hide console
-            ToggleLogger();
-            break;
-        case 5: // show/hide console
-            ToggleEditor();
-            break;
-    }
-
-    // apply bottom padding also
-    size.y += PADDING * 2;
-
-    // calculate bounds for next frame
-    topLeft.x = Window.gameSize.x * 0.5f - size.x * 0.5f;
-    topLeft.y = Window.gameSize.y * 0.5f - size.y * 0.5f;
 }

@@ -134,6 +134,60 @@ struct SplashScreen{
     float duration;
 };
 
+struct ButtonGroup { // always assign as 'static'
+    int count; // only known after one frame
+    int selected;
+    int index;
+    bool goingUp; // dumb hack
+
+    ButtonGroup();
+
+    void reset(); // call right after static constructor
+    bool next();
+    bool skip(); // used to skip stuff, like labels
+
+    bool IsButtonSelected(int* index); // WARN: does not account for inactive buttons,
+                                       // you need to check these yourself
+};
+
+// TODO: Add texture support
+struct PopMenuConfig {
+    Color backColor;
+    Color lineColor;
+    Color textColor;
+
+    int fontSize = 16;
+    float padding = 10.f;
+
+    float arrowPadding = 8.f;
+    float arrowScale = 10.f;
+    float arrowOscil = 0.f;
+    bool arrowTumbleMode = false;
+
+    PopMenuConfig(Color bgColor=BLACK, Color fgColor=WHITE, Color textColor=WHITE);
+};
+
+struct PopMenu {
+    PopMenuConfig config;
+    ButtonGroup group;
+    Vector2 topLeft;
+    Vector2 size;
+
+    PopMenu(PopMenuConfig config);
+    PopMenu();
+
+    void RenderPanel();
+    void DrawPopButton(const char* text, bool selectable=true, bool isBlank=false);
+
+    void EndButtons(Vector2 panelPos);
+    void EndButtons();
+
+    bool IsButtonSelected(int* index);
+
+private:
+    void DrawMenuTriangle(Vector2 center, Color color=WHITE);
+};
+
 struct MainMenuConfig {
     int width;
     int height;
@@ -376,7 +430,7 @@ void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
 
 // gui
-void UpdateAndRenderPopMenu(float delta, Color bgColor=BLANK); // returns whether game should pause
+void UpdateAndRenderPauseMenu(float delta, Color bgColor=BLANK); // returns whether game should pause
 bool GameShouldPause();
 
 // editor stuff

@@ -75,7 +75,7 @@ struct TempleGame {
         EndShaderMode();
 
         UpdateAndRenderEditor(camera, group, delta);
-        UpdateAndRenderPopMenu(delta,{0,0,0,50});
+        UpdateAndRenderPauseMenu(delta,{0,0,0,50});
 
         EndMode2D();
 
