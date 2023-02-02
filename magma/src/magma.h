@@ -45,6 +45,7 @@
 
 #define PATH_MAX_LEN 128
 
+#define ASSET_ANY             -2
 #define ASSET_CUSTOM          -1
 #define ASSET_TEXTURE          0
 #define ASSET_MODEL            1
@@ -73,6 +74,7 @@
 typedef unsigned int uint;
 typedef uint ItemType;
 typedef uint EntityID;
+typedef int AssetType;
 
 extern size_t Allocations;
 
@@ -168,10 +170,13 @@ struct PopMenuConfig {
 };
 
 struct PopMenu {
+    uint id;
+
     PopMenuConfig config;
     ButtonGroup group;
     Vector2 topLeft;
     Vector2 size;
+    bool initialized;
 
     PopMenu(PopMenuConfig config);
     PopMenu();
@@ -182,6 +187,7 @@ struct PopMenu {
     void EndButtons(Vector2 panelPos);
     void EndButtons();
 
+    bool IsInFocus();
     bool IsButtonSelected(int* index);
 
 private:
@@ -376,7 +382,8 @@ Rectangle BoundingBoxToRect(BoundingBox2D box);
 bool LoadAssets();
 void DisposeAssets();
 bool ImportAssetPackage(const char* filePath);
-std::vector<std::string> GetAssetPaths();
+std::vector<std::string> GetAssetPaths(AssetType type=ASSET_ANY);
+std::vector<std::string> GetAssetNames(AssetType type=ASSET_ANY);
 size_t GetAssetCount();
 
 Texture RequestTexture(const std::string& name);
@@ -431,7 +438,10 @@ bool CreateDirectory(const char* path);
 
 // gui
 void UpdateAndRenderPauseMenu(float delta, Color bgColor=BLANK); // returns whether game should pause
-bool GameShouldPause();
+bool GameIsPaused();
+void PauseGame();
+void UnpauseGame();
+bool ToggleGamePaused();
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);

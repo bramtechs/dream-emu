@@ -462,10 +462,23 @@ char* RequestCustom(const std::string& name, size_t* size, const char* ext) {
     return asset.data;
 }
 
-std::vector<std::string> GetAssetPaths() {
+std::vector<std::string> GetAssetPaths(AssetType type) {
+    std::vector<std::string> paths;
+    for (auto& item : Assets.assets) {
+        if (type == ASSET_ANY || GetAssetType(item.path) == type){
+            paths.push_back(item.path);
+        }
+    }
+    return paths;
+}
+
+std::vector<std::string> GetAssetNames(AssetType type){
     std::vector<std::string> names;
     for (auto& item : Assets.assets) {
-        names.push_back(item.path);
+        if (type == ASSET_ANY || GetAssetType(item.path) == type){
+            const char* name = GetFileNameWithoutExt(item.path);
+            names.push_back(name);
+        }
     }
     return names;
 }
@@ -476,7 +489,7 @@ static std::string GetTempDirectory() {
     return tempFolStr;
 }
 
-int GetAssetType(const char* name) {
+AssetType GetAssetType(const char* name) {
     std::string ext = GetFileExtension(name);
     if (ext == ".png" || ext == ".gif" || ext == ".jpg" || ext == ".jpeg") {
         return ASSET_TEXTURE;

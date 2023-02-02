@@ -57,19 +57,23 @@ PopMenuConfig::PopMenuConfig(Color bgColor, Color fgColor, Color textColor)
 
 PopMenu::PopMenu(){
     this->config = PopMenuConfig();
+    this->initialized = false;
 }
 
 PopMenu::PopMenu(PopMenuConfig config){
     this->config = config;
+    this->initialized = false;
 }
 
 void PopMenu::RenderPanel(){
-    Rectangle menuTarget = {
-        topLeft.x,topLeft.y,
-        size.x, size.y
-    };
-    DrawRectangleRec(menuTarget, BLACK);
-    DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
+    if (this->initialized) { // hide first frame
+        Rectangle menuTarget = {
+            topLeft.x,topLeft.y,
+            size.x, size.y
+        };
+        DrawRectangleRec(menuTarget, BLACK);
+        DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
+    }
 
     this->size = {};
     this->group.reset();
@@ -82,6 +86,8 @@ void PopMenu::EndButtons(Vector2 panelPos) {
     // calculate bounds for next frame
     topLeft.x = panelPos.x - size.x * 0.5f;
     topLeft.y = panelPos.y - size.y * 0.5f;
+
+    this->initialized = true;
 }
 
 void PopMenu::EndButtons(){
@@ -107,15 +113,19 @@ void PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
     textSize.x += config.padding * 2 + config.arrowPadding;
 
     bool isSelected = isBlank ? group.skip() : group.next();
-    if (isSelected){
+    if (isSelected) {
         Vector2 triPos = {
             topLeft.x+config.padding+config.arrowPadding,
             topLeft.y+size.y + config.padding + textSize.y * 0.5f,
         };
-        DrawMenuTriangle(triPos, actualColor);
+        if (this->initialized){
+            DrawMenuTriangle(triPos, actualColor);
+        }
     }
 
-    DrawText(text,textPos.x,textPos.y,config.fontSize,actualColor);
+    if (this->initialized) {
+        DrawText(text,textPos.x,textPos.y,config.fontSize,actualColor);
+    }
 
     if (size.x < textSize.x){
         size.x = textSize.x;
@@ -169,9 +179,9 @@ static const char* toggle(bool on, const char* suffix){
 
 void UpdateAndRenderPauseMenu(float delta, Color bgColor){
     if (IsKeyPressed(KEY_ESCAPE)){
-        PauseSession.isOpened = !PauseSession.isOpened;
+        ToggleGamePaused();
     }
-    if (!PauseSession.isOpened) return;
+    if (!GameIsPaused()) return;
 
     // draw bg (if any)
     DrawRectangleRec(GetWindowBounds(),bgColor);
@@ -180,8 +190,8 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
     menu.RenderPanel();
     menu.DrawPopButton("Reload", false);
     menu.DrawPopButton("Quit");
-    menu.DrawPopButton("",false,false);
-    menu.DrawPopButton("== DEV-TOOLS ==",false,false);
+    menu.DrawPopButton("",false,true);
+    menu.DrawPopButton("== DEV-TOOLS ==",false,true);
     menu.DrawPopButton(toggle(LoggerIsOpen(),"console"));
     menu.DrawPopButton(toggle(EditorIsOpen(),"editor"));
 
@@ -197,16 +207,31 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
             break;
         case 4: // show/hide console
             ToggleLogger();
+            UnpauseGame();
             break;
         case 5: // show/hide console
             ToggleEditor();
+            UnpauseGame();
             break;
     }
 
     menu.EndButtons();
 }
 
-bool GameShouldPause(){
+bool GameIsPaused(){
+    return PauseSession.isOpened;
+}
+
+void PauseGame(){
+    PauseSession.isOpened = true;
+}
+
+void UnpauseGame(){
+    PauseSession.isOpened = false;
+}
+
+bool ToggleGamePaused(){
+    PauseSession.isOpened = !PauseSession.isOpened;
     return PauseSession.isOpened;
 }
 

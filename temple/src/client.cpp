@@ -66,7 +66,7 @@ struct TempleGame {
 
         BeginShaderMode(shader);
 
-        if (!GameShouldPause()){
+        if (!GameIsPaused()){
             group.UpdateGroup(delta);
         }
         group.DrawGroup();

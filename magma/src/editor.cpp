@@ -139,6 +139,17 @@ void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
     }
 }
 
+bool DrawTextureSelector(){
+    static auto names = GetAssetNames(ASSET_TEXTURE);
+    static PopMenu menu = PopMenu();
+    menu.RenderPanel();
+    for (int i = 0; i < names.size(); i++){
+        menu.DrawPopButton(names[i].c_str());
+    }
+    menu.EndButtons();
+    return true;
+}
+
 constexpr int BAR_WIDTH = 280;
 constexpr int FONT_SIZE = 18;
 void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
@@ -153,16 +164,51 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
 
     x += 20;
     y += 20;
+
+    Sprite* sprite = NULL;
     if (Session.hasSubject){
         DrawText(TextFormat("Selected Entity: %d",Session.subjectID),x,y,FONT_SIZE,WHITE);
         y += FONT_SIZE + 4;
 
-        auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
+        sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
         BoundingBox2D b = sprite->bounds;
         DrawText(TextFormat("Bounds: %f %f\n       %f %f",b.min.x,b.min.y,b.max.x,b.max.y),x,y,FONT_SIZE,WHITE);
         y += FONT_SIZE + 4;
     }
 
+    static PopMenu menu = PopMenu();
+    Vector2 panelPos = {
+        GetScreenWidth()-menu.size.x*0.5f,
+        GetScreenHeight()-menu.size.y*0.5f
+    };
+
+    menu.RenderPanel();
+    if (Session.hasSubject) {
+        menu.DrawPopButton("Delete");
+        menu.DrawPopButton("Change texture");
+    }
+    menu.DrawPopButton("Spawn entity");
+    menu.EndButtons(panelPos);
+
+    int index = 0;
+    if (menu.IsButtonSelected(&index)){
+        if (Session.hasSubject){
+            index -= 2;
+        }
+        switch (index){
+            case -2:
+                // TODO: implement actual deletion
+                if (sprite) sprite->SetCenter(-9999.f,-9999.f);
+                break;
+            case -1:
+                // change texture
+                break;
+            case 0:
+                INFO("spawn subject");
+                break;
+        }
+    }
+    DrawTextureSelector();
 }
 
 bool EditorIsOpen(){
