@@ -1,6 +1,7 @@
 #include "magma.h"
 
 struct EditorSession {
+    bool isOpen;
     float gridSize;
     EntityID subjectID;
     bool hasSubject;
@@ -8,7 +9,7 @@ struct EditorSession {
 
     std::vector<EntityBuilderFunction> builders;
 
-    EditorSession() : gridSize(64.f), drawGrid(true) {
+    EditorSession() : isOpen(false), gridSize(64.f), drawGrid(true) {
     }
 };
 
@@ -19,12 +20,15 @@ void RegisterEntityBuilder(EntityBuilderFunction func) {
 }
 
 // 3D
-bool UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta){
+void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta){
+    if (IsKeyPressed(KEY_F3)){ // TODO: Debug build only
+        ToggleEditor();
+    }
+    if (!Session.isOpen) return;
     // TODO not implemented;
 
     // draw origin
 
-    return false;
 }
 
 static void DrawGridCell(Vector2 worldPos, float size, float thick=1.f, Color tint=GRAY){
@@ -39,7 +43,11 @@ static void DrawAxis(Vector2 pos, float len=20.f, float thick=2.f){
 }
 
 // 2D
-bool UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
+void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
+    if (IsKeyPressed(KEY_F3)){ // TODO: Debug build only
+        ToggleEditor();
+    }
+    if (!Session.isOpen) return;
 
     // draw origin
     DrawAxis(Vector2Zero());
@@ -129,13 +137,13 @@ bool UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
             }
         }
     }
-
-    return true;
 }
 
 constexpr int BAR_WIDTH = 280;
 constexpr int FONT_SIZE = 18;
 void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
+    if (!Session.isOpen) return;
+
     Color bgColor = ColorAlpha(RED,0.5f);
 
     int x = GetScreenWidth()-BAR_WIDTH;
@@ -155,4 +163,21 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
         y += FONT_SIZE + 4;
     }
 
+}
+
+bool EditorIsOpen(){
+    return Session.isOpen;
+}
+
+void OpenEditor(){
+    Session.isOpen = true;
+}
+
+void CloseEditor(){
+    Session.isOpen = false;
+}
+
+bool ToggleEditor(){
+    Session.isOpen = !Session.isOpen;
+    return Session.isOpen;
 }

@@ -367,6 +367,9 @@ void ClearLog();
 void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG = true);
 void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
 bool LoggerIsOpen();
+void OpenLogger();
+void CloseLogger();
+bool ToggleLogger();
 
 void SaveMagmaSettings();
 void LoadMagmaSettings();
@@ -380,8 +383,12 @@ bool GameShouldPause();
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
 void RegisterEntityBuilder(EntityBuilderFunction func);
 
-bool UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta);
-bool UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta);
+void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta);
+void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta);
 void UpdateAndRenderEditorGUI(EntityGroup& group, float delta);
+bool EditorIsOpen();
+void OpenEditor();
+void CloseEditor();
+bool ToggleEditor();
 
 std::string GetTempDirectory();

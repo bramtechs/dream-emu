@@ -170,7 +170,6 @@ struct ButtonGroup { // always assign as 'static'
         selected = Wrap(selected,0,count);
     }
 
-    // TODO put func as optional parameter 
     bool next() {
         index++;
         return selected == index-1;
@@ -181,6 +180,15 @@ struct ButtonGroup { // always assign as 'static'
             selected += goingUp ? -1:1;
         }
         index++;
+        return false;
+    }
+
+    // WARN: does not account for disabled buttons
+    bool IsButtonSelected(int* index){
+        if (IsKeyPressed(KEY_ENTER)){
+            *index = selected;
+            return true;
+        }
         return false;
     }
 };
@@ -218,6 +226,10 @@ void DrawPopButton(Vector2 topLeft, const char* text, bool isSelected,
     (*totalSize).y += textSize.y;
 }
 
+const char* toggle(bool on, const char* suffix){
+    return TextFormat("%s %s",on ? "Hide":"Show",suffix);
+}
+
 void UpdateAndRenderPopMenu(float delta, Color bgColor){
     if (IsKeyPressed(KEY_ESCAPE)){
         PopConfig.isOpened = !PopConfig.isOpened;
@@ -241,13 +253,31 @@ void UpdateAndRenderPopMenu(float delta, Color bgColor){
     static auto group = ButtonGroup();
     group.reset();
 
-    DrawPopButton(topLeft,"Reload",group.next(),&size);
+    DrawPopButton(topLeft,"Reload",group.next(),&size, false);
     DrawPopButton(topLeft,"Quit",group.next(),&size);
     DrawPopButton(topLeft,"",group.skip(),&size,false,BLANK);
     DrawPopButton(topLeft,"== DEV-TOOLS ==",group.skip(),&size,false);
-    DrawPopButton(topLeft,"Show/hide console",group.next(),&size);
-    DrawPopButton(topLeft,"Show/hide editor",group.next(),&size);
+    DrawPopButton(topLeft,toggle(LoggerIsOpen(),"console"),group.next(),&size);
+    DrawPopButton(topLeft,toggle(EditorIsOpen(),"editor"),group.next(),&size);
     DrawPopButton(topLeft,"oh god, please change this default font",group.next(),&size,false);
+
+    // button actions
+    int index = 0;
+    group.IsButtonSelected(&index);
+    switch (index){
+        case 0: // reload
+            // TODO: implement
+            break;
+        case 1: // quit
+            CloseWindow();
+            break;
+        case 4: // show/hide console
+            ToggleLogger();
+            break;
+        case 5: // show/hide console
+            ToggleEditor();
+            break;
+    }
 
     // apply bottom padding also
     size.y += PADDING * 2;

@@ -1,5 +1,7 @@
 #include "magma.h"
 
+// TODO put logger stuff in struct
+
 static std::vector<LogLine> Buffer;
 static size_t Allocations = 0;
 static bool ShowLogger = false;
@@ -121,7 +123,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
 
 void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
     if (IsKeyPressed(KEY_F2)) {
-        ShowLogger = !ShowLogger;
+        ToggleLogger();
         LoggerOffsetY = 0.f;
     }
     if (ShowLogger) {
@@ -135,6 +137,19 @@ void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
 }
 
 bool LoggerIsOpen(){
+    return ShowLogger;
+}
+
+void OpenLogger(){
+    ShowLogger = true;
+}
+
+void CloseLogger(){
+    ShowLogger = false;
+}
+
+bool ToggleLogger(){
+    ShowLogger = !ShowLogger;
     return ShowLogger;
 }
 
