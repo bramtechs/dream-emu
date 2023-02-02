@@ -4,7 +4,7 @@
 // do not combine ButtonGroup with PopMenu struct as we 
 // might want different type of ui components, buttons with images etc...
 
-// TODO: focus support if multiple ButtonGroup's are on screen
+// TODO: focus support if multiple ButtonGroups are on screen
 ButtonGroup::ButtonGroup(){
     selected = 0;
     index = 0;
@@ -16,6 +16,9 @@ void ButtonGroup::reset(){
     count = index;
     index = 0;
 
+}
+
+void ButtonGroup::poll(){
     // move cursor up and down
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
         selected++;
@@ -51,18 +54,53 @@ bool ButtonGroup::IsButtonSelected(int* index){
 }
 
 // === PopMenu + config ===
+
+// over-engineered system to allow one popup menu to be controlled at once
+struct PopMenuFocus {
+    uint id;
+    int priority;
+    float lastDrawn;
+
+    PopMenuFocus(uint id, int priority)
+        : id(id), priority(priority), lastDrawn(0.f) {
+    }
+
+    bool isFresh(){
+        return GetTime() - lastDrawn < 0.1f;
+    }
+};
+std::vector<PopMenuFocus> PopMenus; // keep track of focus
+
 PopMenuConfig::PopMenuConfig(Color bgColor, Color fgColor, Color textColor)
         : backColor(bgColor), lineColor(fgColor), textColor(textColor){
 }
 
-PopMenu::PopMenu(){
+PopMenu::PopMenu(int priority){
     this->config = PopMenuConfig();
     this->initialized = false;
+    this->id = GetRandomValue(0,100000);
+
+    PopMenuFocus f(id,priority);
+    PopMenus.push_back(f);
 }
 
-PopMenu::PopMenu(PopMenuConfig config){
+PopMenu::PopMenu(PopMenuConfig config, int priority){
     this->config = config;
     this->initialized = false;
+    this->id = GetRandomValue(0,100000);
+
+    PopMenuFocus f(id, priority);
+    PopMenus.push_back(f);
+}
+
+PopMenu::~PopMenu(){
+    for (int i = 0; i < PopMenus.size(); i++){
+        if (PopMenus[i].id == this->id){
+            PopMenus.erase(PopMenus.begin()+i);
+            return;
+        }
+    }
+    assert(false);
 }
 
 void PopMenu::RenderPanel(){
@@ -77,6 +115,15 @@ void PopMenu::RenderPanel(){
 
     this->size = {};
     this->group.reset();
+
+    // register me as fresh
+    for (auto &item : PopMenus){
+        if (item.id == this->id) {
+            item.lastDrawn = GetTime();
+            return;
+        }
+    }
+    assert(false);
 }
 
 void PopMenu::EndButtons(Vector2 panelPos) {
@@ -88,6 +135,11 @@ void PopMenu::EndButtons(Vector2 panelPos) {
     topLeft.y = panelPos.y - size.y * 0.5f;
 
     this->initialized = true;
+
+    // poll if focused
+    if (IsInFocus()) {
+        this->group.poll();
+    }
 }
 
 void PopMenu::EndButtons(){
@@ -156,19 +208,37 @@ void PopMenu::DrawMenuTriangle(Vector2 center, Color color){
     DrawTriangleStrip(vertices,3,color);
 }
 
+bool PopMenu::IsInFocus(){
+    // get highest priority available
+    int highestPriority = 0;
+    for (auto &item : PopMenus) {
+        if (item.isFresh() && item.priority > highestPriority){
+            highestPriority = item.priority;
+        }
+    }
+
+    // check if last fresh panel of highest priority is me
+    std::vector<uint> ids;
+    for (auto &item : PopMenus) {
+        if (item.isFresh() && item.priority == highestPriority){
+            ids.push_back(item.id);
+        }
+    }
+
+    return ids[ids.size()-1] == this->id;
+}
+
 bool PopMenu::IsButtonSelected(int* index){
-    return group.IsButtonSelected(index);
+    if (IsInFocus()) {
+        return group.IsButtonSelected(index);
+    }
+    return false;
 }
 
 // === Pause menu ===
 struct PauseMenuSession {
-    bool isOpened;
-    PopMenu menu = PopMenu();
-
-    PauseMenuSession() {
-        this->isOpened = false;
-        this->menu = PopMenu();
-    }
+    bool isOpened = false;
+    PopMenu menu = PopMenu(FOCUS_HIGH);
 };
 
 static PauseMenuSession PauseSession = PauseMenuSession();

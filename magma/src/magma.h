@@ -53,6 +53,11 @@
 #define ASSET_FRAG_SHADER      3
 #define ASSET_VERT_SHADER      4
 
+#define FOCUS_LOW              0 // use for menus that stay open to avoid softlock
+#define FOCUS_NORMAL           5
+#define FOCUS_HIGH            10
+#define FOCUS_CRITICAL       100
+
 #define BeginCouroutine() \
     static float CTARGET = 0.f; \
     static float CTIMER = 0.f; \
@@ -145,6 +150,7 @@ struct ButtonGroup { // always assign as 'static'
     ButtonGroup();
 
     void reset(); // call right after static constructor
+    void poll(); // navigate menu with keyboard
     bool next();
     bool skip(); // used to skip stuff, like labels
 
@@ -178,8 +184,9 @@ struct PopMenu {
     Vector2 size;
     bool initialized;
 
-    PopMenu(PopMenuConfig config);
-    PopMenu();
+    PopMenu(PopMenuConfig config, int priority=FOCUS_NORMAL);
+    PopMenu(int priority=FOCUS_NORMAL);
+    ~PopMenu();
 
     void RenderPanel();
     void DrawPopButton(const char* text, bool selectable=true, bool isBlank=false);

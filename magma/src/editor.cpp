@@ -141,7 +141,7 @@ void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
 
 bool DrawTextureSelector(){
     static auto names = GetAssetNames(ASSET_TEXTURE);
-    static PopMenu menu = PopMenu();
+    static PopMenu menu = PopMenu(FOCUS_CRITICAL);
     menu.RenderPanel();
     for (int i = 0; i < names.size(); i++){
         menu.DrawPopButton(names[i].c_str());
@@ -176,7 +176,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
         y += FONT_SIZE + 4;
     }
 
-    static PopMenu menu = PopMenu();
+    static PopMenu menu = PopMenu(FOCUS_LOW);
     Vector2 panelPos = {
         GetScreenWidth()-menu.size.x*0.5f,
         GetScreenHeight()-menu.size.y*0.5f
