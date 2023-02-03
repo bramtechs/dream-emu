@@ -1,33 +1,28 @@
 #include "magma.h"
 #include "client.hpp"
 
-// TODO implement palette shadering into engine
-// TODO implement tilemaps into engine
-
 EntityID spawn_block(EntityGroup& group, Vector3 pos){
-    // TODO remove this ====================
-    Image blockImage = RequestImage("spr_block_fg");
-
-    // force texture into palette
-    Palette palette = RequestPalette("pal_warm1");
-    palette.MapImage(blockImage);
-
-    Texture blockTexture = LoadTextureFromImage(blockImage);
-    UnloadImage(blockImage);
-    // | ====================================
-
     EntityID id = group.AddEntity();
     Sprite sprite = Sprite(id);
     sprite.SetCenter(pos.x, pos.y);
+    Texture blockTexture = RequestIndexedTexture("spr_block");
     sprite.SetTexture(blockTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);
     return id;
 }
 
+#define PAL_WARM        "pal_warm"
+#define PAL_BROWN       "pal_brown"
+#define PAL_DUSK        "pal_dusk"
+#define PAL_NIGHT       "pal_night"
+
+#define PAL_DEFAULT    PAL_NIGHT 
+
 struct TempleGame {
     EntityGroup group;
     Shader shader;
     Camera2D camera;
+    Palette palette;
 
     TempleGame() {
 
@@ -38,14 +33,9 @@ struct TempleGame {
         camera.rotation = 0.f;                      // Camera rotation in degrees
         camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
 
-        INFO("LOADING SHADER");
-        shader = RequestShader("frag_palette_switch");
-
         // setup shader palette
-        Palette palette = RequestPalette("pal_warm1");
-
-        int paletteLoc = GetShaderLocation(shader, "palette");
-        SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
+        palette = RequestPalette(PAL_DEFAULT);
+        SetDefaultPalette(palette);
 
         for (int y = 0; y < 3; y++){
             for (int x = 0; x < 3; x++){
@@ -55,7 +45,6 @@ struct TempleGame {
 
         // setup editor
         RegisterEntityBuilder(spawn_block);
-
     }
 
     void update_and_render(float delta) {
@@ -65,7 +54,7 @@ struct TempleGame {
 
         BeginMode2D(camera);
 
-        BeginShaderMode(shader);
+        BeginPaletteMode(palette);
 
         if (!GameIsPaused()){
             group.UpdateGroup(delta);
@@ -73,7 +62,7 @@ struct TempleGame {
         group.DrawGroup();
         //group.DrawGroupDebug(camera);
         
-        EndShaderMode();
+        EndPaletteMode();
 
         UpdateAndRenderEditor(camera, group, delta);
         UpdateAndRenderPauseMenu(delta,{0,0,0,50});
