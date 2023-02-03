@@ -397,6 +397,7 @@ Texture RequestTexture(const std::string& name);
 Image RequestImage(const std::string& name);
 Model RequestModel(const std::string& name);
 Shader RequestShader(const std::string& name);
+Sound RequestSound(const std::string& name);
 char* RequestCustom(const std::string& name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
 Palette RequestPalette(const std::string& name);
 Palette ParsePalette(char* text, const char* name="unnamed");

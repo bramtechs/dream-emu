@@ -55,6 +55,7 @@ struct TempleGame {
 
         // setup editor
         RegisterEntityBuilder(spawn_block);
+
     }
 
     void update_and_render(float delta) {
@@ -86,6 +87,12 @@ struct TempleGame {
         UpdateAndRenderEditorGUI(group, delta);
 
         EndDrawing();
+
+        if (IsKeyPressed(KEY_ENTER)){
+            // play test sound
+            Sound sound = RequestSound("sfx_core_confirm");
+            PlaySound(sound);
+        }
     }
 };
 
@@ -98,6 +105,7 @@ int main()
     assert(ChangeDirectory("X:\\temple"));
 
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");
+    InitAudioDevice();
     //SetWindowState(FLAG_WINDOW_MAXIMIZED);
 
     INFO("Launched at %s", GetWorkingDirectory());
@@ -151,6 +159,7 @@ int main()
     CheckAllocations();
 
     CloseMagmaWindow();
+    CloseAudioDevice();
 
     return 0;
 }

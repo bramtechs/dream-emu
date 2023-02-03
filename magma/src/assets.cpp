@@ -8,6 +8,7 @@ struct GameAssets {
     std::map<std::string, Model> models;
     std::map<std::string, Palette> palettes;
     std::map<std::string, Shader> shaders;
+    std::map<std::string, Sound> sounds;
 };
 
 static GameAssets Assets = {};
@@ -113,6 +114,9 @@ void DisposeAssets() {
     }
     for (const auto& item : Assets.shaders) {
         UnloadShader(item.second);
+    }
+    for (const auto& item : Assets.sounds) {
+        UnloadSound(item.second);
     }
 
     TraceLog(LOG_DEBUG, ("Disposed asset pack"));
@@ -330,6 +334,48 @@ Shader RequestShader(const std::string& name) {
     Shader shader = LoadShaderFromMemory(vert.empty() ? NULL:vert.c_str(), frag.empty() ? NULL:frag.c_str());
     Assets.shaders.insert({name,shader});
     return shader;
+}
+
+Sound RequestSound(const std::string& name){
+    // ATTEMPT 1: Load sound from cache
+    for (const auto &item : Assets.sounds){
+        if (item.first == name){
+            return item.second;
+        }
+    }
+
+    // ATTEMPT 2: Load from asset package 
+    Wave wave = {};
+    if (IsAssetLoaded(name)){
+        RawAsset asset = QueryAsset(name,".wav");
+        if (asset.data != NULL){
+            if (GetAssetType(asset.path) == ASSET_SOUND) {
+                // read from memory
+                wave = LoadWaveFromMemory(".wav", (const unsigned char*) asset.data, asset.size);
+            }
+            else {
+                TraceLog(LOG_ERROR, "Packaged asset with name %s is not a sound effect!", name);
+                return {};
+            }
+        }
+    }
+    else{
+        // ATTEMPT 3: Load sound from disk
+        const char* wavePath = TextFormat("%s.wav",name.c_str());
+        if (FileExists(wavePath)){
+            wave = LoadWave(wavePath);
+        }
+        else{
+            return {};
+        }
+    }
+
+    // finally load the sound 
+    Sound sound = LoadSoundFromWave(wave);
+    UnloadWave(wave);
+
+    Assets.sounds.insert({name,sound});
+    return sound;
 }
 
 // TODO put in engine
