@@ -4,10 +4,16 @@ template<typename T>
 class AssetMap : public std::map<std::string,T>{
 };
 
+struct IndexedTexture {
+    std::string palName; // palette used to extract colors
+    Texture texture;
+};
+
 struct GameAssets {
     std::vector<RawAsset> assets;
 
     // caches
+    AssetMap<IndexedTexture> indexedTextures;
     AssetMap<Texture> textures;
     AssetMap<Model> models;
     AssetMap<Palette> palettes;
@@ -114,6 +120,9 @@ void DisposeAssets() {
     for (const auto& item : Assets.textures) {
         UnloadTexture(item.second);
     }
+    for (const auto& item : Assets.indexedTextures) {
+        UnloadTexture(item.second.texture);
+    }
     for (const auto& item : Assets.models) {
         UnloadModel(item.second);
     }
@@ -127,8 +136,48 @@ void DisposeAssets() {
         UnloadFont(item.second);
     }
 
-    TraceLog(LOG_DEBUG, ("Disposed asset pack"));
+    TraceLog(LOG_DEBUG, "Disposed asset pack");
     UnloadTexture(PlaceholderTexture);
+}
+
+// TODO: maybe cache combination name, palette
+Texture RequestIndexedTexture(const std::string& name, Palette palette) {
+    // check if previously cached
+    for (const auto& item : Assets.indexedTextures) {
+        if (item.first == name) {
+            return item.second.texture;
+        }
+    }
+
+    Texture standardTexture = RequestTexture(name);
+    Image img = LoadImageFromTexture(standardTexture);
+    palette.MapImage(img);
+    Texture texture = LoadTextureFromImage(img);
+    UnloadImage(img);
+
+    // cache result
+    IndexedTexture cont;
+    cont.palName = std::string(palette.name,64);
+    cont.texture = texture;
+    Assets.indexedTextures.insert({name, cont});
+
+    return texture;
+}
+
+bool HasDefaultPalette(){
+    return Window.hasDefaultPalette;
+}
+
+Texture RequestIndexedTexture(const std::string& name) {
+    Texture texture;
+    if (HasDefaultPalette()){
+        texture = RequestIndexedTexture(name,Window.defaultPalette);
+    }
+    else {
+        WARN("No default palette set to load indexed texture!");
+        texture = RequestTexture(name);
+    }
+    return texture;
 }
 
 Texture RequestTexture(const std::string& name) {
@@ -618,9 +667,26 @@ AssetType GetAssetType(const char* name) {
     return ASSET_CUSTOM;
 }
 
+void PrintAssetStats() {
+    INFO("Fonts %d", Assets.fonts.size());
+    INFO("Sounds %d", Assets.sounds.size());
+    INFO("Shaders %d", Assets.shaders.size());
+    INFO("Palettes %d", Assets.palettes.size());
+    INFO("Models %d", Assets.models.size());
+    INFO("Textures %d", Assets.textures.size());
+    INFO("Paletted/indexed textures %d", Assets.indexedTextures.size());
+}
+
 void PrintAssetList() {
     for (const auto& item : Assets.assets) {
-        TraceLog(LOG_INFO, "asset --> %s (size %d bytes)", item.path, item.size);
+        const char* ext = GetFileExtension(item.path);
+        const char* name = GetFileName(item.path);
+        if (item.size >= 1000){
+            int kbSize = item.size / 1000;
+            TraceLog(LOG_INFO, "%s --> %s (size %d KB)", ext, name, kbSize);
+        }else{
+            TraceLog(LOG_INFO, "%s --> %s (size %d bytes)", ext, name, item.size);
+        }
     }
 }
 

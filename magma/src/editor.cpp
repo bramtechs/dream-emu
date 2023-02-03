@@ -221,7 +221,9 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
                 menu.RenderPanel();
                 if (Session.hasSubject) {
                     menu.DrawPopButton("Delete");
-                    menu.DrawPopButton("Change texture", !EditorIs3D); // 2d only
+
+                    const char* suffix = HasDefaultPalette() ? "(paletted)":"";
+                    menu.DrawPopButton(TextFormat("Change texture %s",suffix), !EditorIs3D); // 2d only
                 }
                 menu.DrawPopButton("Spawn entity");
                 menu.EndButtons(panelPos);
@@ -277,7 +279,14 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
                     assert(Session.hasSubject); 
 
                     auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
-                    Texture newTexture = RequestTexture(names[index]);
+
+                    Texture newTexture;
+                    if (HasDefaultPalette()){
+                        newTexture = RequestIndexedTexture(names[index]);
+                    }else{
+                        newTexture = RequestTexture(names[index]);
+                    }
+
                     sprite->SetTexture(newTexture);
                     DEBUG("Switched entity texture to %s", names[index].c_str());
 

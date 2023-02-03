@@ -89,29 +89,6 @@ struct BoundingBox2D {
     Vector2 max;
 };
 
-struct MagmaWindow {
-    Vector2 gameSize;
-    Vector2 winSize;
-    RenderTexture2D renderTarget;
-
-    float scale;
-    bool unscaled;
-    Vector2 scaledMouse;
-};
-extern MagmaWindow Window;
-
-struct MagmaSettings {
-    bool unlockFrameRate;
-    bool skipIntro;
-};
-extern MagmaSettings Settings;
-
-struct RawAsset {
-    char path[PATH_MAX_LEN];
-    int64_t size;
-    char* data;
-};
-
 struct Palette {
     char name[64];
     int colors[COLORS_PER_PALETTE * 3];
@@ -130,6 +107,32 @@ constexpr Palette INVALID_PALETTE = {
         255,0,0,
         255,0,255
     }
+};
+
+struct MagmaWindow {
+    Vector2 gameSize;
+    Vector2 winSize;
+    RenderTexture2D renderTarget;
+
+    Palette defaultPalette;
+    bool hasDefaultPalette;
+
+    float scale;
+    bool unscaled;
+    Vector2 scaledMouse;
+};
+extern MagmaWindow Window;
+
+struct MagmaSettings {
+    bool unlockFrameRate;
+    bool skipIntro;
+};
+extern MagmaSettings Settings;
+
+struct RawAsset {
+    char path[PATH_MAX_LEN];
+    int64_t size;
+    char* data;
 };
 
 struct LogLine {
@@ -395,6 +398,9 @@ std::vector<std::string> GetAssetNames(AssetType type=ASSET_ANY);
 size_t GetAssetCount();
 
 Texture RequestTexture(const std::string& name);
+Texture RequestIndexedTexture(const std::string& name, Palette palette); // URGENT TODO: cache results
+Texture RequestIndexedTexture(const std::string& name);
+
 Image RequestImage(const std::string& name);
 Model RequestModel(const std::string& name);
 Shader RequestShader(const std::string& name);
@@ -410,6 +416,7 @@ Model LoadOBJFromMemory(const char* fileName);
 
 int GetAssetType(const char* name);
 
+void PrintAssetStats();
 void PrintAssetList();
 inline bool IsAssetLoaded(const std::string& name);
 
@@ -423,6 +430,15 @@ Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
 
 void BeginMagmaDrawing();
 void EndMagmaDrawing();
+
+// only use these if you use the Editor
+bool HasDefaultPalette();
+void SetDefaultPalette(Palette palette);
+void ClearDefaultPalette();
+// ======
+
+void BeginPaletteMode(Palette palette);
+void EndPaletteMode();
 
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor = WHITE);
 void DrawBoundingBox(BoundingBox2D bounds, Color tint);
@@ -439,7 +455,7 @@ void SetTraceLogAssertLevel(TraceLogLevel level);
 void SetTraceLogOpenLevel(TraceLogLevel level);
 void ClearLog();
 void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG = true);
-void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=14);
+void UpdateAndDrawLog(float offsetX=10.f, float offsetY=10.f, int fontSize=16);
 bool LoggerIsOpen();
 void OpenLogger();
 void CloseLogger();

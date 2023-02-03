@@ -23,10 +23,19 @@ void ButtonGroup::poll(){
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
         selected++;
         goingUp = false;
+
+        // play sound
+        Sound sound = RequestSound("sfx_core_hover");
+        PlaySound(sound);
+
     }
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)){
         selected--;
         goingUp = true;
+
+        // play sound
+        Sound sound = RequestSound("sfx_core_hover");
+        PlaySound(sound);
     }
     selected = Wrap(selected,0,count);
 }
@@ -78,7 +87,7 @@ PopMenuConfig::PopMenuConfig(Color bgColor, Color fgColor, Color textColor)
 PopMenu::PopMenu(int priority){
     this->config = PopMenuConfig();
     this->initialized = false;
-    this->id = GetRandomValue(0,100000);
+    this->id = PopMenus.size();
 
     PopMenuFocus f(id,priority);
     PopMenus.push_back(f);
@@ -87,7 +96,7 @@ PopMenu::PopMenu(int priority){
 PopMenu::PopMenu(PopMenuConfig config, int priority){
     this->config = config;
     this->initialized = false;
-    this->id = GetRandomValue(0,100000);
+    this->id = PopMenus.size(); 
 
     PopMenuFocus f(id, priority);
     PopMenus.push_back(f);
@@ -231,7 +240,13 @@ bool PopMenu::IsInFocus(){
 
 bool PopMenu::IsButtonSelected(int* index){
     if (IsInFocus()) {
-        return group.IsButtonSelected(index);
+        bool sel = group.IsButtonSelected(index);
+        if (sel){
+            // play sound
+            Sound sound = RequestSound("sfx_core_confirm");
+            PlaySound(sound);
+        }
+        return sel;
     }
     return false;
 }
@@ -244,9 +259,17 @@ struct PauseMenuSession {
 
 static PauseMenuSession PauseSession = PauseMenuSession();
 
-static const char* toggle(bool on, const char* suffix){
-    return TextFormat("%s %s",on ? "Hide":"Show",suffix);
+static const char* toggle(bool on, const char* suffix, const char* yes, const char* no){
+    return TextFormat("%s %s",on ? yes:no,suffix);
 }
+
+static const char* toggle(bool on, const char* suffix){
+    return toggle(on,suffix,"Hide","Show");
+}
+
+
+// TODO: remove
+static bool IsMuted = false;
 
 void UpdateAndRenderPauseMenu(float delta, Color bgColor){
     if (IsKeyPressed(KEY_ESCAPE)){
@@ -259,30 +282,47 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
 
     PopMenu& menu = PauseSession.menu;
     menu.RenderPanel();
+    menu.DrawPopButton("Continue", false);
     menu.DrawPopButton("Reload", false);
+    menu.DrawPopButton(toggle(IsMuted,"audio","Play","Mute"));
     menu.DrawPopButton("Quit");
     menu.DrawPopButton("",false,true);
+
+    // TODO: define debug flags
     menu.DrawPopButton("== DEV-TOOLS ==",false,true);
     menu.DrawPopButton(toggle(LoggerIsOpen(),"console"));
     menu.DrawPopButton(toggle(EditorIsOpen(),"editor"));
+    menu.DrawPopButton("Dump asset info");
 
     // button actions
     int index = 0;
     menu.IsButtonSelected(&index);
     switch (index){
-        case 0: // reload
+        case 0: // continue
+            break;
+        case 1: // reload
             // TODO: implement
             break;
-        case 1: // quit
+        case 2: // mute/unmute 
+            IsMuted = !IsMuted;
+            SetMasterVolume(IsMuted ? 0.f:1.f);
+            break;
+        case 3: // quit
             CloseWindow();
             break;
-        case 4: // show/hide console
+        case 6: // show/hide console
             ToggleLogger();
-            UnpauseGame();
             break;
-        case 5: // show/hide console
+        case 7: // show/hide editor
             ToggleEditor();
-            UnpauseGame();
+            break;
+        case 8:
+            INFO("=========================");
+            PrintAssetList();
+            INFO("=========================");
+            PrintAssetStats();
+            INFO("=========================");
+            OpenLogger();
             break;
     }
 
@@ -295,14 +335,26 @@ bool GameIsPaused(){
 
 void PauseGame(){
     PauseSession.isOpened = true;
+
+    // play sound
+    Sound sound = RequestSound("sfx_core_pause");
+    PlaySound(sound);
 }
 
 void UnpauseGame(){
     PauseSession.isOpened = false;
+
+    // play sound
+    Sound sound = RequestSound("sfx_core_unpause");
+    PlaySound(sound);
 }
 
 bool ToggleGamePaused(){
-    PauseSession.isOpened = !PauseSession.isOpened;
+    if (PauseSession.isOpened){
+        UnpauseGame();
+    }else{
+        PauseGame();
+    }
     return PauseSession.isOpened;
 }
 

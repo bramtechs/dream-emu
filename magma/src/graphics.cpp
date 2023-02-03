@@ -76,6 +76,38 @@ void EndMagmaDrawing() {
         { topLeft.x, topLeft.y, (float)Win.gameSize.x * Win.scale, (float)Win.gameSize.y * Win.scale }, { 0, 0 }, 0.0f, WHITE);
 }
 
+void SetDefaultPalette(Palette palette) {
+    Window.defaultPalette = palette;
+    Window.hasDefaultPalette = true;
+}
+
+void ClearDefaultPalette() {
+    Window.hasDefaultPalette = false;
+}
+
+static std::string CurrentPaletteName = "";
+void BeginPaletteMode(Palette palette){
+    Shader shader = RequestShader("frag_core_palette_switch");
+
+    std::string palName = std::string(palette.name,64);
+    if (CurrentPaletteName != palName){
+        // put colors into shader if needed
+        int paletteLoc = GetShaderLocation(shader, "palette");
+        SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
+
+        CurrentPaletteName = palName;
+    }
+
+    BeginShaderMode(shader);
+
+    // ------
+}
+
+void EndPaletteMode(){
+    // ------
+    EndShaderMode();
+}
+
 void CloseMagmaWindow() {
     UnloadRenderTexture(Win.renderTarget);
     CloseWindow();
