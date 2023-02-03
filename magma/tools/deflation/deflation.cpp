@@ -24,7 +24,8 @@ std::vector<std::string> get_supported_formats() {
         ".mp3",
         ".pal",
         ".fs",
-        ".vs"
+        ".vs",
+        ".wav"
     };
 };
 
@@ -100,33 +101,30 @@ void save(PackList pack, const char* output, bool compress=false) {
     buffer.close();
 }
 
-void deflate(const char* input, const char* output, bool compress=false) {
-    FilePathList files = LoadDirectoryFilesEx(input, NULL, true);
+void deflate(std::vector<std::string>& inputFolders, std::string& output, bool compress=false) {
+    // collect all file paths 
+    std::vector<std::string> paths;
+    for (const auto &folder : inputFolders){
+        FilePathList files = LoadDirectoryFilesEx(folder.c_str(), NULL, true);
+        for (int i = 0; i < files.count; i++){
+            paths.push_back(files.paths[i]);
+        }
+        UnloadDirectoryFiles(files);
+    }
 
     PackList pack;
 
-    for (int i = 0; i < files.count; i++) {
+    for (const auto &path : paths) {
 
-        std::string shortPath = files.paths[i];
-        shortPath.erase(0, strlen(input));
-        // remove slashes if present
-        if (shortPath[0] == '\\' || shortPath[0] == '/') {
-            shortPath.erase(0, 1);
-        }
-        // tilt slashes forwards
-        std::replace(shortPath.begin(), shortPath.end(), '\\', '/');
-
-        std::string path = files.paths[i];
-        const char* ext = GetFileExtension(path.c_str());
+        std::string file = GetFileName(path.c_str());
+        const char* ext = GetFileExtension(file.c_str());
 
         if (should_include(ext)) {
-            process(pack, path, shortPath, compress);
+            process(pack, path, file, compress);
         }
     }
 
-    save(pack, output, compress);
-
-    UnloadDirectoryFiles(files);
+    save(pack, output.c_str(), compress);
 }
 
 int run(std::vector<std::string> args) {
@@ -135,8 +133,13 @@ int run(std::vector<std::string> args) {
         return -1;
     }
 
-    std::string inputFolder = args[1];
-    std::string exportFolder = args[2];
+    std::vector<std::string> inputFolders;
+    for (int i = 0; i <= args.size()-2; i++){
+        auto path = args[i];
+        inputFolders.push_back(path);
+    }
+
+    std::string exportFolder = args[args.size()-1];
 
     bool doCompress = false;
     if (args.size() > 3 && args[3] == "--compress") {
@@ -144,7 +147,7 @@ int run(std::vector<std::string> args) {
         INFO("Compressing package...");
     }
 
-    deflate(inputFolder.c_str(), exportFolder.c_str(), doCompress);
+    deflate(inputFolders, exportFolder, doCompress);
 
     INFO("Exported %scompressed package to %s", doCompress ? "":"un", exportFolder.c_str());
 
@@ -162,8 +165,9 @@ int main(int argc, char** argv)
     }
     run(args);
 
-    //ChangeDirectory("X:\\");
-    //args.push_back("assets_raw");
+    //ChangeDirectory("X:\\temple");
+    //args.push_back("raw_assets");
+    //args.push_back("..\\core_assets");
     //args.push_back("assets.mga");
     //args.push_back("--compressed");
     //run(args);
