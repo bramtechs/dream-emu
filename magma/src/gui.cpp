@@ -161,7 +161,7 @@ void PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
         actualColor = ColorBrightness(config.textColor,-0.3);
     }
 
-    Vector2 textSize = MeasureTextEx(GetFontDefault(), text, config.fontSize, 1.5f);    // Measure string size for Font
+    Vector2 textSize = MeasureTextEx(GetFontDefault(), text, config.fontSize, 3.0f);    // Measure string size for Font
     textSize.x += config.padding * 2 + config.arrowPadding;
 
     bool isSelected = isBlank ? group.skip() : group.next();
