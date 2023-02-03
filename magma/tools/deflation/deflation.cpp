@@ -25,7 +25,8 @@ std::vector<std::string> get_supported_formats() {
         ".pal",
         ".fs",
         ".vs",
-        ".wav"
+        ".wav",
+        ".ttf"
     };
 };
 

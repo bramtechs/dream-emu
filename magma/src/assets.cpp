@@ -1,14 +1,19 @@
 #include "magma.h"
 
+template<typename T>
+class AssetMap : public std::map<std::string,T>{
+};
+
 struct GameAssets {
     std::vector<RawAsset> assets;
 
     // caches
-    std::map<std::string, Texture> textures;
-    std::map<std::string, Model> models;
-    std::map<std::string, Palette> palettes;
-    std::map<std::string, Shader> shaders;
-    std::map<std::string, Sound> sounds;
+    AssetMap<Texture> textures;
+    AssetMap<Model> models;
+    AssetMap<Palette> palettes;
+    AssetMap<Shader> shaders;
+    AssetMap<Sound> sounds;
+    AssetMap<Font> fonts;
 };
 
 static GameAssets Assets = {};
@@ -117,6 +122,9 @@ void DisposeAssets() {
     }
     for (const auto& item : Assets.sounds) {
         UnloadSound(item.second);
+    }
+    for (const auto& item : Assets.fonts) {
+        UnloadFont(item.second);
     }
 
     TraceLog(LOG_DEBUG, ("Disposed asset pack"));
@@ -378,6 +386,58 @@ Sound RequestSound(const std::string& name){
     return sound;
 }
 
+Font RequestFont(const std::string& name){
+    // ATTEMPT 1: Load font from cache
+    for (const auto &item : Assets.fonts){
+        if (item.first == name){
+            return item.second;
+        }
+    }
+
+    Font font;
+    // ATTEMPT 2: Load from asset package
+    if (IsAssetLoaded(name)){
+        RawAsset asset = QueryAsset(name,".ttf");
+        if (asset.data != NULL){
+            if (GetAssetType(asset.path) == ASSET_FONT) {
+                // read from memory
+                font = LoadFontFromMemory(".ttf", (const unsigned char*) asset.data, asset.size, 72, NULL, NULL); // -- chars and glyphcount
+                if (font.baseSize < 0) {
+                    TraceLog(LOG_ERROR, "Malformed font %s!", name.c_str());
+                    font = GetFontDefault();
+                }
+            }
+            else {
+                TraceLog(LOG_ERROR, "Packaged asset with name %s is not a font!", name.c_str());
+                font = GetFontDefault();
+            }
+        }
+    }
+    else {
+         // ATTEMPT 3: Load font from disk
+        const char* fontPath = TextFormat("%s.ttf", name.c_str());
+        if (FileExists(fontPath)) {
+            font = LoadFont(fontPath);
+            if (font.baseSize < 0) {
+                TraceLog(LOG_ERROR, "Malformed disk font %s!", name.c_str());
+                font = GetFontDefault();
+            }
+        }
+        else {
+            TraceLog(LOG_WARNING, "Didn't find font with name %s!", name.c_str());
+            font = GetFontDefault();
+        }
+    }
+
+    // Cache the font
+    Assets.fonts.insert({name,font});
+    return font;
+}
+
+Font GetRetroFont(){
+    return RequestFont("font_core_retro2");
+}
+
 // TODO put in engine
 std::vector<std::string> split(const std::string& s, char delim) {
     std::vector<std::string> result;
@@ -545,6 +605,9 @@ AssetType GetAssetType(const char* name) {
     }
     if (ext == ".obj" || ext == ".fbx") {
         return ASSET_MODEL;
+    }
+    if (ext == ".ttf") {
+        return ASSET_FONT;
     }
     if (ext == ".fs") {
         return ASSET_FRAG_SHADER;

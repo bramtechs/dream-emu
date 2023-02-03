@@ -83,7 +83,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
         DrawRectangle(0, 0, bgWidth + 25, GetScreenHeight(),bgCol);
 
         // draw tooltip
-        DrawText("Show/hide logs with F2\nScroll by holding LEFT SHIFT.", 10, GetScreenHeight() - 40, 16, WHITE);
+        DrawRetroText("Show/hide logs with F2\nScroll by holding LEFT SHIFT.", 10, GetScreenHeight() - 40, 16, WHITE);
     }
 
     // draw lines
@@ -109,7 +109,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
         }
 
         const char* text = line.text.c_str();
-        DrawText(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
+        DrawRetroText(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
 
         // expand background if needed
         if (drawBG) {

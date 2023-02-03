@@ -167,12 +167,12 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
 
     Sprite* sprite = NULL;
     if (Session.hasSubject){
-        DrawText(TextFormat("Selected Entity: %d",Session.subjectID),x,y,FONT_SIZE,WHITE);
+        DrawRetroText(TextFormat("Selected Entity: %d",Session.subjectID),x,y,FONT_SIZE,WHITE);
         y += FONT_SIZE + 4;
 
         sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
         BoundingBox2D b = sprite->bounds;
-        DrawText(TextFormat("Bounds: %f %f\n       %f %f",b.min.x,b.min.y,b.max.x,b.max.y),x,y,FONT_SIZE,WHITE);
+        DrawRetroText(TextFormat("Bounds: %f %f\n       %f %f",b.min.x,b.min.y,b.max.x,b.max.y),x,y,FONT_SIZE,WHITE);
         y += FONT_SIZE + 4;
     }
 

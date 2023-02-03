@@ -59,7 +59,7 @@ struct Explorer {
 
             const char* tooltip = "Toggle tiling by pressing T";
             int tlen = MeasureText(tooltip, 16);
-            DrawText(tooltip, GetScreenWidth() - tlen - 30, GetScreenHeight() - 30, 18, LIGHTGRAY);
+            DrawRetroText(tooltip, GetScreenWidth() - tlen - 30, GetScreenHeight() - 30, 18, LIGHTGRAY);
 
             if (IsKeyPressed(KEY_T)) {
                 tileMode = !tileMode;
@@ -88,10 +88,10 @@ struct Explorer {
         }
         break;
         case ASSET_SOUND:
-            DrawText("Audio playback not implemented", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
+            DrawRetroText("Audio playback not implemented", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
             break;
         case ASSET_CUSTOM:
-            DrawText("Custom unsupported datatype, use your imagination.", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
+            DrawRetroText("Custom unsupported datatype, use your imagination.", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
             break;
         }
 
@@ -124,7 +124,7 @@ struct Explorer {
 
         // TEST MODE
         if (testMode) {
-            DrawText("test mode", 360, 10, 12, ORANGE);
+            DrawRetroText("test mode", 360, 10, 12, ORANGE);
             selectedIndex++;
             if (selectedIndex >= GetAssetCount()) {
                 WARN("TEST COMPLETE");
@@ -136,7 +136,7 @@ struct Explorer {
         selectedIndex = Wrap(selectedIndex, 0, GetAssetCount());
 
         Color typeColor = GetAssetTypeColor(selectedPath.c_str());
-        DrawText(selectedPath.c_str(), bgWidth + 40, 50, 30, typeColor);
+        DrawRetroText(selectedPath.c_str(), bgWidth + 40, 50, 30, typeColor);
 
         // scrolling of the list
         if (assetType != ASSET_MODEL || IsKeyDown(KEY_LEFT_SHIFT)) {
@@ -152,7 +152,7 @@ struct Explorer {
 
         bool mouseOver = CheckCollisionPointRec(GetMousePosition(), region);
         Color tint = mouseOver ? color : ColorBrightness(color, -0.3f);
-        DrawText(text, x, y, FONT_SIZE, tint);
+        DrawRetroText(text, x, y, FONT_SIZE, tint);
 
         // click on the button
         if (mouseOver && IsMouseButtonPressed(0)) {
@@ -170,6 +170,8 @@ struct Explorer {
             return RED;
         case ASSET_SOUND:
             return BLUE;
+        case ASSET_FONT:
+            return PURPLE;
         default:
             return WHITE;
         }

@@ -176,7 +176,7 @@ void PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
     }
 
     if (this->initialized) {
-        DrawText(text,textPos.x,textPos.y,config.fontSize,actualColor);
+        DrawRetroText(text,textPos.x,textPos.y,config.fontSize,actualColor);
     }
 
     if (size.x < textSize.x){
@@ -225,6 +225,7 @@ bool PopMenu::IsInFocus(){
         }
     }
 
+    if (ids.size() == 0) return false;
     return ids[ids.size()-1] == this->id;
 }
 
@@ -395,7 +396,7 @@ bool MainMenu::UpdateAndDraw(float delta) {
     DrawBackground(texture, tint);
 
     if (curSplash >= config.splashes.size()) {
-        DrawText(config.title, 20, 20, 36, WHITE);
+        DrawRetroText(config.title, 20, 20, 36, WHITE);
     }
 
     if (IsKeyPressed(KEY_ENTER)) {

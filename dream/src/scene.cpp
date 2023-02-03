@@ -52,7 +52,7 @@ void Scene::update_and_render(float delta)
     Feet = player.Update(&group,delta);
 
     if (((int)GetTime()) % 2 == 0) {
-        DrawText("DEV-DISC", WIDTH - MeasureText("DEV-DISC ", 20), HEIGHT - 20, 20, WHITE);
+        DrawRetroText("DEV-DISC", WIDTH - MeasureText("DEV-DISC ", 20), HEIGHT - 20, 20, WHITE);
     }
 
     EndMagmaDrawing();

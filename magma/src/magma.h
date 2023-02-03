@@ -52,6 +52,7 @@
 #define ASSET_SOUND            2
 #define ASSET_FRAG_SHADER      3
 #define ASSET_VERT_SHADER      4
+#define ASSET_FONT             5
 
 #define FOCUS_LOW              0 // use for menus that stay open to avoid softlock
 #define FOCUS_NORMAL           5
@@ -398,9 +399,12 @@ Image RequestImage(const std::string& name);
 Model RequestModel(const std::string& name);
 Shader RequestShader(const std::string& name);
 Sound RequestSound(const std::string& name);
+Font RequestFont(const std::string& name);
 char* RequestCustom(const std::string& name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
 Palette RequestPalette(const std::string& name);
 Palette ParsePalette(char* text, const char* name="unnamed");
+
+Font GetRetroFont();
 
 Model LoadOBJFromMemory(const char* fileName);
 
@@ -422,6 +426,7 @@ void EndMagmaDrawing();
 
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor = WHITE);
 void DrawBoundingBox(BoundingBox2D bounds, Color tint);
+void DrawRetroText(const char* text, int posX, int posY, int fontSize=18, Color color=WHITE);
 
 Ray GetWindowMouseRay(Camera3D camera);
 

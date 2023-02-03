@@ -87,12 +87,6 @@ struct TempleGame {
         UpdateAndRenderEditorGUI(group, delta);
 
         EndDrawing();
-
-        if (IsKeyPressed(KEY_ENTER)){
-            // play test sound
-            Sound sound = RequestSound("sfx_core_confirm");
-            PlaySound(sound);
-        }
     }
 };
 

@@ -238,11 +238,16 @@ void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color 
     // draw text
     if (text != NULL && text != "") {
         Vector2 pos = Vector2Subtract({ width * 0.5f,height * 0.5f }, Vector2Scale(MeasureTextEx(GetFontDefault(), text, 28, 2), 0.5f));
-        DrawTextEx(GetFontDefault(), text, pos, 28, 2, textColor);
+        DrawTextEx(GetRetroFont(), text, pos, 28, 2, textColor);
     }
 }
 
 void DrawBoundingBox(BoundingBox2D bounds, Color tint) {
     Rectangle rect = BoundingBoxToRect(bounds);
     DrawRectangleLinesEx(rect, 1.f, tint);
+}
+
+void DrawRetroText(const char* text, int posX, int posY, int fontSize, Color color){
+    Font font = GetRetroFont();
+    DrawTextEx(font, text, {(float) posX, (float) posY}, (float) fontSize, 1.f, color);
 }
