@@ -168,13 +168,17 @@ bool HasDefaultPalette(){
     return Window.hasDefaultPalette;
 }
 
+static bool HasWarned = false;
 Texture RequestIndexedTexture(const std::string& name) {
     Texture texture;
     if (HasDefaultPalette()){
         texture = RequestIndexedTexture(name,Window.defaultPalette);
     }
     else {
-        WARN("No default palette set to load indexed texture!");
+        if (!HasWarned){
+            WARN("No default palette set to load indexed texture!");
+            HasWarned = true;
+        }
         texture = RequestTexture(name);
     }
     return texture;

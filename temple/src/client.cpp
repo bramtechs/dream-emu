@@ -1,28 +1,7 @@
 #include "magma.h"
 #include "client.hpp"
 
- #define STRING( name ) #name
-
 // fox player sprite
-constexpr int COMP_PLAT_PLAYER = 101;
-constexpr int COMP_ANIM_PLAYER = 100;
-
-enum PlaybackMode {
-    PLAY_LOOP,
-    PLAY_PING_PONG,
-    PLAY_ONCE,
-};
-
-struct SheetAnimation {
-    std::string name; // description 
-    std::string sheetName; // name of texture
-    Vector2 origin; // top left of sector
-    Vector2 cellSize; // size of each cell
-    uint count; // number of cells in anim
-    PlaybackMode mode;
-    float fps;
-};
-
 constexpr Vector2 FOX_CELL_SIZE = {17,32};
 constexpr float FOX_ANIM_FPS = 15.f;
 
@@ -77,62 +56,6 @@ static SheetAnimation ANIM_LAND = {
 };
 
 // TODO: add other animations
-enum PlayerPose {
-    POSE_IDLE,
-    POSE_WALK_LEFT,
-    POSE_WALK_RIGHT,
-    POSE_JUMP,
-    POSE_FALL,
-    POSE_DUCK,
-};
-constexpr char* PlayerPoseNames[] = {
-    STRING(POSE_IDLE),
-    STRING(POSE_WALK_LEFT),
-    STRING(POSE_WALK_RIGHT),
-    STRING(POSE_JUMP),
-    STRING(POSE_FALL),
-    STRING(POSE_JUMP),
-};
-
-struct PhysicsProps {
-    Vector2 velocity;
-    float maxSpeed;
-    float accel;
-    float damp;
-
-    PhysicsProps(float accel, float damp, float maxSpeed){
-        this->accel = accel;
-        this->damp = damp;
-        this->maxSpeed = maxSpeed;
-        this->velocity = {};
-    }
-};
-
-// Sprite
-struct PlatformerPlayer {
-    PhysicsProps phys;
-    PlayerPose pose;
-
-    PlatformerPlayer(PhysicsProps physics, PlayerPose defaultPose=POSE_IDLE)
-        : phys(physics),  pose(defaultPose)  {
-    }
-};
-
-struct AnimationPlayer {
-    SheetAnimation& curAnim;
-    int curFrame;
-    float timer;
-
-    AnimationPlayer(SheetAnimation& startAnim)
-        : curFrame(0), curAnim(startAnim), timer(0.f) {
-    }
-
-    void SetAnimation(SheetAnimation& anim) {
-        curAnim = anim;
-        timer = 0.f;
-        curFrame = 0;
-    }
-};
 
 // factory functions
 EntityID spawn_block(EntityGroup& group, Vector3 pos){
@@ -162,62 +85,6 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     group.AddEntityComponent(COMP_PLAT_PLAYER,id,player);
 
     return id;
-}
-
-void update_custom(EntityGroup& group, float delta){
-    for (const auto& comp : group.comps) {
-        switch (comp.second.type) {
-        case COMP_ANIM_PLAYER:
-        {
-            auto animPlayer = (AnimationPlayer*)comp.second.data;
-            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
-
-            // advance current animation
-            SheetAnimation& anim = animPlayer->curAnim;
-
-            // set current frame
-            Texture sheetTexture = RequestIndexedTexture(anim.sheetName);
-            Rectangle src = {
-                anim.origin.x + anim.cellSize.x * abs(animPlayer->curFrame),
-                anim.origin.y,
-                anim.cellSize.x,
-                anim.cellSize.y,
-            };
-
-            sprite->SetTexture(sheetTexture,src);
-
-            if (animPlayer->timer > 1.f/anim.fps){
-                animPlayer->timer = 0.f;
-                animPlayer->curFrame++;
-
-                switch (anim.mode){
-                    case PLAY_LOOP:
-                        animPlayer->curFrame = Wrap(animPlayer->curFrame,0,anim.count-1);
-                        break;
-                    case PLAY_ONCE:
-                        animPlayer->curFrame = Clamp(animPlayer->curFrame,0,anim.count-1);
-                        break;
-                    case PLAY_PING_PONG:
-                        if (animPlayer->curFrame >= (int)anim.count){
-                            animPlayer->curFrame = -anim.count+1;
-                        }
-                        break;
-                }
-
-            }
-
-            DrawText(TextFormat("%d",animPlayer->curFrame),20,20,18,RED);
-
-            animPlayer->timer += delta;
-        } break;
-        case COMP_PLAT_PLAYER:
-        {
-
-        } break;
-        default:
-            break;
-        }
-    }
 }
 
 #define PAL_WARM        "pal_warm"
@@ -268,7 +135,6 @@ struct TempleGame {
 
         if (!GameIsPaused()){
             group.UpdateGroup(delta);
-            update_custom(group, delta);
         }
         group.DrawGroup();
         //group.DrawGroupDebug(camera);

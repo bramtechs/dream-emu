@@ -17,8 +17,7 @@
 
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
-
-#define new(X) (X*)M_MemAlloc(sizeof(X))
+#define STRING( name ) #name
 
 #ifdef __unix___ 
 #define INFO(X...)  TraceLog(LOG_INFO,X)
@@ -355,26 +354,7 @@ struct EntityGroup {
     size_t DrawGroupDebug(Camera2D camera);
 };
 
-struct PlayerFPS {
-    Camera camera;
-    float eyeHeight;
-    bool isFocused;
-
-    float angle;
-    float tilt;
-
-    Vector3 feet;
-
-    PlayerFPS(float eyeHeight=1.8f);
-    Vector3 Update(void* group, float delta);
-
-    void Focus();
-    void Unfocus();
-    void Teleport(Vector3 position);
-
-    void SetAngle(float lookAtDeg);
-    void SetFov(float fovDeb);
-};
+#include "magma_extra.h"
 
 void* M_MemAlloc(size_t size);
 void M_MemFree(void* ptr);

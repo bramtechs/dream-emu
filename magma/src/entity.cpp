@@ -274,6 +274,7 @@ size_t EntityGroup::UpdateGroup(float delta) {
             break;
         }
     }
+    entityCount += UpdateGroupExtended(this,delta);
     return entityCount;
 }
 
@@ -310,6 +311,7 @@ size_t EntityGroup::DrawGroup() {
             break;
         }
     }
+    entityCount += DrawGroupExtended(this);
     return entityCount;
 }
 
