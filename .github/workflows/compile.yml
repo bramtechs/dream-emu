@@ -19,11 +19,12 @@ jobs:
       - name: MSVC compilation 
         run: |
           powershell -file dist.ps1
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+      - name: "Upload zip with binaries"
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/DREAM_EMU.ZIP
-          tag: ${{ github.ref }} - ${{ github.event.repository.updated_at}}
-          overwrite: true
-          file_glob: true
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "dev-${{ github.run_id }}-${{ github.run_attempt }}"
+          prerelease: false
+          title: "Development Build"
+          files: |
+            build/DREAM_EMU.ZIP
