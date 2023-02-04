@@ -164,6 +164,9 @@ Vector2 GetWindowMousePosition(Camera2D camera) {
 }
 
 Color Palette::GetIndexColor(int index) {
+    if (index == -1){
+        return BLANK;
+    }
     index = Clamp(index, 0, 255);
     Color result = {
         index,
@@ -189,6 +192,10 @@ Color Palette::GetColor(int index) {
 }
 
 int Palette::MapColor(Color color) {
+    if (color.a == 0){
+        return -1;
+    }
+
     for (int i = 0; i < COLORS_PER_PALETTE; i++) {
         if (colors[i * 3 + 0] == color.r &&
             colors[i * 3 + 1] == color.g &&
@@ -201,6 +208,10 @@ int Palette::MapColor(Color color) {
 }
 
 int Palette::MapColorLoosely(Color color) {
+    if (color.a == 0){
+        return -1;
+    }
+
     Vector3 inCol = {
         color.r,
         color.g,
@@ -230,7 +241,7 @@ void Palette::MapImage(Image img) {
             Color origColor = GetImageColor(img, x, y);
             int i = MapColorLoosely(origColor);
             Color newColor = GetIndexColor(i);
-            ImageDrawPixel(&img, x,y, newColor);
+            ImageDrawRectangle(&img, x,y,1,1, newColor);
         }
     }
 }

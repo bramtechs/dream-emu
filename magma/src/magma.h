@@ -346,6 +346,7 @@ struct EntityGroup {
     }
 
     void* GetEntityComponent(EntityID id, ItemType filter);
+    std::vector<CompContainer> GetEntityComponents(EntityID id);
 
     size_t UpdateGroup(float delta);
 

@@ -123,7 +123,7 @@ void Sprite::SetTexture(Texture texture, Rectangle srcRect){
     if (srcRect.x == 0 && srcRect.y == 0 &&
         srcRect.width == 0 && srcRect.height == 0){
         this->srcRect = { 0.f, 0.f,
-                         (float) texture.width, (float) texture.height };
+                         (float) floorf(texture.width), (float) floorf(texture.height) };
     }
     else{
         this->srcRect = srcRect;
@@ -252,10 +252,20 @@ void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
     return NULL;
 }
 
+std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id) {
+    std::vector<CompContainer> conts;
+    for (const auto &comp : comps){
+        if (comp.first == id){
+            CompContainer container = comp.second;
+            conts.push_back(container);
+        }
+    }
+    return conts;
+}
 
 size_t EntityGroup::UpdateGroup(float delta) {
     for (const auto& comp : comps) {
-        switch (comp.first) {
+        switch (comp.second.type) {
         case COMP_BASE:
         {
             auto base = (Base*)comp.second.data;

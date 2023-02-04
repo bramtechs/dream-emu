@@ -200,10 +200,21 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
             BoundingBox b = base->bounds;
             DrawRetroText(TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z),x,y,FONT_SIZE,WHITE);
         }
-        else{ // 2d
+        else { // 2d
             auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
             BoundingBox2D b = sprite->bounds;
-            DrawRetroText(TextFormat("Bounds: %f %f\n %f %f",b.min.x,b.min.y,b.max.x,b.max.y),x,y,FONT_SIZE,WHITE);
+
+            std::string infoText = "";
+
+            infoText += TextFormat("Bounds: %f %f\n %f %f\n",b.min.x,b.min.y,b.max.x,b.max.y);
+
+            // collect all components of id
+            infoText += "\n==== Components ====\n";
+            for (const auto &cont : group.GetEntityComponents(Session.subjectID)){
+                infoText += TextFormat("Comp: #%d\n",cont.type);
+            }
+
+            DrawRetroText(infoText.c_str(),x,y,FONT_SIZE,WHITE);
         }
         y += FONT_SIZE + 4;
     }
