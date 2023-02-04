@@ -237,13 +237,11 @@ private:
     void DrawBackground(Texture texture, Color tint);
 };
 
-// TODO get rid of entityID in components
 struct Base {
-    EntityID id;
     BoundingBox bounds;
     Color tint;
 
-    Base(EntityID id, Vector3 pos = {0,0,0}, Color tint = WHITE);
+    Base(Vector3 pos = {0,0,0}, Color tint = WHITE);
 
     void Translate(Vector3 offset);
     inline void TranslateX(float x);
@@ -267,7 +265,6 @@ struct Base {
 };
 
 struct Sprite {
-    EntityID id;
     BoundingBox2D bounds;
     int zOrder;
     Color tint;
@@ -275,7 +272,7 @@ struct Sprite {
     Texture texture;
     Rectangle srcRect;
 
-    Sprite(EntityID id, Vector2 pos = {0,0},
+    Sprite(Vector2 pos = {0,0},
            Color tint = WHITE, int zOrder = 0);
 
     void Translate(Vector2 offset);
@@ -302,12 +299,11 @@ struct Sprite {
 };
 
 struct ModelRenderer{
-    EntityID id;
     const char* model;
     bool accurate;
     Vector3 offset; // from base center
 
-    ModelRenderer(EntityID id, const char* modelPath, Base* base);
+    ModelRenderer(const char* modelPath, Base* base);
 };
 
 struct CompContainer {
@@ -424,6 +420,7 @@ void EndPaletteMode();
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor = WHITE);
 void DrawBoundingBox(BoundingBox2D bounds, Color tint);
 void DrawRetroText(const char* text, int posX, int posY, int fontSize=18, Color color=WHITE);
+Vector2 MeasureRetroText(const char* text, int fontSize=18);
 
 Ray GetWindowMouseRay(Camera3D camera);
 
@@ -456,6 +453,16 @@ bool ToggleGamePaused();
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
 void RegisterEntityBuilder(EntityBuilderFunction func);
+
+struct Description {
+    std::string typeName;
+    std::string info;
+    Color color=WHITE;
+};
+
+typedef Description (*ComponentDescriptor)(void* data);
+void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func);
+Description DescribeComponent (CompContainer cont);
 
 void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta);
 void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta);

@@ -64,9 +64,6 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                         break;
                 }
             }
-
-            DrawText(TextFormat("%d",abs(animPlayer->curFrame)),20,20,18,RED);
-
             animPlayer->timer += delta;
         } break;
         case COMP_PLAT_PLAYER:
@@ -90,9 +87,6 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             // apply velocity
             Vector2 scaledVel = Vector2Scale(vel,delta);
             sprite->Translate(scaledVel);
-
-            DrawText(TextFormat("%f %f",vel.x,vel.y),20,50,13,YELLOW);
-            
         } break;
         default:
             break;

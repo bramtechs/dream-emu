@@ -294,3 +294,8 @@ void DrawRetroText(const char* text, int posX, int posY, int fontSize, Color col
     Font font = GetRetroFont();
     DrawTextEx(font, text, {(float) posX, (float) posY}, (float) fontSize, 1.f, color);
 }
+
+Vector2 MeasureRetroText(const char* text, int fontSize){
+    Font font = GetRetroFont();
+    return MeasureTextEx(font, text, fontSize, 1.f);
+}

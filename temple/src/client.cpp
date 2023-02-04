@@ -60,8 +60,7 @@ static SheetAnimation ANIM_LAND = {
 // factory functions
 EntityID spawn_block(EntityGroup& group, Vector3 pos){
     EntityID id = group.AddEntity();
-    Sprite sprite = Sprite(id);
-    sprite.SetCenter(pos.x, pos.y);
+    Sprite sprite = Sprite({pos.x, pos.y});
     Texture blockTexture = RequestIndexedTexture("spr_block");
     sprite.SetTexture(blockTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);
@@ -71,8 +70,7 @@ EntityID spawn_block(EntityGroup& group, Vector3 pos){
 EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     EntityID id = group.AddEntity();
 
-    Sprite sprite = Sprite(id);
-    sprite.SetCenter(pos.x, pos.y);
+    Sprite sprite = Sprite({pos.x, pos.y});
     Texture foxTexture = RequestIndexedTexture("spr_player_fox");
     sprite.SetTexture(foxTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);

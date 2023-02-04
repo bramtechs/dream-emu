@@ -18,8 +18,8 @@ Model scene_gen_skybox_model(const char* skybox) {
 GardenDream::GardenDream() {
     EntityID id = group.AddEntity();
 
-    Base base = Base(id);
-    ModelRenderer renderer = ModelRenderer(id,"mesh_garden_start.obj",&base);
+    Base base = Base();
+    ModelRenderer renderer = ModelRenderer("mesh_garden_start.obj",&base); // TODO: WRONG!!!!!
     renderer.accurate = true;
 
     group.AddEntityComponent(COMP_BASE, id, base);
@@ -38,7 +38,7 @@ HubDream::HubDream() {
         Model sky = scene_gen_skybox_model("spr_sky.png");
         EntityID id = group.AddEntity();
 
-        auto base = Base(id);
+        auto base = Base();
         // ModelRenderer renderer = ModelRenderer(id, sky, &base); TODO create in blender
 
         // TODO
@@ -48,9 +48,9 @@ HubDream::HubDream() {
 
     {
         EntityID id = group.AddEntity();
-        Base base = Base(id, Vector3Zero(), RAYWHITE);
+        Base base = Base(Vector3Zero(), RAYWHITE);
 
-        ModelRenderer renderer = ModelRenderer(id,"mesh_hub.obj",&base);
+        ModelRenderer renderer = ModelRenderer("mesh_hub.obj",&base);
 
         group.AddEntityComponent(COMP_BASE, id, base);
         group.AddEntityComponent(COMP_MODEL_RENDERER, id, renderer);

@@ -1,6 +1,39 @@
 #include "magma.h"
 // writing this was a mistake, I hate GUI programming, it's so bad
 
+static Description DescribeComponentBase(void* data){
+    auto base = (Base*) data;
+    BoundingBox b = base->bounds;
+    return { "Base", TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
+}
+
+static Description DescribeComponentSprite(void* data){
+    auto sprite = (Sprite*) data;
+    BoundingBox2D b = sprite->bounds;
+    return { "Sprite", TextFormat("Bounds: %f %f\n %f %f",b.min.x,b.min.y,b.max.x,b.max.y), SKYBLUE };
+}
+
+static Description DescribeComponentModelRenderer(void* data){
+    auto renderer = (ModelRenderer*) data;
+    return { "ModelRenderer", TextFormat("Model: %s\nAccurate: %d\nOffset: %f %f %f",
+                renderer->model,renderer->accurate,
+                renderer->offset.x,renderer->offset.y,renderer->offset.z), PINK
+    };
+}
+
+static Description DescribeComponentAnimationPlayer(void* data){
+    auto anim = (AnimationPlayer*) data;
+    return { "AnimationPlayer", TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
+            anim->curFrame,anim->curAnim.name.c_str(),anim->curAnim.fps), YELLOW 
+    };
+}
+
+static Description DescribeComponentPlatformerPlayer(void* data){
+    auto player = (PlatformerPlayer*) data;
+    const char* poseName = PlayerPoseNames[player->pose];
+    return { "PlatformerPlayer", TextFormat("Pose: %s",poseName), GREEN };
+}
+
 enum EditorMode {
     MODE_NORMAL,
     MODE_SPAWN,
@@ -21,6 +54,16 @@ struct EditorSession {
     PopMenu spawnMenu = PopMenu(FOCUS_CRITICAL);
 
     std::vector<EntityBuilderFunction> builders;
+    std::unordered_map<ItemType, ComponentDescriptor> descriptors;
+
+    EditorSession(){
+        // TODO: handle duplicates
+        RegisterComponentDescriptor(COMP_BASE, DescribeComponentBase);
+        RegisterComponentDescriptor(COMP_SPRITE, DescribeComponentSprite);
+        RegisterComponentDescriptor(COMP_MODEL_RENDERER, DescribeComponentModelRenderer);
+        RegisterComponentDescriptor(COMP_ANIM_PLAYER, DescribeComponentAnimationPlayer);
+        RegisterComponentDescriptor(COMP_PLAT_PLAYER, DescribeComponentPlatformerPlayer);
+    }
 };
 
 // TODO: move to editor_utils.h
@@ -159,6 +202,26 @@ void RegisterEntityBuilder(EntityBuilderFunction func) {
     Session.builders.push_back(func);
 }
 
+void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
+    Session.descriptors.insert({type, func});
+}
+
+Description DescribeComponent(CompContainer cont) {
+    Description desc;
+    try
+    {
+        ComponentDescriptor descriptor = Session.descriptors.at(cont.type);
+        desc = (*descriptor)(cont.data);
+    }
+    catch(const std::out_of_range &e)
+    {
+        desc.typeName = TextFormat("Component %d",cont.type);
+        desc.info = "No further info.";
+        desc.color = LIGHTGRAY;
+    }
+    return desc;
+}
+
 void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta){
     EditorIs3D = true;
     DoUpdateAndRenderEditor(&camera, group,delta);
@@ -170,7 +233,7 @@ void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
 }
 
 void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
-    const int BAR_WIDTH = 350;
+    const int BAR_WIDTH = 420;
     const int FONT_SIZE = 18;
 
     if (!Session.isOpen) return;
@@ -180,7 +243,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
         Session.mode = NextMode;
     }
 
-    Color bgColor = ColorAlpha(RED,0.5f);
+    Color bgColor = ColorAlpha(BLACK,0.5f);
 
     int x = GetScreenWidth()-BAR_WIDTH;
     int y = 0;
@@ -191,32 +254,19 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
     y += 20;
 
     // draw selected sprite properties
+    const char* header = TextFormat("Selected Entity: %d\n=== Components ====",Session.subjectID);
+    DrawRetroText(header,x,y,FONT_SIZE,WHITE);
+    y += MeasureRetroText(header,FONT_SIZE).y + 20;
+
     if (Session.hasSubject){
-        DrawRetroText(TextFormat("Selected Entity: %d",Session.subjectID),x,y,FONT_SIZE,WHITE);
-        y += FONT_SIZE + 4;
-
-        if (EditorIs3D) {
-            auto base = (Base*) group.GetEntityComponent(Session.subjectID, COMP_BASE);
-            BoundingBox b = base->bounds;
-            DrawRetroText(TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z),x,y,FONT_SIZE,WHITE);
+        // collect all components of id
+        for (const auto &cont : group.GetEntityComponents(Session.subjectID)){
+            // call descriptor to describe the component where dealing with, (fancy toString() function)
+            auto desc = DescribeComponent(cont);
+            const char* format = TextFormat("--> %s:\n%s", desc.typeName.c_str(), desc.info.c_str());
+            DrawRetroText(format,x,y,FONT_SIZE,desc.color);
+            y += MeasureRetroText(format,FONT_SIZE).y + 10;
         }
-        else { // 2d
-            auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
-            BoundingBox2D b = sprite->bounds;
-
-            std::string infoText = "";
-
-            infoText += TextFormat("Bounds: %f %f\n %f %f\n",b.min.x,b.min.y,b.max.x,b.max.y);
-
-            // collect all components of id
-            infoText += "\n==== Components ====\n";
-            for (const auto &cont : group.GetEntityComponents(Session.subjectID)){
-                infoText += TextFormat("Comp: #%d\n",cont.type);
-            }
-
-            DrawRetroText(infoText.c_str(),x,y,FONT_SIZE,WHITE);
-        }
-        y += FONT_SIZE + 4;
     }
 
     switch (Session.mode){

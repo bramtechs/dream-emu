@@ -1,12 +1,10 @@
 #include "magma.h"
 
-Base::Base(EntityID id, Vector3 pos, Color tint) {
+Base::Base(Vector3 pos, Color tint) {
     BoundingBox box = {
         pos,
         Vector3Add(pos,Vector3One())
     };
-
-    this->id = id;
     this->bounds = box;
     this->tint = tint;
 }
@@ -65,14 +63,13 @@ RayCollision Base::GetMouseRayCollision(Camera3D camera) {
 }
 
 // Sprite
-Sprite::Sprite(EntityID id, Vector2 pos, Color tint, int zOrder) {
+Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
     BoundingBox2D box = {
         pos,
         Vector2Add(pos,Vector2One())
     };
 
     this->texture = {};
-    this->id = id;
     this->zOrder = zOrder;
     this->bounds = box;
     this->tint = tint;
@@ -150,7 +147,7 @@ Vector2 Sprite::halfSize() {
 }
 
 // ModelRenderer
-ModelRenderer::ModelRenderer(EntityID id, const char* modelPath, Base* base) {
+ModelRenderer::ModelRenderer(const char* modelPath, Base* base) {
     Model model = RequestModel(modelPath);
 
     // make the base big enough to hold the model
@@ -162,7 +159,6 @@ ModelRenderer::ModelRenderer(EntityID id, const char* modelPath, Base* base) {
     Vector3 modelCenter = Vector3Add(modelBox.min, Vector3Scale(size, 0.5f));
     Vector3 offset = Vector3Subtract(base->center(), modelCenter);
 
-    this->id = id;
     this->model = modelPath;
     this->accurate = false;
     this->offset = offset;
@@ -285,7 +281,7 @@ size_t EntityGroup::DrawGroup() {
         {
             // draw modelrenderers
             auto renderer = (ModelRenderer*)comp.second.data;
-            auto base = (Base*)GetEntityComponent(renderer->id, COMP_BASE);
+            auto base = (Base*)GetEntityComponent(comp.first, COMP_BASE);
 
             if (base == NULL) {
                 assert(false); // model renderer has no base! TODO shouldn't crash
