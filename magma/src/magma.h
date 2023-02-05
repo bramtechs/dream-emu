@@ -35,10 +35,10 @@
 
 #define MAGMA_CONF_PATH "../save/engine_conf.dat"
 
-#define COMP_ALL                0
-#define COMP_BASE               1
-#define COMP_SPRITE             2
-#define COMP_MODEL_RENDERER     3
+constexpr int COMP_ALL = 0;
+constexpr int COMP_BASE = 1;
+constexpr int COMP_SPRITE = 2;
+constexpr int COMP_MODEL_RENDERER = 3;
 
 #define COLORS_PER_PALETTE 256 
 

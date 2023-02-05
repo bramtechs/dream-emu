@@ -241,7 +241,7 @@ EntityID EntityGroup::AddEntity() {
 
 void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
     for (const auto& comp : comps) {
-        if (comp.first == id) {
+        if (comp.first == id && comp.second.type == filter) {
             return comp.second.data;
         }
     }

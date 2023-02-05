@@ -265,9 +265,9 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
 
     DrawFPS(20,20);
 
-    // draw timescale if changed
+    // draw timescale if non-standard
     float scale = GetTimeScale();
-    if (abs(scale - 1.f) < EPSILON){
+    if (abs(scale - 1.f) > EPSILON){
         DrawRetroText(TextFormat("TIME SCALE %.3f\nDELTA %f",scale,GetFrameTime()),20,40,18,RED);
     }
 

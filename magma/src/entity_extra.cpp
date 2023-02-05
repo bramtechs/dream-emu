@@ -72,8 +72,8 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
         {
             auto phys = (PhysicsBody*) comp.second.data;
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first, COMP_SPRITE);
-            if (sprite && phys->dynamic){
 
+            if (sprite && phys->dynamic){
                 // apply gravity -acceleration-
                 phys->velocity.y += phys->gravity * delta;
 
@@ -88,10 +88,8 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 // apply -velocity-
                 Vector2 scaledVel = Vector2Scale(phys->velocity,delta);
                 sprite->Translate(scaledVel);
-
             }
-        }
-        break;
+        } break;
         case COMP_PLAT_PLAYER:
         {
             auto plat = (PlatformerPlayer*) comp.second.data;
@@ -100,7 +98,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
 
             // stop at 100 for now
             if (sprite->center().y > Window.gameSize.y-120){
-                phys->velocity.y = 0.f;
+                phys->velocity.y = 0;
             }
 
         } break;

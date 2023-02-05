@@ -41,7 +41,7 @@ struct SheetAnimation {
 };
 
 struct PhysicsBody {
-    Vector2 velocity; 
+    Vector2 velocity;
     bool dynamic;
     float gravity;
     float maxSpeed;
