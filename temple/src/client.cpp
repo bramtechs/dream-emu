@@ -78,8 +78,10 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_WALK);
     group.AddEntityComponent(COMP_ANIM_PLAYER,id,animPlayer);
 
-    PhysicsProps props = PhysicsProps(100.f,200.f,300.f);
-    PlatformerPlayer player = PlatformerPlayer(props);
+    PhysicsBody body = PhysicsBody(true,100.f,1000.f,30.f);
+    group.AddEntityComponent(COMP_PHYS_BODY,id,body);
+
+    PlatformerPlayer player = PlatformerPlayer();
     group.AddEntityComponent(COMP_PLAT_PLAYER,id,player);
 
     return id;
@@ -146,7 +148,6 @@ struct TempleGame {
 
         EndMagmaDrawing();
         UpdateAndDrawLog();
-        RequestPalette("pal_warm1.pal").DrawPreview({ (float)GetScreenWidth() - 150,(float)GetScreenHeight() - 150,150,150});
 
         UpdateAndRenderEditorGUI(group, delta);
 

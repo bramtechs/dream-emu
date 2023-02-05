@@ -116,6 +116,7 @@ struct MagmaWindow {
     Palette defaultPalette;
     bool hasDefaultPalette;
 
+    float timeScale;
     float scale;
     bool unscaled;
     Vector2 scaledMouse;
@@ -404,6 +405,9 @@ void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
 Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
 Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
+                             //
+void SetTimeScale(float scale);
+float GetTimeScale();
 
 void BeginMagmaDrawing();
 void EndMagmaDrawing();

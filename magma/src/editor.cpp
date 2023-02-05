@@ -4,34 +4,42 @@
 static Description DescribeComponentBase(void* data){
     auto base = (Base*) data;
     BoundingBox b = base->bounds;
-    return { "Base", TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
+    return { STRING(Base), TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
 }
 
 static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
+    Vector2 center = sprite->center();
     BoundingBox2D b = sprite->bounds;
-    return { "Sprite", TextFormat("Bounds: %f %f\n %f %f",b.min.x,b.min.y,b.max.x,b.max.y), SKYBLUE };
+    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y), SKYBLUE };
 }
 
 static Description DescribeComponentModelRenderer(void* data){
     auto renderer = (ModelRenderer*) data;
-    return { "ModelRenderer", TextFormat("Model: %s\nAccurate: %d\nOffset: %f %f %f",
+    return { STRING(ModelRenderer), TextFormat("Model: %s\nAccurate: %d\nOffset: %f %f %f",
                 renderer->model,renderer->accurate,
                 renderer->offset.x,renderer->offset.y,renderer->offset.z), PINK
     };
 }
 
+static Description DescribeComponentPhysicsBody(void* data){
+    auto phys = (PhysicsBody*) data;
+    return { STRING(PhysicsBody), TextFormat("Vel: %f %f\nDynamic: %d\nGravity: %f\nMax speed: %f\nDamp: %f",
+                phys->velocity.x,phys->velocity.y,phys->dynamic,phys->gravity,phys->maxSpeed,phys->damp), PURPLE
+    };
+}
+
 static Description DescribeComponentAnimationPlayer(void* data){
     auto anim = (AnimationPlayer*) data;
-    return { "AnimationPlayer", TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
-            anim->curFrame,anim->curAnim.name.c_str(),anim->curAnim.fps), YELLOW 
+    return { STRING(AnimationPlayer), TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
+            abs(anim->curFrame),anim->curAnim.name.c_str(),anim->curAnim.fps), YELLOW 
     };
 }
 
 static Description DescribeComponentPlatformerPlayer(void* data){
     auto player = (PlatformerPlayer*) data;
     const char* poseName = PlayerPoseNames[player->pose];
-    return { "PlatformerPlayer", TextFormat("Pose: %s",poseName), GREEN };
+    return { STRING(PlatformerPlayer), TextFormat("Pose: %s",poseName), GREEN };
 }
 
 enum EditorMode {
@@ -58,11 +66,13 @@ struct EditorSession {
 
     EditorSession(){
         // TODO: handle duplicates
+        // TODO: turn into macro
         RegisterComponentDescriptor(COMP_BASE, DescribeComponentBase);
         RegisterComponentDescriptor(COMP_SPRITE, DescribeComponentSprite);
         RegisterComponentDescriptor(COMP_MODEL_RENDERER, DescribeComponentModelRenderer);
         RegisterComponentDescriptor(COMP_ANIM_PLAYER, DescribeComponentAnimationPlayer);
         RegisterComponentDescriptor(COMP_PLAT_PLAYER, DescribeComponentPlatformerPlayer);
+        RegisterComponentDescriptor(COMP_PHYS_BODY, DescribeComponentPhysicsBody);
     }
 };
 
@@ -98,8 +108,18 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
     if (IsKeyPressed(KEY_F3)){ // TODO: Debug build only
         ToggleEditor();
     }
+
     if (!Session.isOpen) return;
 
+    if (IsKeyPressed(KEY_KP_ADD)){
+        SetTimeScale(GetTimeScale()*1.1f);
+    }
+    if (IsKeyPressed(KEY_KP_SUBTRACT)){
+        SetTimeScale(GetTimeScale()*0.9f);
+    }
+    if (IsKeyPressed(KEY_HOME)){
+        SetTimeScale(1.f);
+    }
 
     Vector2 mouse = {};
     if (EditorIs3D){
@@ -243,6 +263,14 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
         Session.mode = NextMode;
     }
 
+    DrawFPS(20,20);
+
+    // draw timescale if changed
+    float scale = GetTimeScale();
+    if (abs(scale - 1.f) < EPSILON){
+        DrawRetroText(TextFormat("TIME SCALE %.3f\nDELTA %f",scale,GetFrameTime()),20,40,18,RED);
+    }
+
     Color bgColor = ColorAlpha(BLACK,0.5f);
 
     int x = GetScreenWidth()-BAR_WIDTH;
@@ -263,7 +291,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
         for (const auto &cont : group.GetEntityComponents(Session.subjectID)){
             // call descriptor to describe the component where dealing with, (fancy toString() function)
             auto desc = DescribeComponent(cont);
-            const char* format = TextFormat("--> %s:\n%s", desc.typeName.c_str(), desc.info.c_str());
+            const char* format = TextFormat("--> %s\n%s", desc.typeName.c_str(), desc.info.c_str());
             DrawRetroText(format,x,y,FONT_SIZE,desc.color);
             y += MeasureRetroText(format,FONT_SIZE).y + 10;
         }

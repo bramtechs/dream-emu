@@ -6,6 +6,7 @@ MagmaWindow Window = {0};
 void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) { Win.gameSize = { (float)gameWidth, (float)gameHeight };
     Win.winSize = { (float)winWidth, (float)winHeight };
     Win.unscaled = false;
+    Win.timeScale = 1.f;
 
     assert(gameWidth > 0 && gameHeight > 0 &&
         winWidth > 0 && winHeight > 0);
@@ -108,6 +109,13 @@ void EndPaletteMode(){
     EndShaderMode();
 }
 
+float GetTimeScale(){
+    return Window.timeScale;
+}
+void SetTimeScale(float scale){
+    Window.timeScale = scale;
+}
+
 void CloseMagmaWindow() {
     UnloadRenderTexture(Win.renderTarget);
     CloseWindow();
@@ -128,7 +136,6 @@ Rectangle GetWindowBounds() {
         (float)Win.gameSize.y
     };
 }
-
 
 Vector2 GetWindowTopLeft() {
     return {

@@ -260,17 +260,20 @@ std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id) {
 }
 
 size_t EntityGroup::UpdateGroup(float delta) {
-    for (const auto& comp : comps) {
-        switch (comp.second.type) {
-        case COMP_BASE:
-        {
-            auto base = (Base*)comp.second.data;
-        } break;
-        default:
-            break;
-        }
-    }
-    entityCount += UpdateGroupExtended(this,delta);
+    float scaledDelta = delta * GetTimeScale();
+
+    //for (const auto& comp : comps) {
+    //    switch (comp.second.type) {
+    //    case COMP_BASE:
+    //    {
+    //        auto base = (Base*)comp.second.data;
+    //    } break;
+    //    default:
+    //        break;
+    //    }
+    //}
+    
+    entityCount += UpdateGroupExtended(this,scaledDelta);
     return entityCount;
 }
 

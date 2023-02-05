@@ -2,16 +2,18 @@
 
 // contains more "advanced" components and entities, not needed for some types of games
 // can be removed from engine
-PhysicsProps::PhysicsProps(float accel, float damp, float maxSpeed, float gravity){
-    this->accel = accel;
-    this->damp = damp;
-    this->maxSpeed = maxSpeed;
+
+PhysicsBody::PhysicsBody(bool dynamic, float gravity, float maxSpeed, float damp){
+    this->dynamic = dynamic;
     this->gravity = gravity;
-    this->velocity = {};
+    this->maxSpeed = maxSpeed;
+    this->damp = damp;
+    this->velocity = {0,0};
 }
 
-PlatformerPlayer::PlatformerPlayer(PhysicsProps physics, PlayerPose defaultPose)
-    : phys(physics),  pose(defaultPose)  {
+PlatformerPlayer::PlatformerPlayer(float accel, PlayerPose defaultPose) {
+    this->accel = accel;
+    this->pose = defaultPose;
 }
 
 AnimationPlayer::AnimationPlayer(SheetAnimation& startAnim)
@@ -66,27 +68,41 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             }
             animPlayer->timer += delta;
         } break;
+        case COMP_PHYS_BODY: 
+        {
+            auto phys = (PhysicsBody*) comp.second.data;
+            auto sprite = (Sprite*) group->GetEntityComponent(comp.first, COMP_SPRITE);
+            if (sprite && phys->dynamic){
+
+                // apply gravity -acceleration-
+                phys->velocity.y += phys->gravity * delta;
+
+                // apply damping
+                phys->velocity.x += phys->velocity.x * delta * phys->damp;
+
+                // apply speed limit 
+                phys->velocity.x = Clamp(phys->velocity.x,-phys->maxSpeed,phys->maxSpeed);
+                phys->velocity.y = Clamp(phys->velocity.y,-phys->maxSpeed,phys->maxSpeed);
+
+                // =========================
+                // apply -velocity-
+                Vector2 scaledVel = Vector2Scale(phys->velocity,delta);
+                sprite->Translate(scaledVel);
+
+            }
+        }
+        break;
         case COMP_PLAT_PLAYER:
         {
-            // TODO: Turn physics into seperate component
-            
             auto plat = (PlatformerPlayer*) comp.second.data;
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first,COMP_SPRITE);
-
-            // calculate velocity
-            float &gravity = plat->phys.gravity;
-            Vector2 &vel = plat->phys.velocity;
-
-            vel.y += delta*gravity;
+            auto phys = (PhysicsBody*) group->GetEntityComponent(comp.first,COMP_PHYS_BODY);
 
             // stop at 100 for now
             if (sprite->center().y > Window.gameSize.y-120){
-                vel = Vector2Zero();
+                phys->velocity.y = 0.f;
             }
 
-            // apply velocity
-            Vector2 scaledVel = Vector2Scale(vel,delta);
-            sprite->Translate(scaledVel);
         } break;
         default:
             break;

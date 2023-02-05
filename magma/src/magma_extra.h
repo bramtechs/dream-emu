@@ -26,8 +26,9 @@ constexpr char* PlayerPoseNames[] = {
     STRING(POSE_JUMP),
 };
 
-constexpr int COMP_PLAT_PLAYER = 10;
+constexpr int COMP_PHYS_BODY   = 10;
 constexpr int COMP_ANIM_PLAYER = 11;
+constexpr int COMP_PLAT_PLAYER = 12;
 
 struct SheetAnimation {
     std::string name; // description 
@@ -38,22 +39,22 @@ struct SheetAnimation {
     PlaybackMode mode;
     float fps;
 };
-struct PhysicsProps {
-    Vector2 velocity;
-    float maxSpeed;
-    float accel;
-    float damp;
-    float gravity;
 
-    PhysicsProps(float accel, float damp, float maxSpeed, float gravity=100.f);
+struct PhysicsBody {
+    Vector2 velocity; 
+    bool dynamic;
+    float gravity;
+    float maxSpeed;
+    float damp;
+
+    PhysicsBody(bool dynamic=true, float gravity=100.f, float maxSpeed=1000.f, float damp=0.f);
 };
 
-// Sprite
 struct PlatformerPlayer {
-    PhysicsProps phys;
+    float accel;
     PlayerPose pose;
 
-    PlatformerPlayer(PhysicsProps physics, PlayerPose defaultPose=POSE_IDLE);
+    PlatformerPlayer(float accel=300.f, PlayerPose defaultPose=POSE_IDLE);
 };
 
 struct AnimationPlayer {
