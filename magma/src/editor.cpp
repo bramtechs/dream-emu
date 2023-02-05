@@ -203,6 +203,28 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                 else {
                     isDragging = false;
                 }
+
+                auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first, COMP_PHYS_BODY);
+                if (phys != NULL){
+                    // brake sprite when pressing spacebar
+                    if (IsKeyPressed(KEY_SPACE)){
+                            phys->velocity = Vector2Zero();
+                            DEBUG("Killed velocity");
+                    }
+
+                    Color col = ColorAlpha(RED,0.5f);
+                    if (phys->dynamic){
+                        // draw overlap if active any
+                        DrawRectangleRec(phys->curOverlap, col);
+                    }
+                    else {
+                        // draw cross if static
+                        DrawLineV(sprite->bounds.min, sprite->bounds.max, col);
+                        DrawLineV(Vector2Add(sprite->bounds.min,{0.f,sprite->size().y}),
+                                  Vector2Subtract(sprite->bounds.max,{0.f,sprite->size().y}),
+                                  col);
+                    }
+                }
             }
             else if (CheckCollisionPointRec(mouse,rect)) {
                 float alpha = (sin(GetTime())+1.f)*0.25f+0.5f;

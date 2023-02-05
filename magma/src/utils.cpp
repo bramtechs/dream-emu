@@ -234,6 +234,15 @@ Color ColorLerp(Color src, Color dst, float factor){
     return src;
 }
 
+// c^2 = a^2 + b^2
+float GetRectangleDiameter(Rectangle rec){
+    float diam2 = GetRectangleDiameterSquared(rec);
+    return sqrtf(diam2);
+}
+float GetRectangleDiameterSquared(Rectangle rec){
+    return rec.width*rec.width + rec.height*rec.height;
+}
+
 Rectangle BoundingBoxToRect(BoundingBox box){
     Vector2 pos = { box.min.x, box.min.y };
     Vector3 size3 = Vector3Subtract(box.max, box.min);

@@ -13,35 +13,35 @@ void Base::Translate(Vector3 offset) {
     bounds.min = Vector3Add(bounds.min, offset);
     bounds.max = Vector3Add(bounds.max, offset);
 }
-inline void Base::TranslateX(float x) {
+void Base::Translate(float x, float y, float z) {
+    Translate({ x,y,z });
+}
+void Base::TranslateX(float x) {
     Translate({ x,0,0 });
 }
-inline void Base::TranslateY(float y) {
+void Base::TranslateY(float y) {
     Translate({ 0,y,0 });
 }
-inline void Base::TranslateZ(float z) {
+void Base::TranslateZ(float z) {
     Translate({ 0,0,z });
-}
-inline void Base::TranslateXYZ(float x, float y, float z) {
-    Translate({ x,y,z });
 }
 
 void Base::SetCenter(Vector3 pos) {
     bounds.min = Vector3Subtract(pos, halfSize());
     bounds.max = Vector3Add(pos, halfSize());
 }
-inline void Base::SetCenter(float x, float y, float z){
+void Base::SetCenter(float x, float y, float z){
     SetSize({x,y,z});
 }
 
 void Base::SetSize(Vector3 size){
     bounds.max = Vector3Add(bounds.min,size);
 }
-inline void Base::SetSize(float x, float y, float z){
+void Base::SetSize(float x, float y, float z){
     SetSize({x,y,z});
 }
 
-inline void Base::ResetTranslation() {
+void Base::ResetTranslation() {
     SetCenter(Vector3Zero());
 }
 
@@ -79,16 +79,16 @@ void Sprite::Translate(Vector2 offset) {
     bounds.min = Vector2Add(bounds.min, offset);
     bounds.max = Vector2Add(bounds.max, offset);
 }
-inline void Sprite::TranslateX(float x) {
-    Translate({ x,0 });
-}
-inline void Sprite::TranslateY(float y) {
-    Translate({ 0,y });
-}
-inline void Sprite::TranslateXY(float x, float y) {
+void Sprite::Translate(float x, float y) {
     Translate({ x,y });
 }
-inline void Sprite::ResetTranslation() {
+void Sprite::TranslateX(float x) {
+    Translate({ x,0 });
+}
+void Sprite::TranslateY(float y) {
+    Translate({ 0,y });
+}
+void Sprite::ResetTranslation() {
     SetCenter(Vector2Zero());
 }
 
@@ -106,6 +106,14 @@ void Sprite::SetCenter(Vector2 pos) {
 }
 void Sprite::SetCenter(float x, float y){
     SetCenter({x,y});
+}
+void Sprite::SetTopLeft(Vector2 pos) {
+    Vector2 size = this->size();
+    bounds.min = pos;
+    bounds.max = Vector2Add(pos, size);
+}
+void Sprite::SetTopLeft(float x, float y){
+    SetTopLeft({x,y});
 }
 
 void Sprite::SetSize(Vector2 size){
@@ -248,15 +256,27 @@ void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
     return NULL;
 }
 
-std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id) {
+std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemType type) {
     std::vector<CompContainer> conts;
     for (const auto &comp : comps){
         if (comp.first == id){
-            CompContainer container = comp.second;
-            conts.push_back(container);
+            if (type == COMP_ALL || comp.second.type == type){
+                CompContainer container = comp.second;
+                conts.push_back(container);
+            }
         }
     }
     return conts;
+}
+
+std::multimap<EntityID,void*> EntityGroup::GetComponents(ItemType type) {
+    std::multimap<EntityID, void*> results;
+    for (const auto &comp : comps) {
+        if (type == COMP_ALL || comp.second.type == type){
+            results.insert({comp.first, comp.second.data});
+        }
+    }
+    return results;
 }
 
 size_t EntityGroup::UpdateGroup(float delta) {

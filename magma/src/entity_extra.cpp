@@ -9,6 +9,7 @@ PhysicsBody::PhysicsBody(bool dynamic, float gravity, float maxSpeed, float damp
     this->maxSpeed = maxSpeed;
     this->damp = damp;
     this->velocity = {0,0};
+    this->canCollide = true;
 }
 
 PlatformerPlayer::PlatformerPlayer(float accel, PlayerPose defaultPose) {
@@ -83,11 +84,36 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 // apply speed limit 
                 phys->velocity.x = Clamp(phys->velocity.x,-phys->maxSpeed,phys->maxSpeed);
                 phys->velocity.y = Clamp(phys->velocity.y,-phys->maxSpeed,phys->maxSpeed);
+                // =========================
+                
+                Rectangle targetPos = {
+                    sprite->region().x + phys->velocity.x * delta,
+                    sprite->region().y + phys->velocity.y * delta,
+                    sprite->size().x,
+                    sprite->size().y,
+                };
+
+                if (phys->canCollide) {
+                    // collision detection
+                    
+                    // get biggest overlap between other PhysicsBodies
+                    Rectangle overlap = {};
+                    auto bodies = group->GetComponents(COMP_PHYS_BODY);
+                    for (const auto &body : bodies){
+                        auto otherSprite = (Sprite*) group->GetEntityComponent(body.first,COMP_SPRITE);
+                        if (!sprite || body.first == comp.first) continue;
+                        Rectangle colRec = GetCollisionRec(otherSprite->region(), sprite->region());
+                        if (GetRectangleDiameterSquared(colRec) > GetRectangleDiameterSquared(overlap)){
+                            overlap = colRec;
+                        }
+                    }
+
+                    phys->curOverlap = overlap;
+                }
 
                 // =========================
                 // apply -velocity-
-                Vector2 scaledVel = Vector2Scale(phys->velocity,delta);
-                sprite->Translate(scaledVel);
+                sprite->SetTopLeft(targetPos.x,targetPos.y);
             }
         } break;
         case COMP_PLAT_PLAYER:
@@ -96,11 +122,9 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first,COMP_SPRITE);
             auto phys = (PhysicsBody*) group->GetEntityComponent(comp.first,COMP_PHYS_BODY);
 
-            // stop at 100 for now
-            if (sprite->center().y > Window.gameSize.y-120){
-                phys->velocity.y = 0;
+            if (sprite->center().y > Window.gameSize.y - 100){
+                phys->velocity.y = 0.f;
             }
-
         } break;
         default:
             break;

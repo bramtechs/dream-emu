@@ -43,9 +43,12 @@ struct SheetAnimation {
 struct PhysicsBody {
     Vector2 velocity;
     bool dynamic;
+    bool canCollide;
     float gravity;
     float maxSpeed;
     float damp;
+
+    Rectangle curOverlap;
 
     PhysicsBody(bool dynamic=true, float gravity=100.f, float maxSpeed=1000.f, float damp=0.f);
 };

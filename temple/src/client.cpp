@@ -60,10 +60,15 @@ static SheetAnimation ANIM_LAND = {
 // factory functions
 EntityID spawn_block(EntityGroup& group, Vector3 pos){
     EntityID id = group.AddEntity();
+
     Sprite sprite = Sprite({pos.x, pos.y});
     Texture blockTexture = RequestIndexedTexture("spr_block");
     sprite.SetTexture(blockTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);
+
+    PhysicsBody body = PhysicsBody(false);
+    group.AddEntityComponent(COMP_PHYS_BODY, id, body);
+
     return id;
 }
 

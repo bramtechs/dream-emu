@@ -245,18 +245,18 @@ struct Base {
     Base(Vector3 pos = {0,0,0}, Color tint = WHITE);
 
     void Translate(Vector3 offset);
-    inline void TranslateX(float x);
-    inline void TranslateY(float y);
-    inline void TranslateZ(float z);
-    inline void TranslateXYZ(float x, float y, float z);
+    void Translate(float x, float y, float z);
+    void TranslateX(float x);
+    void TranslateY(float y);
+    void TranslateZ(float z);
 
     void SetCenter(Vector3 pos);
-    inline void SetCenter(float x, float y, float z);
+    void SetCenter(float x, float y, float z);
 
     void SetSize(Vector3 pos);
-    inline void SetSize(float x, float y, float z);
+    void SetSize(float x, float y, float z);
 
-    inline void ResetTranslation();
+    void ResetTranslation();
 
     RayCollision GetMouseRayCollision(Camera3D camera);
 
@@ -277,17 +277,19 @@ struct Sprite {
            Color tint = WHITE, int zOrder = 0);
 
     void Translate(Vector2 offset);
-    inline void TranslateX(float x);
-    inline void TranslateY(float y);
-    inline void TranslateXY(float x, float y);
+    void Translate(float x, float y);
+    void TranslateX(float x);
+    void TranslateY(float y);
 
     void SetCenter(Vector2 pos);
     void SetCenter(float x, float y);
+    void SetTopLeft(float x, float y);
+    void SetTopLeft(Vector2 pos);
 
     void SetSize(Vector2 size);
     void SetSize(float x, float y);
 
-    inline void ResetTranslation();
+    void ResetTranslation();
 
     RayCollision GetMouseRayCollision(Camera2D camera);
 
@@ -329,8 +331,9 @@ struct EntityGroup {
     EntityID AddEntity();
 
     // TODO dispose functions
+    // TODO: try to not include in header
     template <typename T>
-    void AddEntityComponent(ItemType type, EntityID id, T data) {
+    void AddEntityComponent(ItemType type, EntityID id, T data){
         // make data stick with a malloc
         CompContainer cont;
         cont.type = type;
@@ -342,7 +345,8 @@ struct EntityGroup {
     }
 
     void* GetEntityComponent(EntityID id, ItemType filter);
-    std::vector<CompContainer> GetEntityComponents(EntityID id);
+    std::vector<CompContainer> GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
+    std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL);
 
     size_t UpdateGroup(float delta);
 
@@ -367,6 +371,8 @@ Color InvertColor(Color col, bool invertAlpha = false);
 Color ColorLerp(Color src, Color dst, float factor);
 Rectangle BoundingBoxToRect(BoundingBox box);
 Rectangle BoundingBoxToRect(BoundingBox2D box);
+float GetRectangleDiameter(Rectangle rec);
+float GetRectangleDiameterSquared(Rectangle rec);
 
 bool LoadAssets();
 void DisposeAssets();
