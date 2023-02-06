@@ -67,7 +67,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 anim.cellSize.y,
             };
 
-            sprite->SetTexture(sheetTexture,src);
+            sprite->SetTexture(sheetTexture,src,true);
 
             if (animPlayer->timer > 1.f/anim.fps){
                 animPlayer->timer = 0.f;
@@ -105,6 +105,8 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 }
 
                 phys->body = group->world->CreateBody(&bodyDef);
+                phys->body->SetFixedRotation(true);
+                phys->body->SetSleepingAllowed(false);
 
                 b2PolygonShape boxShape;
                 boxShape.SetAsBox(sprite->halfSize().x/PIXELS_PER_UNIT,
@@ -124,9 +126,17 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 phys->initialized = true;
             }
 
-            // place sprite at PhysicsBody location
-            Vector2 newPos = Vector2Scale(phys->position(),PIXELS_PER_UNIT);
-            sprite->SetCenter(newPos);
+            if (sprite->isBeingMoved){
+                // place PhysicsBody at Sprite location
+                Vector2 newPos = Vector2Scale(sprite->center(),1.f / PIXELS_PER_UNIT);
+                phys->body->SetTransform({newPos.x,newPos.y}, 0.f);
+                sprite->isBeingMoved = false;
+            }
+            else {
+                // place sprite at PhysicsBody location
+                Vector2 newPos = Vector2Scale(phys->position(),PIXELS_PER_UNIT);
+                sprite->SetCenter(newPos, true);
+            }
 
         } break;
         case COMP_PLAT_PLAYER:

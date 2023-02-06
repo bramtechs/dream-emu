@@ -68,16 +68,18 @@ Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
         pos,
         Vector2Add(pos,Vector2One())
     };
-
     this->texture = {};
     this->zOrder = zOrder;
     this->bounds = box;
     this->tint = tint;
+    this->isBeingMoved = false;
 }
 
 void Sprite::Translate(Vector2 offset) {
     bounds.min = Vector2Add(bounds.min, offset);
     bounds.max = Vector2Add(bounds.max, offset);
+    // for PhysicsBody (if any)
+    isBeingMoved = true;
 }
 void Sprite::Translate(float x, float y) {
     Translate({ x,y });
@@ -99,11 +101,15 @@ RayCollision Sprite::GetMouseRayCollision(Camera2D camera) {
     return {};
 }
 
-void Sprite::SetCenter(Vector2 pos) {
+void Sprite::SetCenter(Vector2 pos, bool isRaw) {
     Vector2 hSize = halfSize();
     bounds.min = Vector2Subtract(pos, hSize);
     bounds.max = Vector2Add(pos, hSize);
+    if (!isRaw) {
+        isBeingMoved = true;
+    }
 }
+
 void Sprite::SetCenter(float x, float y){
     SetCenter({x,y});
 }
@@ -111,19 +117,23 @@ void Sprite::SetTopLeft(Vector2 pos) {
     Vector2 size = this->size();
     bounds.min = pos;
     bounds.max = Vector2Add(pos, size);
+    isBeingMoved = true;
 }
 void Sprite::SetTopLeft(float x, float y){
     SetTopLeft({x,y});
 }
 
-void Sprite::SetSize(Vector2 size){
+void Sprite::SetSize(Vector2 size, bool isRaw){
     bounds.max = Vector2Add(bounds.min,size);
+    if (!isRaw) {
+        isBeingMoved = true;
+    }
 }
 void Sprite::SetSize(float x, float y){
     SetSize({x,y});
 }
 
-void Sprite::SetTexture(Texture texture, Rectangle srcRect){
+void Sprite::SetTexture(Texture texture, Rectangle srcRect, bool isRaw){
     this->texture = texture;
     if (srcRect.x == 0 && srcRect.y == 0 &&
         srcRect.width == 0 && srcRect.height == 0){
@@ -134,7 +144,7 @@ void Sprite::SetTexture(Texture texture, Rectangle srcRect){
         this->srcRect = srcRect;
     }
 
-    SetSize(this->srcRect.width,this->srcRect.height);
+    SetSize({this->srcRect.width,this->srcRect.height},isRaw);
 }
 
 Rectangle Sprite::region(){

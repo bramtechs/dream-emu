@@ -285,6 +285,7 @@ struct Sprite {
     BoundingBox2D bounds;
     int zOrder;
     Color tint;
+    bool isBeingMoved;
 
     Texture texture;
     Rectangle srcRect;
@@ -297,19 +298,20 @@ struct Sprite {
     void TranslateX(float x);
     void TranslateY(float y);
 
-    void SetCenter(Vector2 pos);
+    // TODO: make methods to move entities by EntityID instead of directly calling components
+    void SetCenter(Vector2 pos, bool isRaw=false);
     void SetCenter(float x, float y);
     void SetTopLeft(float x, float y);
     void SetTopLeft(Vector2 pos);
 
-    void SetSize(Vector2 size);
+    void SetSize(Vector2 size, bool isRaw=false);
     void SetSize(float x, float y);
 
     void ResetTranslation();
 
     RayCollision GetMouseRayCollision(Camera2D camera);
 
-    void SetTexture(Texture texture, Rectangle srcRect={});
+    void SetTexture(Texture texture, Rectangle srcRect={}, bool isRaw=false);
 
     Rectangle region();
     Vector2 center();

@@ -1,5 +1,6 @@
 #include "magma.h"
 // writing this was a mistake, I hate GUI programming, it's so bad
+// TODO: invent serialization/reflection or something idk.
 
 static Description DescribeComponentBase(void* data){
     auto base = (Base*) data;
@@ -11,7 +12,7 @@ static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
     Vector2 center = sprite->center();
     BoundingBox2D b = sprite->bounds;
-    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y), SKYBLUE };
+    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f\nIsBeingMoved: %d",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y,sprite->isBeingMoved), SKYBLUE };
 }
 
 static Description DescribeComponentModelRenderer(void* data){
@@ -24,10 +25,19 @@ static Description DescribeComponentModelRenderer(void* data){
 
 static Description DescribeComponentPhysicsBody(void* data){
     auto phys = (PhysicsBody*) data;
-    return {STRING(PhysicsBody), "wip"};
-    //return { STRING(PhysicsBody), TextFormat("Vel: %f %f\nDynamic: %d\nGravity: %f\nMax speed: %f\nDamp: %f\nFloored: %d",
-    //            phys->velocity.x,phys->velocity.y,phys->dynamic,phys->gravity,phys->maxSpeed,phys->damp, phys->isFloored), PURPLE
-    //};
+    if (phys->body){
+        b2Vec2 pos = phys->body->GetPosition();
+        b2Vec2 vel = phys->body->GetLinearVelocity();
+        float mass = phys->body->GetMass();
+        float inertia = phys->body->GetInertia();
+
+        return { STRING(PhysicsBody), TextFormat("Phys Pos: %f %f\nVel: %f %f\nDynamic: %d\nMass: %f\nInertia: %f",
+                    pos.x,pos.y,vel.x,vel.y,phys->dynamic,mass,inertia), PURPLE
+        };
+    }
+    return { STRING(PhysicsBody), "Not initialized!" };
+
+
 }
 
 static Description DescribeComponentAnimationPlayer(void* data){
@@ -52,7 +62,7 @@ enum EditorMode {
 
 struct EditorSession {
     bool isOpen = false;
-    float gridSize = 64.f;
+    float gridSize = PIXELS_PER_UNIT;
     EntityID subjectID = 0;
     bool hasSubject = false;
     bool drawGrid = true;
@@ -136,7 +146,7 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
         // draw other cells
         // TODO: fix shoddyness
         if (Session.drawGrid){
-            Color col = ColorAlpha(LIGHTGRAY,0.5f);
+            Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(RED,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
             for (int y = -3; y < 3; y++){
                 for (int x = -3; x < 3; x++){
                     Vector2 offset = { x, y };
@@ -208,17 +218,13 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                 auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first, COMP_PHYS_BODY);
                 if (phys != NULL){
                     // brake sprite when pressing spacebar
-                    //if (IsKeyPressed(KEY_SPACE)){
-                    //        phys->velocity = Vector2Zero();
-                    //        DEBUG("Killed velocity");
-                    //}
+                    if (IsKeyPressed(KEY_SPACE) && phys->body) {
+                        phys->body->SetLinearVelocity({0.f,0.f});
+                        DEBUG("Killed velocity");
+                    }
 
                     Color col = ColorAlpha(RED,0.5f);
-                    if (phys->dynamic){
-                        // draw overlap if active any
-                        // DrawRectangleRec(phys->curOverlap, col);
-                    }
-                    else {
+                    if (!phys->dynamic){
                         // draw cross if static
                         DrawLineV(sprite->bounds.min, sprite->bounds.max, col);
                         DrawLineV(Vector2Add(sprite->bounds.min,{0.f,sprite->size().y}),
@@ -235,6 +241,40 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                     Session.hasSubject = true;
                     Session.subjectID = comp.first;
                     break;
+                }
+            }
+        }
+        else if (comp.second.type == COMP_PHYS_BODY){
+            auto phys = (PhysicsBody*) comp.second.data;
+
+            if (phys->initialized){
+                Color col = ColorAlpha(RED,0.5f);
+
+                // draw each fixture's shape
+                b2Fixture* next = phys->body->GetFixtureList();
+                while (next) {
+                    b2Shape* shape = next->GetShape();
+                    Vector2 worldPos = *(Vector2*)&phys->body->GetPosition();
+                    switch (shape->GetType()){
+                        case b2Shape::Type::e_polygon:
+                            {
+                                assert(sizeof(b2Vec2) == sizeof(Vector2));
+                                auto poly = (b2PolygonShape*) shape;
+                                Vector2 vertCpy[8];
+                                for (int i = 0; i < 8; i++) {
+                                    Vector2 origVert = *(Vector2*) & poly->m_vertices[i];
+                                    Vector2 scled = Vector2Add(origVert, worldPos);
+                                    scled = Vector2Scale(scled,PIXELS_PER_UNIT);
+                                    vertCpy[i] = scled;
+                                }
+                                DrawLineStrip(vertCpy, poly->m_count, col);
+                            }
+                            break;
+                        default:
+                            // TODO: implement other shapes
+                            break;
+                    }
+                    next = next->GetNext();
                 }
             }
         }
