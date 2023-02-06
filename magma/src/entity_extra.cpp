@@ -76,7 +76,9 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
 
             if (sprite && phys->dynamic){
                 // apply gravity -acceleration-
-                phys->velocity.y += phys->gravity * delta;
+                if (!phys->isFloored) {
+                    phys->velocity.y += phys->gravity * delta;
+                }
 
                 // apply damping
                 phys->velocity.x += phys->velocity.x * delta * phys->damp;
@@ -107,8 +109,27 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                             overlap = colRec;
                         }
                     }
-
                     phys->curOverlap = overlap;
+                    
+                    // TODO: fix properly
+                    // shift targetpos back
+                    if (GetRectangleDiameterSquared(overlap) > EPSILON){
+                        if (overlap.width < sprite->size().x) { 
+                            // horizontal collision
+                            phys->velocity.x = 0.f;
+                            targetPos.x -= overlap.width;
+                        }
+                        if (overlap.height < sprite->size().y) {
+                            // vertical collision
+                            phys->velocity.y = 0.f;
+                            targetPos.y -= overlap.height;
+
+                            phys->isFloored = true; // TODO: handle ceiling
+                        }
+                    }
+                    else {
+                        phys->isFloored = false;
+                    }
                 }
 
                 // =========================
@@ -121,10 +142,6 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             auto plat = (PlatformerPlayer*) comp.second.data;
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first,COMP_SPRITE);
             auto phys = (PhysicsBody*) group->GetEntityComponent(comp.first,COMP_PHYS_BODY);
-
-            if (sprite->center().y > Window.gameSize.y - 100){
-                phys->velocity.y = 0.f;
-            }
         } break;
         default:
             break;

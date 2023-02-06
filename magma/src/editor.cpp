@@ -24,8 +24,8 @@ static Description DescribeComponentModelRenderer(void* data){
 
 static Description DescribeComponentPhysicsBody(void* data){
     auto phys = (PhysicsBody*) data;
-    return { STRING(PhysicsBody), TextFormat("Vel: %f %f\nDynamic: %d\nGravity: %f\nMax speed: %f\nDamp: %f",
-                phys->velocity.x,phys->velocity.y,phys->dynamic,phys->gravity,phys->maxSpeed,phys->damp), PURPLE
+    return { STRING(PhysicsBody), TextFormat("Vel: %f %f\nDynamic: %d\nGravity: %f\nMax speed: %f\nDamp: %f\nFloored: %d",
+                phys->velocity.x,phys->velocity.y,phys->dynamic,phys->gravity,phys->maxSpeed,phys->damp, phys->isFloored), PURPLE
     };
 }
 

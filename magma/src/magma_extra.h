@@ -48,6 +48,7 @@ struct PhysicsBody {
     float maxSpeed;
     float damp;
 
+    bool isFloored;
     Rectangle curOverlap;
 
     PhysicsBody(bool dynamic=true, float gravity=100.f, float maxSpeed=1000.f, float damp=0.f);
