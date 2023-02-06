@@ -10,10 +10,14 @@
 #include <cassert>
 #include <sstream>
 #include <fstream>
+#include <limits>
 
 // the all powerful raylib
 #include "raylib.h"
 #include "raymath.h"
+
+// box2d cuz i can't math
+#include <Box2D/Box2D.h>
 
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
@@ -40,8 +44,9 @@ constexpr int COMP_BASE = 1;
 constexpr int COMP_SPRITE = 2;
 constexpr int COMP_MODEL_RENDERER = 3;
 
-#define COLORS_PER_PALETTE 256 
+constexpr float PIXELS_PER_UNIT = 64;
 
+#define COLORS_PER_PALETTE 256 
 #define PATH_MAX_LEN 128
 
 #define ASSET_ANY             -2
@@ -86,6 +91,17 @@ extern size_t Allocations;
 struct BoundingBox2D {
     Vector2 min;
     Vector2 max;
+};
+
+struct MovingRectangle {
+    float vx;
+    float vy;
+    float x;
+    float y;
+    float w;
+    float h;
+
+    MovingRectangle(Rectangle rect, Vector2 vel={});
 };
 
 struct Palette {
@@ -317,8 +333,10 @@ struct CompContainer {
 struct EntityGroup {
     uint entityCount;
     std::multimap<EntityID, CompContainer> comps;
+    b2World* world;
 
-    EntityGroup::EntityGroup();
+    EntityGroup(float gravity=9.8f);
+    ~EntityGroup();
 
     RayCollision GetRayCollision(Ray ray);
 
@@ -373,6 +391,7 @@ Rectangle BoundingBoxToRect(BoundingBox box);
 Rectangle BoundingBoxToRect(BoundingBox2D box);
 float GetRectangleDiameter(Rectangle rec);
 float GetRectangleDiameterSquared(Rectangle rec);
+float SweptAABB(MovingRectangle source, MovingRectangle target, Vector2* normal);
 
 bool LoadAssets();
 void DisposeAssets();

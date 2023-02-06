@@ -41,17 +41,16 @@ struct SheetAnimation {
 };
 
 struct PhysicsBody {
-    Vector2 velocity;
+    bool initialized;
     bool dynamic;
-    bool canCollide;
-    float gravity;
-    float maxSpeed;
-    float damp;
 
-    bool isFloored;
-    Rectangle curOverlap;
+    b2Body* body;
 
-    PhysicsBody(bool dynamic=true, float gravity=100.f, float maxSpeed=1000.f, float damp=0.f);
+    PhysicsBody(bool isDynamic);
+    ~PhysicsBody(); // TODO: dispose
+    
+    Vector2 position();
+    float angle();
 };
 
 struct PlatformerPlayer {

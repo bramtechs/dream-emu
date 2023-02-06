@@ -3,13 +3,32 @@
 // contains more "advanced" components and entities, not needed for some types of games
 // can be removed from engine
 
-PhysicsBody::PhysicsBody(bool dynamic, float gravity, float maxSpeed, float damp){
-    this->dynamic = dynamic;
-    this->gravity = gravity;
-    this->maxSpeed = maxSpeed;
-    this->damp = damp;
-    this->velocity = {0,0};
-    this->canCollide = true;
+PhysicsBody::PhysicsBody(bool isDynamic=true){
+    this->initialized = false;
+    this->dynamic = isDynamic;
+}
+
+PhysicsBody::~PhysicsBody(){
+}
+
+Vector2 PhysicsBody::position(){
+    Vector2 result = {};
+    if (initialized){
+        assert(body);
+        auto pos = body->GetPosition();
+        result.x = pos.x;
+        result.y = pos.y;
+    }
+    return result;
+}
+
+float PhysicsBody::angle(){
+    float angle = 0.f;
+    if (initialized){
+        assert(body);
+        angle = body->GetAngle();
+    }
+    return angle;
 }
 
 PlatformerPlayer::PlatformerPlayer(float accel, PlayerPose defaultPose) {
@@ -27,6 +46,7 @@ void AnimationPlayer::SetAnimation(SheetAnimation& anim) {
     curFrame = 0;
 }
 
+// TODO: make function member of EntityGroup
 size_t UpdateGroupExtended(EntityGroup* group, float delta){
     for (const auto& comp : group->comps) {
         switch (comp.second.type) {
@@ -74,68 +94,40 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             auto phys = (PhysicsBody*) comp.second.data;
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first, COMP_SPRITE);
 
-            if (sprite && phys->dynamic){
-                // apply gravity -acceleration-
-                if (!phys->isFloored) {
-                    phys->velocity.y += phys->gravity * delta;
+            // init if newly created
+            if (!phys->initialized){
+                b2BodyDef bodyDef;
+                bodyDef.position.Set(sprite->bounds.min.x/PIXELS_PER_UNIT,
+                                     sprite->bounds.min.y/PIXELS_PER_UNIT);
+
+                if (phys->dynamic) {
+                    bodyDef.type = b2_dynamicBody;
                 }
 
-                // apply damping
-                phys->velocity.x += phys->velocity.x * delta * phys->damp;
+                phys->body = group->world->CreateBody(&bodyDef);
 
-                // apply speed limit 
-                phys->velocity.x = Clamp(phys->velocity.x,-phys->maxSpeed,phys->maxSpeed);
-                phys->velocity.y = Clamp(phys->velocity.y,-phys->maxSpeed,phys->maxSpeed);
-                // =========================
-                
-                Rectangle targetPos = {
-                    sprite->region().x + phys->velocity.x * delta,
-                    sprite->region().y + phys->velocity.y * delta,
-                    sprite->size().x,
-                    sprite->size().y,
-                };
+                b2PolygonShape boxShape;
+                boxShape.SetAsBox(sprite->halfSize().x/PIXELS_PER_UNIT,
+                                  sprite->halfSize().y/PIXELS_PER_UNIT);
 
-                if (phys->canCollide) {
-                    // collision detection
-                    
-                    // get biggest overlap between other PhysicsBodies
-                    Rectangle overlap = {};
-                    auto bodies = group->GetComponents(COMP_PHYS_BODY);
-                    for (const auto &body : bodies){
-                        auto otherSprite = (Sprite*) group->GetEntityComponent(body.first,COMP_SPRITE);
-                        if (!sprite || body.first == comp.first) continue;
-                        Rectangle colRec = GetCollisionRec(otherSprite->region(), sprite->region());
-                        if (GetRectangleDiameterSquared(colRec) > GetRectangleDiameterSquared(overlap)){
-                            overlap = colRec;
-                        }
-                    }
-                    phys->curOverlap = overlap;
-                    
-                    // TODO: fix properly
-                    // shift targetpos back
-                    if (GetRectangleDiameterSquared(overlap) > EPSILON){
-                        if (overlap.width < sprite->size().x) { 
-                            // horizontal collision
-                            phys->velocity.x = 0.f;
-                            targetPos.x -= overlap.width;
-                        }
-                        if (overlap.height < sprite->size().y) {
-                            // vertical collision
-                            phys->velocity.y = 0.f;
-                            targetPos.y -= overlap.height;
-
-                            phys->isFloored = true; // TODO: handle ceiling
-                        }
-                    }
-                    else {
-                        phys->isFloored = false;
-                    }
+                if (phys->dynamic) {
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &boxShape;
+                    fixtureDef.density = 1.0f;
+                    fixtureDef.friction = 0.3f;
+                    phys->body->CreateFixture(&fixtureDef);
+                }
+                else {
+                    phys->body->CreateFixture(&boxShape, 0.f);
                 }
 
-                // =========================
-                // apply -velocity-
-                sprite->SetTopLeft(targetPos.x,targetPos.y);
+                phys->initialized = true;
             }
+
+            // place sprite at PhysicsBody location
+            Vector2 newPos = Vector2Scale(phys->position(),PIXELS_PER_UNIT);
+            sprite->SetCenter(newPos);
+
         } break;
         case COMP_PLAT_PLAYER:
         {
@@ -147,6 +139,15 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             break;
         }
     }
+
+    // TODO: make optional
+    // run physics engine
+    float timeStep = delta;
+    int velocityIterations = 6;
+    int positionIterations = 2;
+
+    assert(group->world);
+    group->world->Step(timeStep, velocityIterations, positionIterations);
     return 0;
 }
 

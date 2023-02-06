@@ -83,7 +83,7 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_WALK);
     group.AddEntityComponent(COMP_ANIM_PLAYER,id,animPlayer);
 
-    PhysicsBody body = PhysicsBody(true,100.f,1000.f,30.f);
+    PhysicsBody body = PhysicsBody(true);
     group.AddEntityComponent(COMP_PHYS_BODY,id,body);
 
     PlatformerPlayer player = PlatformerPlayer();

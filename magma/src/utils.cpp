@@ -9,6 +9,15 @@ static float LoggerOffsetY = 0.f;
 static TraceLogLevel AssertLevel = LOG_NONE;
 static TraceLogLevel OpenLevel = LOG_NONE;
 
+MovingRectangle::MovingRectangle(Rectangle rect, Vector2 vel) {
+    this->vx = vel.x;
+    this->vy = vel.y;
+    this->x = rect.x;
+    this->y = rect.y;
+    this->w = rect.width;
+    this->h = rect.height;
+}
+
 bool CreateDirectory(const char* path) {
     if (DirectoryExists(path)) {
         DEBUG("Directory %s already exists, skipping folder creation...", path);
@@ -53,7 +62,7 @@ void MagmaLogger(int msgType, const char* text, va_list args)
     Buffer.push_back(line);
 
     // open logger on error
-    if (msgType >= OpenLevel ) {
+    if (msgType >= OpenLevel) {
         ShowLogger = true;
     }
 
@@ -80,7 +89,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
     // draw background
     if (drawBG) {
         Color bgCol = ColorAlpha(BLACK, 0.6f);
-        DrawRectangle(0, 0, bgWidth + 25, GetScreenHeight(),bgCol);
+        DrawRectangle(0, 0, bgWidth + 25, GetScreenHeight(), bgCol);
 
         // draw tooltip
         DrawRetroText("Show/hide logs with F2\nScroll by holding LEFT SHIFT.", 10, GetScreenHeight() - 40, 16, WHITE);
@@ -89,7 +98,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
     // draw lines
     bgWidth = 0;
     for (int i = 0; i < Buffer.size(); i++) {
-        auto &line = Buffer.at(Buffer.size()-i-1);
+        auto& line = Buffer.at(Buffer.size() - i - 1);
         int y = i * (fontSize + 4);
 
         Color color;
@@ -130,25 +139,25 @@ void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
         DrawLog(offsetX, offsetY, fontSize);
 
         // scrolling
-        if (IsKeyDown(KEY_LEFT_SHIFT)){
+        if (IsKeyDown(KEY_LEFT_SHIFT)) {
             LoggerOffsetY += GetMouseWheelMove() * 100;
         }
     }
 }
 
-bool LoggerIsOpen(){
+bool LoggerIsOpen() {
     return ShowLogger;
 }
 
-void OpenLogger(){
+void OpenLogger() {
     ShowLogger = true;
 }
 
-void CloseLogger(){
+void CloseLogger() {
     ShowLogger = false;
 }
 
-bool ToggleLogger(){
+bool ToggleLogger() {
     ShowLogger = !ShowLogger;
     return ShowLogger;
 }
@@ -181,10 +190,10 @@ Vector2 Vector2Absolute(Vector2 v2) {
     };
 }
 
-Vector2 Vector2Snap(Vector2 v2, float gridSize){
+Vector2 Vector2Snap(Vector2 v2, float gridSize) {
     Vector2 cell = {
-        (int) (v2.x / gridSize) * (float) gridSize,
-        (int) (v2.y / gridSize) * (float) gridSize,
+        (int)(v2.x / gridSize) * (float)gridSize,
+        (int)(v2.y / gridSize) * (float)gridSize,
     };
     cell.x -= cell.x < 0 ? gridSize : 0.f;
     cell.y -= cell.y < 0 ? gridSize : 0.f;
@@ -200,11 +209,11 @@ Vector3 Vector3Absolute(Vector3 v3) {
     };
 }
 
-Vector3 Vector3Snap(Vector3 v3, float gridSize){
+Vector3 Vector3Snap(Vector3 v3, float gridSize) {
     Vector3 cell = {
-        (int) (v3.x / gridSize) * (float) gridSize,
-        (int) (v3.y / gridSize) * (float) gridSize,
-        (int) (v3.z / gridSize) * (float) gridSize,
+        (int)(v3.x / gridSize) * (float)gridSize,
+        (int)(v3.y / gridSize) * (float)gridSize,
+        (int)(v3.z / gridSize) * (float)gridSize,
     };
     cell.x -= cell.x < 0 ? gridSize : 0.f;
     cell.y -= cell.y < 0 ? gridSize : 0.f;
@@ -223,34 +232,135 @@ Color InvertColor(Color col, bool invertAlpha) {
     return col;
 }
 
-Color ColorLerp(Color src, Color dst, float factor){
-    factor = Clamp(factor,0.f,1.f);
+Color ColorLerp(Color src, Color dst, float factor) {
+    factor = Clamp(factor, 0.f, 1.f);
 
-    src.r = Lerp(src.r,dst.r,factor);
-    src.g = Lerp(src.g,dst.g,factor);
-    src.b = Lerp(src.b,dst.b,factor);
-    src.a = Lerp(src.a,dst.a,factor);
-    
+    src.r = Lerp(src.r, dst.r, factor);
+    src.g = Lerp(src.g, dst.g, factor);
+    src.b = Lerp(src.b, dst.b, factor);
+    src.a = Lerp(src.a, dst.a, factor);
+
     return src;
 }
 
 // c^2 = a^2 + b^2
-float GetRectangleDiameter(Rectangle rec){
+float GetRectangleDiameter(Rectangle rec) {
     float diam2 = GetRectangleDiameterSquared(rec);
     return sqrtf(diam2);
 }
-float GetRectangleDiameterSquared(Rectangle rec){
-    return rec.width*rec.width + rec.height*rec.height;
+float GetRectangleDiameterSquared(Rectangle rec) {
+    return rec.width * rec.width + rec.height * rec.height;
 }
 
-Rectangle BoundingBoxToRect(BoundingBox box){
+float SweptAABB(MovingRectangle source, MovingRectangle target, Vector2* normal) {
+    MovingRectangle& b1 = source;
+    MovingRectangle& b2 = target;
+
+    float xInvEntry, yInvEntry;
+    float xInvExit, yInvExit;
+
+    // find the distance between the objects on the near and far sides for both x and y 
+    if (b1.vx > 0.0f)
+    {
+        xInvEntry = b2.x - (b1.x + b1.w);
+        xInvExit = (b2.x + b2.w) - b1.x;
+    }
+    else
+    {
+        xInvEntry = (b2.x + b2.w) - b1.x;
+        xInvExit = b2.x - (b1.x + b1.w);
+    }
+
+    if (b1.vy > 0.0f)
+    {
+        yInvEntry = b2.y - (b1.y + b1.h);
+        yInvExit = (b2.y + b2.h) - b1.y;
+    }
+    else
+    {
+        yInvEntry = (b2.y + b2.h) - b1.y;
+        yInvExit = b2.y - (b1.y + b1.h);
+    }
+
+    // find time of collision and time of leaving for each axis (if statement is to prevent divide by zero) 
+    float xEntry, yEntry;
+    float xExit, yExit;
+
+    if (b1.vx == 0.0f)
+    {
+        xEntry = -std::numeric_limits<float>::infinity();
+        xExit = std::numeric_limits<float>::infinity();
+    }
+    else
+    {
+        xEntry = xInvEntry / b1.vx;
+        xExit = xInvExit / b1.vx;
+    }
+
+    if (b1.vy == 0.0f)
+    {
+        yEntry = -std::numeric_limits<float>::infinity();
+        yExit = std::numeric_limits<float>::infinity();
+    }
+    else
+    {
+        yEntry = yInvEntry / b1.vy;
+        yExit = yInvExit / b1.vy;
+    }
+
+    // find the earliest/latest times of collisionfloat 
+    float entryTime = std::max(xEntry, yEntry);
+    float exitTime = std::min(xExit, yExit);
+
+
+    // if there was no collision
+    if (entryTime > exitTime || xEntry < 0.0f && yEntry < 0.0f || xEntry > 1.0f || yEntry > 1.0f)
+    {
+        normal->x = 0.0f;
+        normal->y = 0.0f;
+        return 1.0f;
+    }
+    else // if there was a collision 
+    {
+        // calculate normal of collided surface
+        if (xEntry > yEntry)
+        {
+            if (xInvEntry < 0.0f)
+            {
+                normal->x = 1.0f;
+                normal->y = 0.0f;
+            }
+            else
+            {
+                normal->x = -1.0f;
+                normal->y = 0.0f;
+            }
+        }
+        else
+        {
+            if (yInvEntry < 0.0f)
+            {
+                normal->x = 0.0f;
+                normal->y = 1.0f;
+            }
+            else
+            {
+                normal->x = 0.0f;
+                normal->y = -1.0f;
+            }
+        } // return the time of collision
+        return entryTime;
+    }
+}
+
+Rectangle BoundingBoxToRect(BoundingBox box) {
     Vector2 pos = { box.min.x, box.min.y };
     Vector3 size3 = Vector3Subtract(box.max, box.min);
-    Vector2 size = { size3.x, size3.y};
+    Vector2 size = { size3.x, size3.y };
     return { pos.x, pos.y, size.x, size.y };
 }
 
-Rectangle BoundingBoxToRect(BoundingBox2D box){
+Rectangle BoundingBoxToRect(BoundingBox2D box) {
     Vector2 pos = box.min;
     Vector2 size = Vector2Subtract(box.max, box.min);
     return { pos.x, pos.y, size.x, size.y };

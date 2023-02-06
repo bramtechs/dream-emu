@@ -206,8 +206,18 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
     return hit;
 }
 
-EntityGroup::EntityGroup() {
+EntityGroup::EntityGroup(float gravity) {
     this->entityCount = 0;
+
+    // make box2d world
+    b2Vec2 gravVec2(0.f,gravity);
+    this->world = new b2World(gravVec2);
+    DEBUG("Allocated Box2D world");
+}
+
+EntityGroup::~EntityGroup() {
+    delete this->world;
+    DEBUG("Disposed Box2D world");
 }
 
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {

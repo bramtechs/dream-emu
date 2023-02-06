@@ -24,9 +24,10 @@ static Description DescribeComponentModelRenderer(void* data){
 
 static Description DescribeComponentPhysicsBody(void* data){
     auto phys = (PhysicsBody*) data;
-    return { STRING(PhysicsBody), TextFormat("Vel: %f %f\nDynamic: %d\nGravity: %f\nMax speed: %f\nDamp: %f\nFloored: %d",
-                phys->velocity.x,phys->velocity.y,phys->dynamic,phys->gravity,phys->maxSpeed,phys->damp, phys->isFloored), PURPLE
-    };
+    return {STRING(PhysicsBody), "wip"};
+    //return { STRING(PhysicsBody), TextFormat("Vel: %f %f\nDynamic: %d\nGravity: %f\nMax speed: %f\nDamp: %f\nFloored: %d",
+    //            phys->velocity.x,phys->velocity.y,phys->dynamic,phys->gravity,phys->maxSpeed,phys->damp, phys->isFloored), PURPLE
+    //};
 }
 
 static Description DescribeComponentAnimationPlayer(void* data){
@@ -207,15 +208,15 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                 auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first, COMP_PHYS_BODY);
                 if (phys != NULL){
                     // brake sprite when pressing spacebar
-                    if (IsKeyPressed(KEY_SPACE)){
-                            phys->velocity = Vector2Zero();
-                            DEBUG("Killed velocity");
-                    }
+                    //if (IsKeyPressed(KEY_SPACE)){
+                    //        phys->velocity = Vector2Zero();
+                    //        DEBUG("Killed velocity");
+                    //}
 
                     Color col = ColorAlpha(RED,0.5f);
                     if (phys->dynamic){
                         // draw overlap if active any
-                        DrawRectangleRec(phys->curOverlap, col);
+                        // DrawRectangleRec(phys->curOverlap, col);
                     }
                     else {
                         // draw cross if static
