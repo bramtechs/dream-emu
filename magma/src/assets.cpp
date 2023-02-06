@@ -54,14 +54,36 @@ bool LoadAssets() {
 }
 
 bool ImportAssetPackage(const char* filePath) {
-    std::ifstream stream;
-    try {
-        stream = std::ifstream(filePath, std::ifstream::binary);
-    }
-    catch (const std::ifstream::failure& e) {
-        TraceLog(LOG_ERROR, "Exception opening asset package at %s", filePath);
+
+    // load asset file
+    unsigned int dataSize = 0;
+    unsigned char* data = LoadFileData(filePath, &dataSize); // TODO: find way to avoid copying data
+    if (dataSize == 0) {
+        TraceLog(LOG_ERROR, "Failed opening asset package at %s", filePath);
         return false;
     }
+
+    // check if compressed
+    std::string dataStr;
+    if (data[0] == 0x4d && data[1] == 0x47 && data[2] == 0x41){
+        int decompSize = 0;
+        int dataSizeWOHeader = (int) dataSize - 3;
+        unsigned char* uncompData = DecompressData(&data[3], dataSizeWOHeader, &decompSize);
+        if (decompSize == 0) {
+            TraceLog(LOG_ERROR, "Failed decompressing asset package at %s", filePath);
+            return false;
+        }
+        dataStr = std::string((char*)uncompData,decompSize);
+        INFO("Package is compressed.");
+        MemFree(uncompData);
+    }
+    else {
+        dataStr = std::string((char*)data, dataSize);
+        INFO("Package is uncompressed.");
+    }
+    UnloadFileData(data);
+
+    auto stream = std::stringstream(dataStr);
 
     // >> size
     int64_t count = -1;
@@ -71,10 +93,6 @@ bool ImportAssetPackage(const char* filePath) {
         ERROR("Malformed package, could not determine number of items! (wrong version?)");
         return false;
     }
-
-    bool isCompressed = false;
-    // >> compressed flag
-    stream.read((char*)&isCompressed, sizeof(bool));
 
     // >> items
     for (auto i = 0; i < count; i++) {
@@ -90,24 +108,13 @@ bool ImportAssetPackage(const char* filePath) {
 
         unsigned char* loaded = (unsigned char*)MemAlloc(asset.size);
         stream.read((char*)loaded, asset.size);
-
-        if (isCompressed) {
-            int size = 0;
-            asset.data = (char*)DecompressData(loaded, asset.size, &size);
-            asset.size = size;
-            MemFree(loaded);
-        }
-        else {
-            asset.data = (char*)loaded;
-        }
+        asset.data = (char*)loaded;
 
         Assets.assets.push_back(asset);
         TraceLog(LOG_DEBUG, "Loaded asset %s", asset.path);
     }
 
     TraceLog(LOG_INFO, ("Loaded asset pack %s", filePath));
-    stream.close();
-
     return true;
 }
 

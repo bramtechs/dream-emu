@@ -34,7 +34,6 @@ bool validate_dropped_file(std::string *filePath) {
         return valid;
 }
 
-// TODO instant loading with startup commands
 int launch(std::vector<std::string> args){
 
     std::string filePath;

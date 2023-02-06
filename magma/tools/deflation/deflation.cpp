@@ -8,9 +8,6 @@
 #include "magma.h"
 
 // CLI: tool to generate "Deflation" packages
-
-// TODO v2: add compression
-
 namespace fs = std::filesystem;
 
 std::vector<std::string> get_supported_formats() {
@@ -55,21 +52,13 @@ bool should_include(char const* ext) {
     return false;
 }
 
-void process(PackList& pack, std::string path, std::string shortPath, bool compress=false) {
+void process(PackList& pack, std::string path, std::string shortPath) {
     RawAsset asset = {};
 
     uint size = 0;
     unsigned char* data = (unsigned char*) LoadFileData(path.c_str(), &size);
 
-    if (compress) {
-        unsigned char* compressed = CompressData(data, size, (int*) &size);
-        UnloadFileData(data);
-
-        asset.data = (char*) compressed;
-    }
-    else {
-        asset.data = (char*) data;
-    }
+    asset.data = (char*) data;
     asset.size = size;
 
     strcpy_s(asset.path, PATH_MAX_LEN, shortPath.c_str());
@@ -84,12 +73,11 @@ void save(PackList pack, const char* output, bool compress=false) {
     // save into file
     uint size = 0;
 
-    auto buffer = std::ofstream(output,std::ofstream::binary);
+    std::string outputPath = compress ? TextFormat("%s_tmp",output):output;
+    auto buffer = std::ofstream(outputPath, std::ofstream::binary);
     // >>> size
     int64_t amount = pack.size();
     buffer.write((char*)&amount,sizeof(int64_t));
-    // >>> compressed flag
-    buffer.write((char*)&compress,sizeof(bool));
 
     // >>> items
     for (const auto& item : pack) {
@@ -100,6 +88,42 @@ void save(PackList pack, const char* output, bool compress=false) {
         buffer.write((char*)item.data, item.size);
     }
     buffer.close();
+
+    if (compress) {
+        // load uncompressed file and compress into new one
+        unsigned int size = 0;
+        unsigned char* data = LoadFileData(outputPath.c_str(),&size);
+
+        INFO("Compressing %s...",outputPath.c_str());
+        int compSize = 0;
+        unsigned char* compData = CompressData(data, (int) size, &compSize);
+
+        // sign file with MGA
+        int compSignedSize = sizeof(char)*3+compSize;
+        char* compSignedData = (char*) M_MemAlloc(compSignedSize);
+        compSignedData[0] = 0x4d;
+        compSignedData[1] = 0x47;
+        compSignedData[2] = 0x41;
+        memcpy(&compSignedData[3],compData,compSize);
+
+        UnloadFileData(data);
+        MemFree((void*)compData);
+
+        if (SaveFileData(output, (void*)compSignedData, compSignedSize)){
+            int percentage = (int)(compSize / (float)size * 100.f);
+            INFO("Wrote compressed package to %s (%d %%)",output,percentage);
+        }
+        else{
+            ERROR("Failed to write compressed package to path %s",output);
+        }
+
+        MemFree(compSignedData);
+
+        // delete uncompressed version
+        if (std::remove(outputPath.c_str()) != 0){
+            WARN("Could not removed uncompressed version located at %s",outputPath);
+        }
+    }
 }
 
 void deflate(std::vector<std::string>& inputFolders, std::string& output, bool compress=false) {
@@ -121,7 +145,7 @@ void deflate(std::vector<std::string>& inputFolders, std::string& output, bool c
         const char* ext = GetFileExtension(file.c_str());
 
         if (should_include(ext)) {
-            process(pack, path, file, compress);
+            process(pack, path, file);
         }
     }
 
@@ -134,6 +158,13 @@ int run(std::vector<std::string> args) {
         return -1;
     }
 
+    bool doCompress = false;
+    if (args[args.size()-1] == "--compress"){
+        doCompress = true;
+        args.pop_back();
+        INFO("Compressing package...");
+    }
+
     std::vector<std::string> inputFolders;
     for (int i = 0; i <= args.size()-2; i++){
         auto path = args[i];
@@ -141,12 +172,6 @@ int run(std::vector<std::string> args) {
     }
 
     std::string exportFolder = args[args.size()-1];
-
-    bool doCompress = false;
-    if (args.size() > 3 && args[3] == "--compress") {
-        doCompress = true;
-        INFO("Compressing package...");
-    }
 
     deflate(inputFolders, exportFolder, doCompress);
 

@@ -1,4 +1,6 @@
+- [ ] Make Box2D optional dependency
+- [ ] Resize fixture on texture change
 - [ ] Player movement
 - [ ] Player jump
-- [ ] Player collision
+- [X] Player collision
 - [ ] Make tiles more interesting
