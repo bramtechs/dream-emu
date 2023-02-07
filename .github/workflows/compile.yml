@@ -1,26 +1,38 @@
-on:
-  push:
-    branch:
-      - "main"
+name: CI
+on: [push, pull_request]
 
 jobs:
-  build:
-    # Run a job for each of the specified target architectures:
-    runs-on: 'windows-latest'
+#   build-linux-gcc:
+#   runs-on: ubuntu-18.04
+#   steps:
+#     - uses: actions/checkout@v1
+#     - name: build all and examples
+#       run: |
+#         make -k
+#       env:
+#         CC: gcc
+#         CXX: g++
+# build-linux-clang:
+#   runs-on: ubuntu-18.04
+#   steps:
+#     - uses: actions/checkout@v1
+#     - name: build all and examples
+#       run: |
+#         make -k
+#       env:
+#         CC: clang
+#         CXX: clang++
+  build-windows-msvc:
+    runs-on: windows-2019
     steps:
-      - name: Checkout the sauce 
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: MSVC setup
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.arch }}
+      - uses: actions/checkout@v1
+        # this runs vcvarsall for us, so we get the MSVC toolchain in PATH.
+      - uses: seanmiddleditch/gha-setup-vsdevenv@master
+      - name: build all
+        shell: cmd
+        # this replaces default PowerShell, which can't fail the build
         run: |
-          call dist.bat
-      - name: Make zip
-        run: |
-          Compress-Archive -Force -Path dist\pack -DestinationPath dist\handmade.zip
+          .\build.bat && powershell -file .\package.ps1
       - name: "Upload zip with binaries"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -29,4 +41,4 @@ jobs:
           prerelease: true
           title: "Handmade Build"
           files: |
-            dist/handmade.zip
+            build/release.zip
