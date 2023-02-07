@@ -1,6 +1,3 @@
-WHERE cl
-IF %ERRORLEVEL% NEQ 0 call shell.bat 
-
 IF NOT EXIST dist mkdir dist 
 pushd dist
 cl /O2 /Ot ..\src\win32_magma.cpp user32.lib
