@@ -1,9 +1,21 @@
+@echo off
+
 IF EXIST "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" (
     :: windows 11 
     echo Preparing modern compiler
     call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 ) ELSE (
-    :: windows xp
-    echo Preparing legacy compiler
-    call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"
+    if EXIST "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" (
+        :: windows xp
+        echo Preparing legacy compiler
+        call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"
+    ) ELSE (
+        if EXIST "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" (
+            :: github 
+            echo Preparing Github's compiler
+            call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
+        ) ELSE (
+            echo Could not set shell!
+        )
+    )
 )
