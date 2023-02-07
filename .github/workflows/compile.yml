@@ -16,9 +16,8 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
-      - name: MSVC compilation 
         run: |
-          Invoke-Expression ".\dist.bat"
+          call dist.bat
       - name: Make zip
         run: |
           Compress-Archive -Force -Path dist\pack -DestinationPath dist\handmade.zip
