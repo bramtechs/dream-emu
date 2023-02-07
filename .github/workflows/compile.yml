@@ -41,4 +41,4 @@ jobs:
           prerelease: true
           title: "Handmade Build"
           files: |
-            build/release.zip
+            release.zip

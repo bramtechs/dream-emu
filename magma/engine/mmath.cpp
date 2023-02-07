@@ -5,41 +5,46 @@
 #define DEG2RAD (PI/180.0f)
 #define RAD2DEG (180.0f/PI)
 
+struct Rect {
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
+struct FRect {
+    float x;
+    float y;
+    float width;
+    float height;
+};
+
 struct Point2 {
     int x;
     int y;
 };
 
-struct Vector2 {
+struct Vec2 {
     float x;
     float y;
 
-    Vector2(float x, float y) {
+    Vec2(float x, float y) {
         this->x = x;
         this->y = y;
     }
 };
 
-struct Vector3 {
+struct Vec3 {
     float x;
     float y;
     float z;
 };
 
-struct Vector4 {
+struct Vec4 {
     float x;
     float y;
     float z;
     float w;
-};
-
-typedef Vector4 Quaternion;
-
-struct Matrix {
-    float m0, m4, m8, m12;      // Matrix first row (4 components)
-    float m1, m5, m9, m13;      // Matrix second row (4 components)
-    float m2, m6, m10, m14;     // Matrix third row (4 components)
-    float m3, m7, m11, m15;     // Matrix fourth row (4 components)
 };
 
 template <typename T>
