@@ -18,7 +18,7 @@ jobs:
           arch: ${{ matrix.arch }}
       - name: MSVC compilation 
         run: |
-          dist.bat
+          cmd /c "dist.bat"
       - name: Make zip
         run: |
           Compress-Archive -Force -Path dist\pack -DestinationPath dist\handmade.zip
