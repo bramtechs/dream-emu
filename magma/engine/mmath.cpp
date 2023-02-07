@@ -5,6 +5,11 @@
 #define DEG2RAD (PI/180.0f)
 #define RAD2DEG (180.0f/PI)
 
+struct Point2 {
+    int x;
+    int y;
+};
+
 struct Vector2 {
     float x;
     float y;
