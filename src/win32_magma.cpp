@@ -1,32 +1,10 @@
-#include <math.h>
-#include <stdint.h>
-
-#define internal static 
-#define local_persist static 
-#define global_variable static
-
-#define Pi32 3.14159265359f
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-typedef int32 bool32;
-
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
-typedef float real32;
-typedef double real64;
-
 #include <windows.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <xinput.h>
-
 #include <windows.h>
+
+#include "magma.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -65,7 +43,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return 0;
     }
 
+    if (AllocConsole()) {
+        freopen("CONIN$", "r", stdin);
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr); 
+    }
     ShowWindow(hwnd, nCmdShow);
+
+    std::cout << "Hello\n"; //you should see this on the console
 
     // Run the message loop.
     MSG msg = { };
@@ -75,16 +60,33 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         DispatchMessage(&msg);
     }
 
+    FreeConsole();
+
     return 0;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static void OnSize(HWND hwnd, UINT flag, int width, int height)
+{
+    std::cout << "Resized window to " << width << " x " << height << std::endl;
+}
+
+static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
+
+    case WM_SIZE:
+        {
+            int width = LOWORD(lParam);
+            int height = HIWORD(lParam);
+
+            // respond to message
+            OnSize(hwnd,(UINT)wParam, width, height);
+        }
+        break;
 
     case WM_PAINT:
         {
