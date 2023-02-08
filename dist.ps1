@@ -31,4 +31,6 @@ Copy-Item -Force -Recurse .\build\temple\Release\temple.exe $BUILD_DIR\temple
 .\mgtools\deflation.exe temple\raw_assets core_assets $BUILD_DIR\temple\assets.mga --compress
 
 # make ZIP
-Compress-Archive -Force -Path $BUILD_DIR\* -DestinationPath .\build\DREAM_EMU.ZIP
+$fileName = Get-Date -UFormat ".\releases\DREAM_EMU-%Y-%m-%d-%H-%M.ZIP"
+mkdir -Force releases
+Compress-Archive -Force -Path $BUILD_DIR\* -DestinationPath $fileName
