@@ -1,7 +1,7 @@
 .\deps.ps1
 
 if (-not(Test-Path -Path "build")){
-    cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -T v141_xp
+    .\gen.ps1
 }
 
 cmake --build build -j $Env:NUMBER_OF_PROCESSORS

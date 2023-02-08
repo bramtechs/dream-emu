@@ -12,7 +12,7 @@ Set-Location $oldloc
 .\deps.ps1
  
 # build everything in release mode
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64 -T v141_xp
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A Win32 -T v141_xp
 cmake --build build -j $Env:NUMBER_OF_PROCESSORS --config Release
 
 # build and copy tools
