@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 
 # download all dependencies
 .\deps.ps1
+.\install_xp.ps1
  
 # build everything in release mode
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64 -T v141_xp
