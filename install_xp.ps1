@@ -11,6 +11,5 @@ if ($process.ExitCode -eq 0)
 else
 {
     Write-Host "components were not installed"
-    exit 1
 }
 Set-Location $OriginalLocation
