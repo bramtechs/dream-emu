@@ -2,7 +2,10 @@ $BUILD_DIR= ".\build\dream\Release"
 $ErrorActionPreference = "Stop"
 
 # install windows xp compilation support
+$oldloc = Get-Location
+Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer"
 & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath 'C:\Program Files\Microsoft Visual Studio\2022\Preview' --add 'Microsoft.VisualStudio.Component.WinXP' --quiet --norestart --nocache --force
+Set-Location $oldloc
 
 # download all dependencies
 .\deps.ps1
