@@ -22,6 +22,10 @@ void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight,
     // Render texture initialization, used to hold the rendering result so we can easily resize it
     Win.renderTarget = LoadRenderTexture(gameWidth, gameHeight);
     SetTextureFilter(Win.renderTarget.texture, TEXTURE_FILTER_POINT);  // Texture scale filter to use
+
+    // open console
+    // TODO: make an option
+    OpenSystemConsole();
 }
 
 void InitMagmaWindow(int winWidth, int winHeight, const char* title) {
@@ -118,6 +122,7 @@ void SetTimeScale(float scale){
 
 void CloseMagmaWindow() {
     UnloadRenderTexture(Win.renderTarget);
+    CloseSystemConsole();
     CloseWindow();
 }
 

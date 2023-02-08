@@ -151,11 +151,6 @@ struct RawAsset {
     char* data;
 };
 
-struct LogLine {
-    TraceLogLevel level;
-    std::string text;
-};
-
 struct SplashScreen{
     const char imgPath[128];
     float duration;
@@ -432,7 +427,10 @@ void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
 Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
 Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
-                             //
+
+void OpenSystemConsole();
+void CloseSystemConsole();
+
 void SetTimeScale(float scale);
 float GetTimeScale();
 

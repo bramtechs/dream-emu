@@ -1,6 +1,10 @@
 #include "magma.h"
 
 // TODO put logger stuff in struct
+struct LogLine {
+    TraceLogLevel level;
+    char msg[512];
+};
 
 static std::vector<LogLine> Buffer;
 static size_t Allocations = 0;
@@ -32,33 +36,42 @@ bool CreateDirectory(const char* path) {
     return true;
 }
 
+static const char* MsgLevelToStr(int msgType){
+    switch (msgType)
+    {
+        case LOG_INFO: 
+            return "INFO";
+        case LOG_ERROR:
+            return "ERROR";
+        case LOG_WARNING:
+            return "WARN";
+        case LOG_DEBUG:
+            return "DEBUG";
+        default: 
+            return "";
+    }
+
+}
+
 void MagmaLogger(int msgType, const char* text, va_list args)
 {
+    // collect current time
     char timeStr[64] = { 0 };
     time_t now = time(NULL);
     struct tm* tm_info = localtime(&now);
-
     strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", tm_info);
-    printf("[%s] ", timeStr);
-
-    switch (msgType)
-    {
-    case LOG_INFO: printf("[INFO] : "); break;
-    case LOG_ERROR: printf("[ERROR]: "); break;
-    case LOG_WARNING: printf("[WARN] : "); break;
-    case LOG_DEBUG: printf("[DEBUG]: "); break;
-    default: break;
-    }
 
     char buffer[512];
     vsnprintf(buffer, 255, text, args);
 
-    std::cout << buffer << std::endl;
+    const char* levelText = MsgLevelToStr(msgType);
+    const char* msg = TextFormat("[%s] [%s] : %s", timeStr, levelText, buffer);
 
-    LogLine line = {
-        (TraceLogLevel)msgType,
-        buffer
-    };
+    std::cout << msg << '\n';
+
+    LogLine line;
+    line.level = (TraceLogLevel)msgType;
+    memcpy(line.msg, msg, 512);
     Buffer.push_back(line);
 
     // open logger on error
@@ -117,7 +130,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
             break;
         }
 
-        const char* text = line.text.c_str();
+        const char* text = line.msg;
         DrawRetroText(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
 
         // expand background if needed
