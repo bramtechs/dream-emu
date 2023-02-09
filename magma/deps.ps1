@@ -1,9 +1,10 @@
 # clone raylib: NOTE bleeding edge MASTER BRANCH
 if (-not(Test-Path -Path "raylib")){
-    git clone "https://github.com/bramtechs/raylib" raylib
+    git clone "https://github.com/bramtechs/extlib" raylib 
 }
 
 cd raylib
+git checkout master
 git fetch --prune
 git merge
 cd ..

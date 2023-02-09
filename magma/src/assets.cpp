@@ -705,7 +705,7 @@ size_t GetAssetCount() {
     return Assets.assets.size();
 }
 
-inline bool IsAssetLoaded(const std::string& name) {
+bool IsAssetLoaded(const std::string& name) {
     RawAsset asset = QueryAsset(name);
     return asset.data != NULL;
 }

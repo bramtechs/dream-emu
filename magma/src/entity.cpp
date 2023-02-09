@@ -1,5 +1,17 @@
 #include "magma.h"
 
+void SetEntityCenter(EntityID id, Vector2 pos);
+void SetEntityCenter(EntityID id, Vector3 pos);
+void SetEntityCenter(EntityID id, float x, float y);
+void SetEntityCenter(EntityID id, float x, float y, float z);
+
+void SetEntitySize(EntityID id, Vector2 pos);
+void SetEntitySize(EntityID id, Vector3 pos);
+void SetEntitySize(EntityID id, float x, float y);
+void SetEntitySize(EntityID id, float x, float y, float z);
+
+void ResetEntityTranslation(EntityID id);
+
 Base::Base(Vector3 pos, Color tint) {
     BoundingBox box = {
         pos,
@@ -13,36 +25,14 @@ void Base::Translate(Vector3 offset) {
     bounds.min = Vector3Add(bounds.min, offset);
     bounds.max = Vector3Add(bounds.max, offset);
 }
-void Base::Translate(float x, float y, float z) {
-    Translate({ x,y,z });
-}
-void Base::TranslateX(float x) {
-    Translate({ x,0,0 });
-}
-void Base::TranslateY(float y) {
-    Translate({ 0,y,0 });
-}
-void Base::TranslateZ(float z) {
-    Translate({ 0,0,z });
-}
 
 void Base::SetCenter(Vector3 pos) {
     bounds.min = Vector3Subtract(pos, halfSize());
     bounds.max = Vector3Add(pos, halfSize());
 }
-void Base::SetCenter(float x, float y, float z){
-    SetSize({x,y,z});
-}
 
 void Base::SetSize(Vector3 size){
     bounds.max = Vector3Add(bounds.min,size);
-}
-void Base::SetSize(float x, float y, float z){
-    SetSize({x,y,z});
-}
-
-void Base::ResetTranslation() {
-    SetCenter(Vector3Zero());
 }
 
 Vector3 Base::center() {
@@ -72,26 +62,11 @@ Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
     this->zOrder = zOrder;
     this->bounds = box;
     this->tint = tint;
-    this->isBeingMoved = false;
 }
 
 void Sprite::Translate(Vector2 offset) {
     bounds.min = Vector2Add(bounds.min, offset);
     bounds.max = Vector2Add(bounds.max, offset);
-    // for PhysicsBody (if any)
-    isBeingMoved = true;
-}
-void Sprite::Translate(float x, float y) {
-    Translate({ x,y });
-}
-void Sprite::TranslateX(float x) {
-    Translate({ x,0 });
-}
-void Sprite::TranslateY(float y) {
-    Translate({ 0,y });
-}
-void Sprite::ResetTranslation() {
-    SetCenter(Vector2Zero());
 }
 
 RayCollision Sprite::GetMouseRayCollision(Camera2D camera) {
@@ -101,39 +76,23 @@ RayCollision Sprite::GetMouseRayCollision(Camera2D camera) {
     return {};
 }
 
-void Sprite::SetCenter(Vector2 pos, bool isRaw) {
+void Sprite::SetCenter(Vector2 pos) {
     Vector2 hSize = halfSize();
     bounds.min = Vector2Subtract(pos, hSize);
     bounds.max = Vector2Add(pos, hSize);
-    if (!isRaw) {
-        isBeingMoved = true;
-    }
 }
 
-void Sprite::SetCenter(float x, float y){
-    SetCenter({x,y});
-}
 void Sprite::SetTopLeft(Vector2 pos) {
     Vector2 size = this->size();
     bounds.min = pos;
     bounds.max = Vector2Add(pos, size);
-    isBeingMoved = true;
-}
-void Sprite::SetTopLeft(float x, float y){
-    SetTopLeft({x,y});
 }
 
-void Sprite::SetSize(Vector2 size, bool isRaw){
+void Sprite::SetSize(Vector2 size){
     bounds.max = Vector2Add(bounds.min,size);
-    if (!isRaw) {
-        isBeingMoved = true;
-    }
-}
-void Sprite::SetSize(float x, float y){
-    SetSize({x,y});
 }
 
-void Sprite::SetTexture(Texture texture, Rectangle srcRect, bool isRaw){
+void Sprite::SetTexture(Texture texture, Rectangle srcRect){
     this->texture = texture;
     if (srcRect.x == 0 && srcRect.y == 0 &&
         srcRect.width == 0 && srcRect.height == 0){
@@ -144,7 +103,7 @@ void Sprite::SetTexture(Texture texture, Rectangle srcRect, bool isRaw){
         this->srcRect = srcRect;
     }
 
-    SetSize({this->srcRect.width,this->srcRect.height},isRaw);
+    SetSize({this->srcRect.width,this->srcRect.height});
 }
 
 Rectangle Sprite::region(){

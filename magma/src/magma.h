@@ -84,6 +84,8 @@ constexpr float PIXELS_PER_UNIT = 64;
 typedef unsigned int uint;
 typedef uint ItemType;
 typedef uint EntityID;
+
+
 typedef int AssetType;
 
 extern size_t Allocations;
@@ -256,18 +258,32 @@ struct Base {
     Base(Vector3 pos = {0,0,0}, Color tint = WHITE);
 
     void Translate(Vector3 offset);
-    void Translate(float x, float y, float z);
-    void TranslateX(float x);
-    void TranslateY(float y);
-    void TranslateZ(float z);
+    inline void Translate(float x, float y, float z) {
+        Translate({ x,y,z });
+    }
+    inline void TranslateX(float x) {
+        Translate({ x,0,0 });
+    }
+    inline void TranslateY(float y) {
+        Translate({ 0,y,0 });
+    }
+    inline void TranslateZ(float z) {
+        Translate({ 0,0,z });
+    }
 
     void SetCenter(Vector3 pos);
-    void SetCenter(float x, float y, float z);
+    inline void SetCenter(float x, float y, float z){
+        SetSize({x,y,z});
+    }
 
     void SetSize(Vector3 pos);
-    void SetSize(float x, float y, float z);
+    inline void SetSize(float x, float y, float z){
+        SetSize({x,y,z});
+    }
 
-    void ResetTranslation();
+    inline void ResetTranslation() {
+        SetCenter(Vector3Zero());
+    }
 
     RayCollision GetMouseRayCollision(Camera3D camera);
 
@@ -280,7 +296,6 @@ struct Sprite {
     BoundingBox2D bounds;
     int zOrder;
     Color tint;
-    bool isBeingMoved;
 
     Texture texture;
     Rectangle srcRect;
@@ -289,24 +304,37 @@ struct Sprite {
            Color tint = WHITE, int zOrder = 0);
 
     void Translate(Vector2 offset);
-    void Translate(float x, float y);
-    void TranslateX(float x);
-    void TranslateY(float y);
+    inline void Translate(float x, float y) {
+        Translate({ x,y });
+    }
+    inline void TranslateX(float x) {
+        Translate({ x,0 });
+    }
+    inline void TranslateY(float y) {
+        Translate({ 0,y });
+    }
 
-    // TODO: make methods to move entities by EntityID instead of directly calling components
-    void SetCenter(Vector2 pos, bool isRaw=false);
-    void SetCenter(float x, float y);
-    void SetTopLeft(float x, float y);
+    void SetCenter(Vector2 pos);
+    inline void SetCenter(float x, float y){
+        SetTopLeft({x,y});
+    }
+
     void SetTopLeft(Vector2 pos);
+    inline void SetTopLeft(float x, float y){
+        SetSize({x,y});
+    }
+    void SetSize(Vector2 size);
+    inline void SetSize(float x, float y){
+        SetSize(x,y);
+    }
 
-    void SetSize(Vector2 size, bool isRaw=false);
-    void SetSize(float x, float y);
-
-    void ResetTranslation();
+    inline void ResetTranslation() {
+        SetCenter(Vector2Zero());
+    }
 
     RayCollision GetMouseRayCollision(Camera2D camera);
 
-    void SetTexture(Texture texture, Rectangle srcRect={}, bool isRaw=false);
+    void SetTexture(Texture texture, Rectangle srcRect={});
 
     Rectangle region();
     Vector2 center();
@@ -418,7 +446,7 @@ int GetAssetType(const char* name);
 
 void PrintAssetStats();
 void PrintAssetList();
-inline bool IsAssetLoaded(const std::string& name);
+bool IsAssetLoaded(const std::string& name);
 
 void ShowFailScreen(const std::string& text); // do not run in game loop
 

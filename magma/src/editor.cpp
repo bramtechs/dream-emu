@@ -12,7 +12,7 @@ static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
     Vector2 center = sprite->center();
     BoundingBox2D b = sprite->bounds;
-    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f\nIsBeingMoved: %d",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y,sprite->isBeingMoved), SKYBLUE };
+    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y), SKYBLUE };
 }
 
 static Description DescribeComponentModelRenderer(void* data){
@@ -209,7 +209,7 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                         target = {dragPos.x,mouse.y-dragOffset.y};
                         target.y = Vector2Snap(target,Session.gridSize).y + sprite->halfSize().y;
                     }
-                    sprite->SetCenter(target);
+                    SetEntityCenter(Session.subjectID,target);
                 }
                 else {
                     isDragging = false;
@@ -389,8 +389,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
                         case -2:
                             {
                                 // TODO: temporary
-                                auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
-                                sprite->SetCenter(-9999.f,-9999.f);
+                                SetEntityCenter(Session.subjectID,-9999.f,-9999.f);
                             }
                             break;
                         case -1:

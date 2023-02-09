@@ -1,7 +1,77 @@
 #include "magma.h"
 
+// TODO: make methods member of entitygroup somehow
+static EntityGroup* Group = NULL;
+
 // contains more "advanced" components and entities, not needed for some types of games
 // can be removed from engine
+
+// component-independent entity functions
+void TranslateEntity(EntityID id, Vector2 offset){
+    assert(Group);
+
+    auto phys = (PhysicsBody*) Group->GetEntityComponent(id, COMP_PHYS_BODY);
+    if (phys) {
+        b2Vec2 pos = phys->body->GetPosition();
+        phys->body->SetTransform({pos.x + offset.x/PIXELS_PER_UNIT,
+                                  pos.y + offset.y/PIXELS_PER_UNIT},0.f);
+    }
+    else {
+        auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
+        assert(sprite);
+
+        sprite->Translate(offset);
+    }
+}
+void TranslateEntity(EntityID id, Vector3 offset){
+    assert(Group);
+    auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
+    assert(base);
+    base->Translate(offset);
+}
+
+void SetEntityCenter(EntityID id, Vector2 pos){
+    assert(Group);
+
+    auto phys = (PhysicsBody*) Group->GetEntityComponent(id, COMP_PHYS_BODY);
+    if (phys) {
+        phys->body->SetTransform({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT},0.f);
+    }
+    else {
+        auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
+        assert(sprite);
+
+        sprite->SetCenter(pos);
+    }
+}
+void SetEntityCenter(EntityID id, Vector3 pos){
+    assert(Group);
+    auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
+    assert(base);
+    base->SetCenter(pos);
+}
+
+void SetEntitySize(EntityID id, Vector2 pos){
+    assert(Group);
+
+    auto phys = (PhysicsBody*) Group->GetEntityComponent(id, COMP_PHYS_BODY);
+    if (phys) {
+        // TODO:
+        // phys->position.Set({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT});
+    }
+    else {
+        auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
+        assert(sprite);
+
+        sprite->SetCenter(pos);
+    }
+}
+void SetEntitySize(EntityID id, Vector3 pos){
+    assert(Group);
+    auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
+    assert(base);
+    base->SetSize(pos);
+}
 
 PhysicsBody::PhysicsBody(bool isDynamic=true){
     this->initialized = false;
@@ -48,6 +118,8 @@ void AnimationPlayer::SetAnimation(SheetAnimation& anim) {
 
 // TODO: make function member of EntityGroup
 size_t UpdateGroupExtended(EntityGroup* group, float delta){
+    Group = group;
+
     for (const auto& comp : group->comps) {
         switch (comp.second.type) {
         case COMP_ANIM_PLAYER:
@@ -67,7 +139,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 anim.cellSize.y,
             };
 
-            sprite->SetTexture(sheetTexture,src,true);
+            sprite->SetTexture(sheetTexture,src);
 
             if (animPlayer->timer > 1.f/anim.fps){
                 animPlayer->timer = 0.f;
@@ -126,17 +198,9 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 phys->initialized = true;
             }
 
-            if (sprite->isBeingMoved){
-                // place PhysicsBody at Sprite location
-                Vector2 newPos = Vector2Scale(sprite->center(),1.f / PIXELS_PER_UNIT);
-                phys->body->SetTransform({newPos.x,newPos.y}, 0.f);
-                sprite->isBeingMoved = false;
-            }
-            else {
-                // place sprite at PhysicsBody location
-                Vector2 newPos = Vector2Scale(phys->position(),PIXELS_PER_UNIT);
-                sprite->SetCenter(newPos, true);
-            }
+            // place sprite at PhysicsBody location
+            Vector2 newPos = Vector2Scale(phys->position(),PIXELS_PER_UNIT);
+            sprite->SetCenter(newPos);
 
         } break;
         case COMP_PLAT_PLAYER:
