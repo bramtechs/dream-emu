@@ -62,6 +62,8 @@ Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
     this->zOrder = zOrder;
     this->bounds = box;
     this->tint = tint;
+    this->hFlip = false;
+    this->vFlip = false;
 }
 
 void Sprite::Translate(Vector2 offset) {
@@ -104,6 +106,19 @@ void Sprite::SetTexture(Texture texture, Rectangle srcRect){
     }
 
     SetSize({this->srcRect.width,this->srcRect.height});
+}
+
+void Sprite::SetFlipped(bool hFlip, bool vFlip) {
+    this->hFlip = hFlip;
+    this->vFlip = vFlip;
+}
+
+void Sprite::SetFlippedX(bool hFlip) {
+    this->hFlip = hFlip;
+}
+
+void Sprite::SetFlippedY(bool vFlip) {
+    this->vFlip = vFlip;
 }
 
 Rectangle Sprite::region(){
@@ -301,8 +316,13 @@ size_t EntityGroup::DrawGroup() {
             Color tint = WHITE;
             if (sprite->texture.width > 0) {
                 Rectangle dest = BoundingBoxToRect(sprite->bounds);
-                DrawTexturePro(sprite->texture, sprite->srcRect,
-                               dest, Vector2Zero(), 0.f, sprite->tint);
+                Rectangle src = {
+                    sprite->srcRect.x,
+                    sprite->srcRect.y,
+                    sprite->hFlip ? -sprite->srcRect.width : sprite->srcRect.width,
+                    sprite->vFlip ? -sprite->srcRect.height : sprite->srcRect.height
+                };
+                DrawTexturePro(sprite->texture, src, dest, Vector2Zero(), 0.f, sprite->tint);
             }
         } break;
         default:

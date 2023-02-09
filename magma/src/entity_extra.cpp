@@ -73,9 +73,17 @@ void SetEntitySize(EntityID id, Vector3 pos){
     base->SetSize(pos);
 }
 
-PhysicsBody::PhysicsBody(bool isDynamic=true){
+PhysicsBody::PhysicsBody(float density, float friction){
+    this->initialized = false;
+    this->dynamic = true;
+    this->density = density;
+    this->friction = friction;
+}
+PhysicsBody::PhysicsBody(bool isDynamic) {
     this->initialized = false;
     this->dynamic = isDynamic;
+    this->density = 0.f;
+    this->friction = 0.f;
 }
 
 PhysicsBody::~PhysicsBody(){
@@ -101,8 +109,9 @@ float PhysicsBody::angle(){
     return angle;
 }
 
-PlatformerPlayer::PlatformerPlayer(float accel, PlayerPose defaultPose) {
-    this->accel = accel;
+PlatformerPlayer::PlatformerPlayer(float moveSpeed, float jumpForce, PlayerPose defaultPose) {
+    this->moveSpeed = moveSpeed;
+    this->jumpForce = jumpForce;
     this->pose = defaultPose;
 }
 
@@ -187,8 +196,8 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                 if (phys->dynamic) {
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &boxShape;
-                    fixtureDef.density = 1.0f;
-                    fixtureDef.friction = 0.3f;
+                    fixtureDef.density = 30.0f;
+                    fixtureDef.friction = .8f;
                     phys->body->CreateFixture(&fixtureDef);
                 }
                 else {
@@ -208,6 +217,22 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             auto plat = (PlatformerPlayer*) comp.second.data;
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first,COMP_SPRITE);
             auto phys = (PhysicsBody*) group->GetEntityComponent(comp.first,COMP_PHYS_BODY);
+            phys->body->SetGravityScale(3.f);
+            
+            b2Vec2 force = { 0.f, -0.01f };
+            if (IsKeyDown(KEY_A)){
+                force.x = -plat->moveSpeed;
+                sprite->SetFlippedX(true);
+            }
+            if (IsKeyDown(KEY_D)){
+                force.x = plat->moveSpeed;
+                sprite->SetFlippedX(false);
+            }
+            if (IsKeyPressed(KEY_SPACE)){
+                b2Vec2 jumpForce = { 0.f, -plat->jumpForce };
+                phys->body->ApplyLinearImpulseToCenter(jumpForce,true);
+            }
+            phys->body->ApplyForceToCenter(force,true);
         } break;
         default:
             break;
@@ -277,7 +302,6 @@ Vector3 PlayerFPS::Update(void* group, float delta) {
     camera.position = this->feet;
 
     if (this->isFocused) {
-
         // TODO naive use proper quaternions instead!
 
         Vector2 mouse = Vector2Scale(Vector2Scale(GetMouseDelta(), delta), 3.f);

@@ -44,7 +44,7 @@ constexpr int COMP_BASE = 1;
 constexpr int COMP_SPRITE = 2;
 constexpr int COMP_MODEL_RENDERER = 3;
 
-constexpr float PIXELS_PER_UNIT = 64;
+constexpr float PIXELS_PER_UNIT = 16;
 
 #define COLORS_PER_PALETTE 256 
 #define PATH_MAX_LEN 128
@@ -296,6 +296,8 @@ struct Sprite {
     BoundingBox2D bounds;
     int zOrder;
     Color tint;
+    bool hFlip;
+    bool vFlip;
 
     Texture texture;
     Rectangle srcRect;
@@ -335,6 +337,9 @@ struct Sprite {
     RayCollision GetMouseRayCollision(Camera2D camera);
 
     void SetTexture(Texture texture, Rectangle srcRect={});
+    void SetFlipped(bool hFlip, bool vFlip);
+    void SetFlippedX(bool hFlip);
+    void SetFlippedY(bool vFlip);
 
     Rectangle region();
     Vector2 center();
@@ -360,6 +365,7 @@ struct EntityGroup {
     std::multimap<EntityID, CompContainer> comps;
     b2World* world;
 
+    // TODO: gravity should be in magma_extras
     EntityGroup(float gravity=9.8f);
     ~EntityGroup();
 

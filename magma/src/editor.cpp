@@ -31,13 +31,11 @@ static Description DescribeComponentPhysicsBody(void* data){
         float mass = phys->body->GetMass();
         float inertia = phys->body->GetInertia();
 
-        return { STRING(PhysicsBody), TextFormat("Phys Pos: %f %f\nVel: %f %f\nDynamic: %d\nMass: %f\nInertia: %f",
+        return { STRING(PhysicsBody), TextFormat("Phys Pos: %f %f\nVel: %f %f\nDynamic: %d\nMass: %f kg\nInertia: %f",
                     pos.x,pos.y,vel.x,vel.y,phys->dynamic,mass,inertia), PURPLE
         };
     }
     return { STRING(PhysicsBody), "Not initialized!" };
-
-
 }
 
 static Description DescribeComponentAnimationPlayer(void* data){
@@ -218,7 +216,7 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                 auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first, COMP_PHYS_BODY);
                 if (phys != NULL){
                     // brake sprite when pressing spacebar
-                    if (IsKeyPressed(KEY_SPACE) && phys->body) {
+                    if (IsKeyPressed(KEY_BACKSPACE) && phys->body) {
                         phys->body->SetLinearVelocity({0.f,0.f});
                         DEBUG("Killed velocity");
                     }

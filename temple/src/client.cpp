@@ -83,7 +83,7 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_WALK);
     group.AddEntityComponent(COMP_ANIM_PLAYER,id,animPlayer);
 
-    PhysicsBody body = PhysicsBody(true);
+    PhysicsBody body = PhysicsBody(30.f,0.5f);
     group.AddEntityComponent(COMP_PHYS_BODY,id,body);
 
     PlatformerPlayer player = PlatformerPlayer();
@@ -176,7 +176,7 @@ int main()
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
-    SetTargetFPS(60);
+    SetTargetFPS(1000);
 
     if (LoadAssets()) {
         LoadMagmaSettings();

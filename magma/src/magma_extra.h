@@ -44,8 +44,12 @@ struct PhysicsBody {
     bool initialized;
     bool dynamic;
 
+    float density;
+    float friction;
+
     b2Body* body;
 
+    PhysicsBody(float density=30.f, float friction=0.5f);
     PhysicsBody(bool isDynamic);
     ~PhysicsBody(); // TODO: dispose
     
@@ -54,10 +58,11 @@ struct PhysicsBody {
 };
 
 struct PlatformerPlayer {
-    float accel;
+    float moveSpeed;
+    float jumpForce;
     PlayerPose pose;
 
-    PlatformerPlayer(float accel=300.f, PlayerPose defaultPose=POSE_IDLE);
+    PlatformerPlayer(float moveSpeed=3000.f, float jumpForce=800.f, PlayerPose defaultPose=POSE_IDLE);
 };
 
 struct AnimationPlayer {
