@@ -215,7 +215,7 @@ Texture RequestTexture(const std::string& name) {
     }
     else {
         // ATTEMPT 3: load texture from disk
-        const char* path = TextFormat("raw_assets/%s", name);
+        const char* path = TextFormat("raw_assets/%s", name.c_str());
         texture = LoadTexture(name.c_str());
         if (texture.width == 0) {
             // generate placeholder on fail
@@ -249,7 +249,7 @@ Image RequestImage(const std::string& name) {
     }
     else {
         // ATTEMPT 2: load image from disk
-        const char* path = TextFormat("raw_assets/%s", name);
+        const char* path = TextFormat("raw_assets/%s", name.c_str());
         image = LoadImage(name.c_str());
         if (image.width == 0) {
             image = GenImageChecked(32, 32, 4, 4, RED, WHITE);
@@ -291,11 +291,11 @@ Model RequestModel(const std::string& name) {
         // check if exists
         RawAsset asset = QueryAsset(name, ".obj");
         if (asset.data == NULL) {
-            TraceLog(LOG_ERROR, "Packaged model with name %s not found!", name);
+            TraceLog(LOG_ERROR, "Packaged model with name %s not found!", name.c_str());
             return LoadModel(""); // force raylib to return default cube
         }
         if (GetAssetType(asset.path) != ASSET_MODEL) {
-            TraceLog(LOG_ERROR, "Packaged asset with name %s is not a model!", name);
+            TraceLog(LOG_ERROR, "Packaged asset with name %s is not a model!", name.c_str());
             return LoadModel(""); // force raylib to return default cube
         }
 

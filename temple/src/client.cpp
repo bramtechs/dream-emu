@@ -225,7 +225,7 @@ struct TempleGame {
         EndMode2D();
 
         EndMagmaDrawing();
-        DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, LIME);
+        DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
         UpdateAndDrawLog();
 
         UpdateAndRenderEditorGUI(group, delta);
