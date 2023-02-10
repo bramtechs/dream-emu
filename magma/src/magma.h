@@ -543,7 +543,8 @@ bool ToggleGamePaused();
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
-void RegisterEntityBuilder(EntityBuilderFunction func);
+void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func);
+#define RegisterEntityBuilder(F) RegisterEntityBuilderEx(#F,F)
 
 struct Description {
     std::string typeName;
@@ -557,7 +558,7 @@ Description DescribeComponent (CompContainer cont);
 
 void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta);
 void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta);
-void UpdateAndRenderEditorGUI(EntityGroup& group, float delta);
+void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta);
 bool EditorIsOpen();
 void OpenEditor();
 void CloseEditor();

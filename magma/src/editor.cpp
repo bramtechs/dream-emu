@@ -2,6 +2,8 @@
 // writing this was a mistake, I hate GUI programming, it's so bad
 // TODO: invent serialization/reflection or something idk.
 
+#define REGCOMP(C,F) RegisterComponentDescriptor(C,F);
+
 static Description DescribeComponentBase(void* data){
     auto base = (Base*) data;
     BoundingBox b = base->bounds;
@@ -71,18 +73,16 @@ struct EditorSession {
     PopMenu textureMenu = PopMenu(FOCUS_CRITICAL);
     PopMenu spawnMenu = PopMenu(FOCUS_CRITICAL);
 
-    std::vector<EntityBuilderFunction> builders;
+    std::unordered_map<std::string, EntityBuilderFunction> builders;
     std::unordered_map<ItemType, ComponentDescriptor> descriptors;
 
     EditorSession(){
-        // TODO: handle duplicates
-        // TODO: turn into macro
-        RegisterComponentDescriptor(COMP_BASE, DescribeComponentBase);
-        RegisterComponentDescriptor(COMP_SPRITE, DescribeComponentSprite);
-        RegisterComponentDescriptor(COMP_MODEL_RENDERER, DescribeComponentModelRenderer);
-        RegisterComponentDescriptor(COMP_ANIM_PLAYER, DescribeComponentAnimationPlayer);
-        RegisterComponentDescriptor(COMP_PLAT_PLAYER, DescribeComponentPlatformerPlayer);
-        RegisterComponentDescriptor(COMP_PHYS_BODY, DescribeComponentPhysicsBody);
+        REGCOMP(COMP_BASE,              DescribeComponentBase);
+        REGCOMP(COMP_SPRITE,            DescribeComponentSprite);
+        REGCOMP(COMP_MODEL_RENDERER,    DescribeComponentModelRenderer);
+        REGCOMP(COMP_ANIM_PLAYER,       DescribeComponentAnimationPlayer);
+        REGCOMP(COMP_PLAT_PLAYER,       DescribeComponentPlatformerPlayer);
+        REGCOMP(COMP_PHYS_BODY,         DescribeComponentPhysicsBody);
     }
 };
 
@@ -134,7 +134,8 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
     Vector2 mouse = {};
     if (EditorIs3D){
         // TODO: implement
-    }else{
+    }
+    else {
         // draw origin
         DrawAxis(Vector2Zero());
 
@@ -145,7 +146,7 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
         // draw other cells
         // TODO: fix shoddyness
         if (Session.drawGrid){
-            Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(RED,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
+            Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(WHITE,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
             for (int y = -3; y < 3; y++){
                 for (int x = -3; x < 3; x++){
                     Vector2 offset = { x, y };
@@ -239,7 +240,7 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
             }
             else if (CheckCollisionPointRec(mouse,rect)) {
                 float alpha = (sin(GetTime())+1.f)*0.25f+0.5f;
-                Color overlay = ColorAlpha(GRAY,alpha);
+                Color overlay = ColorAlpha(GRAY,alpha*0.5f);
                 DrawRectangleRec(rect, overlay);
                 if (IsMouseButtonPressed(0)){
                     Session.hasSubject = true;
@@ -285,8 +286,17 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
     }
 }
 
-void RegisterEntityBuilder(EntityBuilderFunction func) {
-    Session.builders.push_back(func);
+void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func) {
+    // prevent adding same function twice
+    for (const auto &builder : Session.builders){
+        if (builder.first == std::string(name)){
+            ERROR("Already added entity builder function");
+            return;
+        }
+    }
+    auto namestr = std::string(name);
+    DEBUG("Registered entity builder with name %s", name);
+    Session.builders.insert({ namestr, func });
 }
 
 void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
@@ -319,7 +329,7 @@ void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
     DoUpdateAndRenderEditor(&camera, group,delta);
 }
 
-void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
+void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
     const int BAR_WIDTH = 420;
     const int FONT_SIZE = 18;
 
@@ -454,13 +464,47 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, float delta){
             {
                 PopMenu &menu = Session.spawnMenu;
 
-                // TODO: implement
-                static auto names = GetAssetNames(ASSET_TEXTURE);
                 menu.RenderPanel();
-                menu.DrawPopButton("not implemented");
-                menu.EndButtons();
 
-                SwitchMode(MODE_NORMAL);
+                static std::vector<EntityBuilderFunction> builders;
+                builders.clear();
+
+                for (const auto &builder: Session.builders)
+                {
+                    menu.DrawPopButton(builder.first.c_str());
+                    builders.push_back(builder.second);
+                }
+                menu.DrawPopButton("",false,true);
+                menu.DrawPopButton("Close");
+
+                int index = 0;
+                if (menu.IsButtonSelected(&index))
+                {
+                    // check if last
+                    if (index >= Session.builders.size())
+                    {
+                        SwitchMode(MODE_NORMAL);
+                    }
+                    else
+                    {
+                        try {
+                            // spawn new entity
+                            EntityBuilderFunction func = builders.at(index);
+                            Camera2D cam2d = *(Camera2D*)camera;
+
+                            // get snapped pos to place entity
+                            Vector2 camPos = GetWindowMousePosition(cam2d);
+                            Vector2 snapPos = Vector2Snap(camPos,Session.gridSize);
+
+                            (*func)(group,{snapPos.x,snapPos.y,0});
+                        }
+                        catch(const std::out_of_range &e) {
+                            ERROR("Can't find valid spawn function!");
+                        }
+                    }
+                }
+
+                menu.EndButtons();
             }
             break;
         default:

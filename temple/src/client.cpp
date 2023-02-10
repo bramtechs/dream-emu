@@ -198,6 +198,8 @@ struct TempleGame {
 
         // setup editor
         RegisterEntityBuilder(spawn_block);
+        RegisterEntityBuilder(spawn_player);
+        RegisterEntityBuilder(spawn_wall_brush);
     }
 
     void update_and_render(float delta) {
@@ -221,14 +223,13 @@ struct TempleGame {
         UpdateAndRenderEditor(camera, group, delta);
         UpdateAndRenderPauseMenu(delta,{0,0,0,50});
 
-
         EndMode2D();
 
         EndMagmaDrawing();
         DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
         UpdateAndDrawLog();
 
-        UpdateAndRenderEditorGUI(group, delta);
+        UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
 
         EndDrawing();
     }
@@ -242,6 +243,7 @@ int main()
 
     assert(ChangeDirectory("X:\\temple"));
 
+    SetTraceLogLevel(LOG_DEBUG);
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");
     InitAudioDevice();
     //SetWindowState(FLAG_WINDOW_MAXIMIZED);

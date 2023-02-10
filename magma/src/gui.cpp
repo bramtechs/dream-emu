@@ -296,34 +296,36 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
 
     // button actions
     int index = 0;
-    menu.IsButtonSelected(&index);
-    switch (index){
-        case 0: // continue
-            break;
-        case 1: // reload
-            // TODO: implement
-            break;
-        case 2: // mute/unmute 
-            IsMuted = !IsMuted;
-            SetMasterVolume(IsMuted ? 0.f:1.f);
-            break;
-        case 3: // quit
-            CloseWindow();
-            break;
-        case 6: // show/hide console
-            ToggleLogger();
-            break;
-        case 7: // show/hide editor
-            ToggleEditor();
-            break;
-        case 8:
-            INFO("=========================");
-            PrintAssetList();
-            INFO("=========================");
-            PrintAssetStats();
-            INFO("=========================");
-            OpenLogger();
-            break;
+    if (menu.IsButtonSelected(&index))
+    {
+        switch (index){
+            case 0: // continue
+                break;
+            case 1: // reload
+                // TODO: implement
+                break;
+            case 2: // mute/unmute 
+                IsMuted = !IsMuted;
+                SetMasterVolume(IsMuted ? 0.f:1.f);
+                break;
+            case 3: // quit
+                CloseWindow();
+                break;
+            case 6: // show/hide console
+                ToggleLogger();
+                break;
+            case 7: // show/hide editor
+                ToggleEditor();
+                break;
+            case 8:
+                INFO("=========================");
+                PrintAssetList();
+                INFO("=========================");
+                PrintAssetStats();
+                INFO("=========================");
+                OpenLogger();
+                break;
+        }
     }
 
     menu.EndButtons();
