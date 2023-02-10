@@ -10,7 +10,7 @@ static EntityGroup* Group = NULL;
 void TranslateEntity(EntityID id, Vector2 offset){
     assert(Group);
 
-    auto phys = (PhysicsBody*) Group->GetEntityComponent(id, COMP_PHYS_BODY);
+    auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
     if (phys) {
         b2Vec2 pos = phys->body->GetPosition();
         phys->body->SetTransform({pos.x + offset.x/PIXELS_PER_UNIT,
@@ -18,28 +18,25 @@ void TranslateEntity(EntityID id, Vector2 offset){
     }
     else {
         auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
-        assert(sprite);
-
         sprite->Translate(offset);
     }
 }
 void TranslateEntity(EntityID id, Vector3 offset){
     assert(Group);
+
     auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
-    assert(base);
     base->Translate(offset);
 }
 
 void SetEntityCenter(EntityID id, Vector2 pos){
     assert(Group);
 
-    auto phys = (PhysicsBody*) Group->GetEntityComponent(id, COMP_PHYS_BODY);
+    auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
     if (phys) {
         phys->body->SetTransform({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT},0.f);
     }
     else {
         auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
-        assert(sprite);
 
         sprite->SetCenter(pos);
     }
@@ -47,29 +44,25 @@ void SetEntityCenter(EntityID id, Vector2 pos){
 void SetEntityCenter(EntityID id, Vector3 pos){
     assert(Group);
     auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
-    assert(base);
     base->SetCenter(pos);
 }
 
 void SetEntitySize(EntityID id, Vector2 pos){
     assert(Group);
 
-    auto phys = (PhysicsBody*) Group->GetEntityComponent(id, COMP_PHYS_BODY);
+    auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
     if (phys) {
         // TODO:
         // phys->position.Set({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT});
     }
     else {
         auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
-        assert(sprite);
-
         sprite->SetCenter(pos);
     }
 }
 void SetEntitySize(EntityID id, Vector3 pos){
     assert(Group);
     auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
-    assert(base);
     base->SetSize(pos);
 }
 
@@ -115,14 +108,17 @@ PlatformerPlayer::PlatformerPlayer(float moveSpeed, float jumpForce, PlayerPose 
     this->pose = defaultPose;
 }
 
-AnimationPlayer::AnimationPlayer(SheetAnimation& startAnim)
-    : curFrame(0), curAnim(startAnim), timer(0.f) {
+AnimationPlayer::AnimationPlayer(const SheetAnimation& startAnim)
+    : curFrame(0), curAnim(&startAnim), timer(0.f) {
 }
 
-void AnimationPlayer::SetAnimation(SheetAnimation& anim) {
-    curAnim = anim;
-    timer = 0.f;
-    curFrame = 0;
+void AnimationPlayer::SetAnimation(const SheetAnimation& anim) {
+    // don't change animation if it already is playing
+    if (curAnim->name != anim.name) {
+        curAnim = &anim;
+        timer = 0.f;
+        curFrame = 0;
+    }
 }
 
 // TODO: make function member of EntityGroup
@@ -137,12 +133,18 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             auto sprite = (Sprite*) group->GetEntityComponent(comp.first, COMP_SPRITE);
 
             // advance current animation
-            SheetAnimation& anim = animPlayer->curAnim;
+            const SheetAnimation& anim = *animPlayer->curAnim;
+
+            // check if not playing outside of sheet
+            // TODO: FIX CRITICAL MEMORY BUG
+            //assert(abs(animPlayer->curFrame) < anim.count);
 
             // set current frame
             Texture sheetTexture = RequestIndexedTexture(anim.sheetName);
+            int absFrame = abs(animPlayer->curFrame);
+            if (animPlayer->curFrame > anim.count) absFrame = 0; // TODO: hack
             Rectangle src = {
-                anim.origin.x + anim.cellSize.x * abs(animPlayer->curFrame),
+                anim.origin.x + anim.cellSize.x * absFrame,
                 anim.origin.y,
                 anim.cellSize.x,
                 anim.cellSize.y,
@@ -215,24 +217,47 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
         case COMP_PLAT_PLAYER:
         {
             auto plat = (PlatformerPlayer*) comp.second.data;
-            auto sprite = (Sprite*) group->GetEntityComponent(comp.first,COMP_SPRITE);
             auto phys = (PhysicsBody*) group->GetEntityComponent(comp.first,COMP_PHYS_BODY);
             phys->body->SetGravityScale(3.f);
             
+            bool isMoving = false;
             b2Vec2 force = { 0.f, -0.01f };
             if (IsKeyDown(KEY_A)){
                 force.x = -plat->moveSpeed;
-                sprite->SetFlippedX(true);
+                plat->pose = POSE_WALK;
+                plat->isLookingRight = false;
+                isMoving = true;
             }
             if (IsKeyDown(KEY_D)){
                 force.x = plat->moveSpeed;
-                sprite->SetFlippedX(false);
+                plat->pose = POSE_WALK;
+                plat->isLookingRight = true;
+                isMoving = true;
             }
-            if (IsKeyPressed(KEY_SPACE)){
+            if (IsKeyPressed(KEY_SPACE)){ // jump
                 b2Vec2 jumpForce = { 0.f, -plat->jumpForce };
                 phys->body->ApplyLinearImpulseToCenter(jumpForce,true);
+                plat->pose = POSE_JUMP;
             }
             phys->body->ApplyForceToCenter(force,true);
+
+            // determine if falling or jumping
+            PlayerPose* pose = &plat->pose;
+            auto curVel = phys->body->GetLinearVelocity();
+
+            if (curVel.y > EPSILON){ // dermine if falling
+                plat->pose = POSE_FALL;
+            }
+            else if (curVel.y < -EPSILON){ // determine if jumping
+                plat->pose = POSE_JUMP;
+            }
+            else if (!isMoving && abs(curVel.x) > 0.f){ // determine if sliding
+                plat->pose = POSE_SLIDE;
+            }
+            else if (!isMoving) { // determine if idling
+                plat->pose = POSE_IDLE;
+            }
+
         } break;
         default:
             break;

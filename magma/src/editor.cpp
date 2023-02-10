@@ -12,7 +12,8 @@ static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
     Vector2 center = sprite->center();
     BoundingBox2D b = sprite->bounds;
-    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y), SKYBLUE };
+    bool isVisible = sprite->isVisible;
+    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f\nVisible: %d",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y,isVisible), SKYBLUE };
 }
 
 static Description DescribeComponentModelRenderer(void* data){
@@ -41,7 +42,7 @@ static Description DescribeComponentPhysicsBody(void* data){
 static Description DescribeComponentAnimationPlayer(void* data){
     auto anim = (AnimationPlayer*) data;
     return { STRING(AnimationPlayer), TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
-            abs(anim->curFrame),anim->curAnim.name.c_str(),anim->curAnim.fps), YELLOW 
+            abs(anim->curFrame),anim->curAnim->name.c_str(),anim->curAnim->fps), YELLOW 
     };
 }
 
@@ -213,7 +214,7 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                     isDragging = false;
                 }
 
-                auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first, COMP_PHYS_BODY);
+                auto phys = (PhysicsBody*) group.TryGetEntityComponent(comp.first, COMP_PHYS_BODY);
                 if (phys != NULL){
                     // brake sprite when pressing spacebar
                     if (IsKeyPressed(KEY_BACKSPACE) && phys->body) {
@@ -229,6 +230,11 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
                                   Vector2Subtract(sprite->bounds.max,{0.f,sprite->size().y}),
                                   col);
                     }
+                }
+
+                // draw text if sprite hidden
+                if (!sprite->isVisible) {
+                    DrawRetroText("hidden",sprite->bounds.min.x,sprite->bounds.min.y,12,GRAY);
                 }
             }
             else if (CheckCollisionPointRec(mouse,rect)) {

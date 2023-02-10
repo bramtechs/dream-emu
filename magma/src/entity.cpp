@@ -121,6 +121,10 @@ void Sprite::SetFlippedY(bool vFlip) {
     this->vFlip = vFlip;
 }
 
+void Sprite::SetVisible(bool isVisible) {
+    this->isVisible = isVisible;
+}
+
 Rectangle Sprite::region(){
     Vector2 size = this->size();
     return {bounds.min.x , bounds.min.y, size.x, size.y};
@@ -241,7 +245,7 @@ EntityID EntityGroup::AddEntity() {
     return id;
 }
 
-void* EntityGroup::GetEntityComponent(EntityID id, ItemType filter) {
+void* EntityGroup::TryGetEntityComponent(EntityID id, ItemType filter) {
     for (const auto& comp : comps) {
         if (comp.first == id && comp.second.type == filter) {
             return comp.second.data;
@@ -312,9 +316,10 @@ size_t EntityGroup::DrawGroup() {
         case COMP_SPRITE:
         {
             auto sprite = (Sprite*) comp.second.data;
-
-            Color tint = WHITE;
-            if (sprite->texture.width > 0) {
+            if (sprite->isVisible &&
+                sprite->texture.width > 0 &&
+                sprite->texture.height > 0)
+            {
                 Rectangle dest = BoundingBoxToRect(sprite->bounds);
                 Rectangle src = {
                     sprite->srcRect.x,

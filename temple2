@@ -13,17 +13,11 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1 dream/src/dreams.cpp
-badd +38 temple/src/client.cpp
-badd +99 magma/src/magma.h
-badd +42 magma/src/magma_extra.h
-badd +1 magma/raylib/src/raylib.h
-badd +1 magma/raylib/src/raymath.h
-badd +108 magma/src/entity_extra.cpp
-badd +28 magma/src/editor.cpp
-badd +1 magma/src/entity.cpp
-badd +0 term://X://3760:C:/Windows/system32/cmd.exe
-badd +19 magma/src/utils.cpp
+badd +240 magma/src/entity_extra.cpp
+badd +0 magma/src/magma.h
+badd +0 magma/src/magma_extra.h
+badd +0 magma/raylib/src/raylib.h
+badd +0 magma/raylib/src/raymath.h
 argglobal
 %argdel
 $argadd 
@@ -33,12 +27,9 @@ tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
 tabnew +setlocal\ bufhidden=wipe
-tabnew +setlocal\ bufhidden=wipe
-tabnew +setlocal\ bufhidden=wipe
 tabrewind
-edit temple/src/client.cpp
+edit 
 argglobal
-balt dream/src/dreams.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -49,12 +40,12 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 38 - ((36 * winheight(0) + 28) / 56)
+let s:l = 8 - ((7 * winheight(0) + 33) / 67)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 38
-normal! 035|
+keepjumps 8
+normal! 0
 lcd X:/
 tabnext
 edit X:/magma/src/entity_extra.cpp
@@ -65,10 +56,6 @@ wincmd _ | wincmd |
 vsplit
 1wincmd h
 wincmd w
-wincmd _ | wincmd |
-split
-1wincmd k
-wincmd w
 let &splitbelow = s:save_splitbelow
 let &splitright = s:save_splitright
 wincmd t
@@ -78,13 +65,9 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe 'vert 1resize ' . ((&columns * 116 + 116) / 232)
-exe '2resize ' . ((&lines * 28 + 30) / 60)
-exe 'vert 2resize ' . ((&columns * 115 + 116) / 232)
-exe '3resize ' . ((&lines * 27 + 30) / 60)
-exe 'vert 3resize ' . ((&columns * 115 + 116) / 232)
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 252)
+exe 'vert 2resize ' . ((&columns * 125 + 126) / 252)
 argglobal
-balt X:/magma/src/magma_extra.h
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -95,20 +78,20 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 107 - ((25 * winheight(0) + 28) / 56)
+let s:l = 240 - ((37 * winheight(0) + 33) / 67)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 107
-normal! 021|
+keepjumps 240
+normal! 027|
 lcd X:/
 wincmd w
 argglobal
-if bufexists(fnamemodify("X:/magma/src/magma.h", ":p")) | buffer X:/magma/src/magma.h | else | edit X:/magma/src/magma.h | endif
+if bufexists(fnamemodify("X:/magma/src/magma_extra.h", ":p")) | buffer X:/magma/src/magma_extra.h | else | edit X:/magma/src/magma_extra.h | endif
 if &buftype ==# 'terminal'
-  silent file X:/magma/src/magma.h
+  silent file X:/magma/src/magma_extra.h
 endif
-balt X:/magma/src/magma_extra.h
+balt X:/magma/src/entity_extra.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -119,66 +102,21 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 98 - ((17 * winheight(0) + 14) / 28)
+let s:l = 10 - ((9 * winheight(0) + 33) / 67)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 98
+keepjumps 10
 normal! 0
 lcd X:/
 wincmd w
-argglobal
-if bufexists(fnamemodify("X:/magma/src/utils.cpp", ":p")) | buffer X:/magma/src/utils.cpp | else | edit X:/magma/src/utils.cpp | endif
-if &buftype ==# 'terminal'
-  silent file X:/magma/src/utils.cpp
-endif
-balt X:/magma/src/magma.h
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 15 - ((14 * winheight(0) + 13) / 27)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 15
-normal! 014|
-lcd X:/
-wincmd w
-exe 'vert 1resize ' . ((&columns * 116 + 116) / 232)
-exe '2resize ' . ((&lines * 28 + 30) / 60)
-exe 'vert 2resize ' . ((&columns * 115 + 116) / 232)
-exe '3resize ' . ((&lines * 27 + 30) / 60)
-exe 'vert 3resize ' . ((&columns * 115 + 116) / 232)
-tabnext
-edit X:/magma/src/editor.cpp
-argglobal
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 36 - ((35 * winheight(0) + 28) / 56)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 36
-normal! 06|
-lcd X:/
+2wincmd w
+exe 'vert 1resize ' . ((&columns * 126 + 126) / 252)
+exe 'vert 2resize ' . ((&columns * 125 + 126) / 252)
 tabnext
 edit X:/magma/src/magma.h
 argglobal
+balt X:/magma/src/entity_extra.cpp
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -189,7 +127,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 28) / 56)
+let s:l = 1 - ((0 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -210,7 +148,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 28) / 56)
+let s:l = 1 - ((0 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -231,7 +169,7 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 28) / 56)
+let s:l = 1 - ((0 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
@@ -252,36 +190,14 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 28) / 56)
+let s:l = 1 - ((0 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
 keepjumps 1
 normal! 0
 lcd X:/
-tabnext
-argglobal
-if bufexists(fnamemodify("term://X://3760:C:/Windows/system32/cmd.exe", ":p")) | buffer term://X://3760:C:/Windows/system32/cmd.exe | else | edit term://X://3760:C:/Windows/system32/cmd.exe | endif
-if &buftype ==# 'terminal'
-  silent file term://X://3760:C:/Windows/system32/cmd.exe
-endif
-balt X:/magma/raylib/src/raymath.h
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=0
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-let s:l = 29 - ((28 * winheight(0) + 28) / 56)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 29
-normal! 040|
-lcd X:/
-tabnext 1
+tabnext 2
 set stal=1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
@@ -294,6 +210,7 @@ if filereadable(s:sx)
   exe "source " . fnameescape(s:sx)
 endif
 let &g:so = s:so_save | let &g:siso = s:siso_save
+nohlsearch
 doautoall SessionLoadPost
 unlet SessionLoad
 " vim: set ft=vim :

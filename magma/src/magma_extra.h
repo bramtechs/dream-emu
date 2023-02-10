@@ -4,26 +4,25 @@
 
 enum PlayerPose {
     POSE_IDLE,
-    POSE_WALK_LEFT,
-    POSE_WALK_RIGHT,
+    POSE_WALK,
+    POSE_SLIDE,
     POSE_JUMP,
     POSE_FALL,
     POSE_DUCK,
+};
+constexpr char* PlayerPoseNames[] = {
+    STRING(POSE_IDLE),
+    STRING(POSE_WALK),
+    STRING(POSE_SLIDE),
+    STRING(POSE_JUMP),
+    STRING(POSE_FALL),
+    STRING(POSE_DUCK),
 };
 
 enum PlaybackMode {
     PLAY_LOOP,
     PLAY_PING_PONG,
     PLAY_ONCE,
-};
-
-constexpr char* PlayerPoseNames[] = {
-    STRING(POSE_IDLE),
-    STRING(POSE_WALK_LEFT),
-    STRING(POSE_WALK_RIGHT),
-    STRING(POSE_JUMP),
-    STRING(POSE_FALL),
-    STRING(POSE_JUMP),
 };
 
 constexpr int COMP_PHYS_BODY   = 10;
@@ -60,19 +59,21 @@ struct PhysicsBody {
 struct PlatformerPlayer {
     float moveSpeed;
     float jumpForce;
+
     PlayerPose pose;
+    bool isLookingRight;
 
     PlatformerPlayer(float moveSpeed=3000.f, float jumpForce=800.f, PlayerPose defaultPose=POSE_IDLE);
 };
 
 struct AnimationPlayer {
-    SheetAnimation& curAnim;
+    const SheetAnimation* curAnim;
     int curFrame;
     float timer;
 
-    AnimationPlayer(SheetAnimation& startAnim);
+    AnimationPlayer(const SheetAnimation& startAnim);
 
-    void SetAnimation(SheetAnimation& anim);
+    void SetAnimation(const SheetAnimation& anim);
 };
 
 // TODO: rewrite in ECS

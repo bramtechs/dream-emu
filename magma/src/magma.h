@@ -7,7 +7,6 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
-#include <cassert>
 #include <sstream>
 #include <fstream>
 #include <limits>
@@ -37,7 +36,7 @@
 #define ERROR(...) TraceLog(LOG_ERROR,__VA_ARGS__)
 #endif
 
-#define MAGMA_CONF_PATH "../save/engine_conf.dat"
+#define TODO(M) TraceLog(LOG_FATAL,"TODO: %s", M); assert(false);
 
 constexpr int COMP_ALL = 0;
 constexpr int COMP_BASE = 1;
@@ -46,6 +45,7 @@ constexpr int COMP_MODEL_RENDERER = 3;
 
 constexpr float PIXELS_PER_UNIT = 16;
 
+#define MAGMA_CONF_PATH "../save/engine_conf.dat"
 #define COLORS_PER_PALETTE 256 
 #define PATH_MAX_LEN 128
 
@@ -85,10 +85,24 @@ typedef unsigned int uint;
 typedef uint ItemType;
 typedef uint EntityID;
 
-
 typedef int AssetType;
 
 extern size_t Allocations;
+
+#undef assert
+inline void assert(bool cond = false) {
+    if (!cond) {
+        int* val = NULL;
+        *val = 666;
+    }
+}
+
+template<typename T>
+inline T* NN(T* ptr){
+    if (ptr == NULL) assert(false);
+    return ptr;
+}
+
 
 struct BoundingBox2D {
     Vector2 min;
@@ -273,7 +287,7 @@ struct Base {
 
     void SetCenter(Vector3 pos);
     inline void SetCenter(float x, float y, float z){
-        SetSize({x,y,z});
+        SetCenter({x,y,z});
     }
 
     void SetSize(Vector3 pos);
@@ -296,8 +310,10 @@ struct Sprite {
     BoundingBox2D bounds;
     int zOrder;
     Color tint;
+
     bool hFlip;
     bool vFlip;
+    bool isVisible;
 
     Texture texture;
     Rectangle srcRect;
@@ -327,7 +343,7 @@ struct Sprite {
     }
     void SetSize(Vector2 size);
     inline void SetSize(float x, float y){
-        SetSize(x,y);
+        SetSize({x,y});
     }
 
     inline void ResetTranslation() {
@@ -340,6 +356,14 @@ struct Sprite {
     void SetFlipped(bool hFlip, bool vFlip);
     void SetFlippedX(bool hFlip);
     void SetFlippedY(bool vFlip);
+
+    void SetVisible(bool visible);
+    inline void Show(){
+        SetVisible(true);
+    }
+    inline void Hide(){
+        SetVisible(false);
+    }
 
     Rectangle region();
     Vector2 center();
@@ -393,7 +417,11 @@ struct EntityGroup {
         comps.insert({id, cont});
     }
 
-    void* GetEntityComponent(EntityID id, ItemType filter);
+    void* TryGetEntityComponent(EntityID id, ItemType filter);
+    inline void* GetEntityComponent(EntityID id, ItemType filter){
+        return NN(TryGetEntityComponent(id, filter));
+    }
+
     std::vector<CompContainer> GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
     std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL);
 

@@ -5,17 +5,19 @@
 constexpr Vector2 FOX_CELL_SIZE = {17,32};
 constexpr float FOX_ANIM_FPS = 15.f;
 
-static SheetAnimation ANIM_IDLE = {
-    STRING(ANIM_IDLE),
+constexpr int COMP_FOX_PLAYER = 100;
+
+static const SheetAnimation ANIM_FOX_IDLE = {
+    STRING(ANIM_FOX_IDLE),
     "spr_player_fox",
-    {69,65},
+    {68,64},
     FOX_CELL_SIZE,
     1,
     PLAY_LOOP,
     FOX_ANIM_FPS,
 };
 
-static SheetAnimation ANIM_FOX_WALK = {
+static const SheetAnimation ANIM_FOX_WALK = {
     STRING(ANIM_FOX_WALK),
     "spr_player_fox",
     {0,0},
@@ -25,18 +27,18 @@ static SheetAnimation ANIM_FOX_WALK = {
     FOX_ANIM_FPS,
 };
 
-static SheetAnimation ANIM_STOP = {
-    STRING(ANIM_STOP),
+static const SheetAnimation ANIM_FOX_STOP = {
+    STRING(ANIM_FOX_STOP),
     "spr_player_fox",
-    {35, 0},
+    {68, 0},
     FOX_CELL_SIZE,
     2,
     PLAY_ONCE,
     FOX_ANIM_FPS * 0.5,
 };
 
-static SheetAnimation ANIM_JUMP = {
-    STRING(ANIM_JUMP),
+static const SheetAnimation ANIM_FOX_JUMP = {
+    STRING(ANIM_FOX_JUMP),
     "spr_player_fox",
     {0, 32},
     FOX_CELL_SIZE,
@@ -45,14 +47,24 @@ static SheetAnimation ANIM_JUMP = {
     0.f,
 };
 
-static SheetAnimation ANIM_LAND = {
-    STRING(ANIM_LAND),
+static const SheetAnimation ANIM_FOX_LAND = {
+    STRING(ANIM_FOX_LAND),
     "spr_player_fox",
-    {0, 32},
+    {17, 32},
     FOX_CELL_SIZE,
     1,
     PLAY_LOOP,
     0.f,
+};
+
+struct FoxPlayer {
+    uint score;
+    uint lives;
+
+    FoxPlayer(){
+        this->score = 0;
+        this->lives = 0;
+    }
 };
 
 // TODO: add other animations
@@ -62,12 +74,30 @@ EntityID spawn_block(EntityGroup& group, Vector3 pos){
     EntityID id = group.AddEntity();
 
     Sprite sprite = Sprite({pos.x, pos.y});
-    Texture blockTexture = RequestIndexedTexture("spr_block");
+    Texture blockTexture = RequestTexture("spr_block");
     sprite.SetTexture(blockTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);
 
+    // TODO: add proper ground collision without sticky corners
+    //PhysicsBody body = PhysicsBody(false);
+    //group.AddEntityComponent(COMP_PHYS_BODY, id, body);
+
+    return id;
+}
+
+EntityID spawn_wall_brush(EntityGroup& group, Vector3 pos){
+    EntityID id = group.AddEntity();
+
+    Sprite sprite = Sprite({pos.x, pos.y});
+    Texture blockTexture = RequestTexture("spr_block");
+    sprite.SetTexture(blockTexture);
+    sprite.SetSize(WIDTH,HEIGHT*0.5f);
+    sprite.SetCenter(pos.x,pos.y);
+    sprite.Hide();
+    group.AddEntityComponent(COMP_SPRITE, id, sprite);
+
     PhysicsBody body = PhysicsBody(false);
-    group.AddEntityComponent(COMP_PHYS_BODY, id, body);
+    group.AddEntityComponent(COMP_PHYS_BODY,id,body);
 
     return id;
 }
@@ -76,11 +106,11 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     EntityID id = group.AddEntity();
 
     Sprite sprite = Sprite({pos.x, pos.y});
-    Texture foxTexture = RequestIndexedTexture("spr_player_fox");
+    Texture foxTexture = RequestTexture("spr_player_fox");
     sprite.SetTexture(foxTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);
 
-    AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_WALK);
+    AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_IDLE);
     group.AddEntityComponent(COMP_ANIM_PLAYER,id,animPlayer);
 
     PhysicsBody body = PhysicsBody(30.f,0.5f);
@@ -89,15 +119,53 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     PlatformerPlayer player = PlatformerPlayer();
     group.AddEntityComponent(COMP_PLAT_PLAYER,id,player);
 
+    FoxPlayer fox = FoxPlayer();
+    group.AddEntityComponent(COMP_FOX_PLAYER,id,fox);
+
     return id;
 }
 
-#define PAL_WARM        "pal_warm"
-#define PAL_BROWN       "pal_brown"
-#define PAL_DUSK        "pal_dusk"
-#define PAL_NIGHT       "pal_night"
+// TODO: callback system instead of this manual stuff
+static void update_custom(EntityGroup& group){
+    for (const auto &comp : group.comps){
+        switch (comp.second.type) {
+            case COMP_FOX_PLAYER:
+            {
+                auto fox = (FoxPlayer*) comp.second.data;
+                auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
+                auto anim = (AnimationPlayer*) group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER);
+                auto plat = (PlatformerPlayer*) group.GetEntityComponent(comp.first, COMP_PLAT_PLAYER);
 
-#define PAL_DEFAULT    PAL_WARM 
+                // look left or right
+                sprite->SetFlippedX(!plat->isLookingRight);
+
+                // set animation according to pose
+                switch (plat->pose){
+                    case POSE_WALK:
+                        anim->SetAnimation(ANIM_FOX_WALK);
+                        break;
+                    case POSE_SLIDE:
+                        anim->SetAnimation(ANIM_FOX_STOP);
+                        break;
+                    case POSE_JUMP:
+                        anim->SetAnimation(ANIM_FOX_JUMP);
+                        break;
+                    case POSE_FALL:
+                        anim->SetAnimation(ANIM_FOX_LAND);
+                        break;
+                    default:
+                        anim->SetAnimation(ANIM_FOX_IDLE);
+                        break;
+                }
+
+                if (abs(sprite->center().x) > WIDTH*2 || abs(sprite->center().y) > HEIGHT*2) {
+                    SetEntityCenter(comp.first, GetWindowCenter().x,GetWindowCenter().y);
+                    WARN("Player fell off bounds!");
+                }
+            }
+        }
+    }
+}
 
 struct TempleGame {
     EntityGroup group;
@@ -125,6 +193,9 @@ struct TempleGame {
         }
         spawn_player(group, {GetWindowCenter().x,GetWindowCenter().y,0});
 
+        // fake floor
+        spawn_wall_brush(group,{240.f,346.f,0.f});
+
         // setup editor
         RegisterEntityBuilder(spawn_block);
     }
@@ -140,6 +211,7 @@ struct TempleGame {
 
         if (!GameIsPaused()){
             group.UpdateGroup(delta);
+            update_custom(group);
         }
         group.DrawGroup();
         //group.DrawGroupDebug(camera);
@@ -149,9 +221,11 @@ struct TempleGame {
         UpdateAndRenderEditor(camera, group, delta);
         UpdateAndRenderPauseMenu(delta,{0,0,0,50});
 
+
         EndMode2D();
 
         EndMagmaDrawing();
+        DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, LIME);
         UpdateAndDrawLog();
 
         UpdateAndRenderEditorGUI(group, delta);
