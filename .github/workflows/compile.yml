@@ -27,4 +27,4 @@ jobs:
           prerelease: false
           title: "Development Build"
           files: |
-            .\releases/*.ZIP
+            ./releases/*.ZIP
