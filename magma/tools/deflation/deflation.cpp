@@ -82,7 +82,6 @@ void save(PackList pack, const char* output, bool compress=false) {
     // >>> items
     for (const auto& item : pack) {
         // >>> item
-        DEBUG("Writing %d bytes of %s...", item.size, item.path);
         buffer.write((char*)item.path, PATH_MAX_LEN);
         buffer.write((char*)&item.size, sizeof(int64_t));
         buffer.write((char*)item.data, item.size);

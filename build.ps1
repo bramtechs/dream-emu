@@ -4,5 +4,14 @@ if (-not(Test-Path -Path "build")){
     .\gen.ps1
 }
 
-cmake --build build -j $Env:NUMBER_OF_PROCESSORS
-#msbuild .\build\dream_emu.sln /p:XPDepreciationWarning=false /p:Platform=x64
+
+for ($i = 0; $i -le 10; $i++){ # add padding between builds
+    Write-Host ""
+}
+
+if (Test-Path -Path C:\tools\censorship.exe){
+    cmake --build build -j $Env:NUMBER_OF_PROCESSORS | C:\tools\censorship.exe
+}
+else{
+    cmake --build build -j $Env:NUMBER_OF_PROCESSORS
+}
