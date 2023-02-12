@@ -130,9 +130,11 @@ void DisposeAssets() {
     for (const auto& item : Assets.indexedTextures) {
         UnloadTexture(item.second.texture);
     }
+#if defined(MAGMA_3D)
     for (const auto& item : Assets.models) {
         UnloadModel(item.second);
     }
+#endif
     for (const auto& item : Assets.shaders) {
         UnloadShader(item.second);
     }
@@ -276,6 +278,7 @@ char* load_filetext_from_pack(const char* fileName) {
     return (char*)TextFormat("%s\0", data); // add a null-terminator, just to be sure
 }
 
+#ifdef MAGMA_3D
 Model RequestModel(const std::string& name) {
 
     // ATTEMPT 1: get cached model
@@ -337,6 +340,7 @@ Model RequestModel(const std::string& name) {
     Assets.models.insert({ name,model });
     return model;
 }
+#endif
 
 Shader RequestShader(const std::string& name) {
     // ATTEMPT 1: Load shader from cache

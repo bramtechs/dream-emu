@@ -12,6 +12,8 @@ void SetEntitySize(EntityID id, float x, float y, float z);
 
 void ResetEntityTranslation(EntityID id);
 
+#if defined(MAGMA_3D)
+
 Base::Base(Vector3 pos, Color tint) {
     BoundingBox box = {
         pos,
@@ -51,6 +53,8 @@ RayCollision Base::GetMouseRayCollision(Camera3D camera) {
     Ray ray = GetWindowMouseRay(camera);
     return GetRayCollisionBox(ray, bounds);
 }
+
+#endif
 
 // Sprite
 Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
@@ -142,6 +146,8 @@ Vector2 Sprite::halfSize() {
     return Vector2Scale(size(), 0.5f);
 }
 
+#if defined(MAGMA_3D)
+
 // ModelRenderer
 ModelRenderer::ModelRenderer(const char* modelPath, Base* base) {
     Model model = RequestModel(modelPath);
@@ -194,6 +200,8 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
     return hit;
 }
 
+#endif
+
 EntityGroup::EntityGroup(float gravity) {
     this->entityCount = 0;
 
@@ -208,6 +216,7 @@ EntityGroup::~EntityGroup() {
     DEBUG("Disposed Box2D world");
 }
 
+#if defined(MAGMA_3D)
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
     RayCollision col = { 0 };
     return GetMousePickedBaseEx(camera, result, &col);
@@ -227,6 +236,7 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
     *result = NULL;
     return false;
 }
+#endif
 
 void EntityGroup::LoadGroup(const char* fileName) {
     comps.clear();
@@ -298,6 +308,7 @@ size_t EntityGroup::UpdateGroup(float delta) {
 size_t EntityGroup::DrawGroup() {
     for (const auto& comp : comps) {
         switch (comp.second.type) {
+#if defined(MAGMA_3D)
         case COMP_MODEL_RENDERER:
         {
             // draw modelrenderers
@@ -313,6 +324,7 @@ size_t EntityGroup::DrawGroup() {
                 Vector3Zero(), 0, Vector3One(), base->tint);
 
         } break;
+#endif
         case COMP_SPRITE:
         {
             auto sprite = (Sprite*) comp.second.data;
@@ -341,6 +353,7 @@ size_t EntityGroup::DrawGroup() {
 size_t EntityGroup::DrawGroupDebug(Camera3D camera) {
     for (const auto& comp : comps) {
         switch (comp.first) {
+#if defined(MAGMA_3D)
         case COMP_BASE:
         {
             auto base = (Base*)comp.second.data;
@@ -349,6 +362,7 @@ size_t EntityGroup::DrawGroupDebug(Camera3D camera) {
             DrawBoundingBox(base->bounds, tint);
             DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
         } break;
+#endif
         default:
             break;
         }

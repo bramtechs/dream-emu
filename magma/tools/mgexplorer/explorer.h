@@ -68,6 +68,7 @@ struct Explorer {
         break;
         case ASSET_MODEL:
         {
+#ifdef MAGMA_3D
             const char* selectedName = GetFileNameWithoutExt(selectedPath.c_str());
             Model model = RequestModel(selectedName);
             model.transform = MatrixIdentity();
@@ -85,7 +86,10 @@ struct Explorer {
             BeginMode3D(cam3);
             DrawModel(model, Vector3Zero(), 1.0f, WHITE);
             EndMode3D();
+#endif
+            DrawRetroText("3D functionality was not compiled", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
         }
+
         break;
         case ASSET_SOUND:
             DrawRetroText("Audio playback not implemented", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);

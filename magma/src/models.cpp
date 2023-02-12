@@ -1,4 +1,7 @@
 #include "magma.h"
+
+#if defined(MAGMA_3D)
+
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <external/tinyobj_loader_c.h>
 
@@ -213,3 +216,5 @@ Model LoadOBJFromMemory(const char* fileName)
 
     return model;
 }
+
+#endif

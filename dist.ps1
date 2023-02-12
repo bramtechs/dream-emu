@@ -1,4 +1,4 @@
-$BUILD_DIR= ".\build\dream\Release"
+$BUILD_DIR= ".\build\temple\Release"
 $ErrorActionPreference = "Stop"
 
 # download all dependencies
@@ -14,13 +14,13 @@ New-Item -ItemType Directory -Path $BUILD_DIR\tools -Force
 Copy-Item -Force -Recurse .\mgtools\* $BUILD_DIR\tools
 
 # build dream
-New-Item -ItemType Directory -Path $BUILD_DIR\dream -Force
-.\mgtools\deflation.exe raw_assets core_assets $BUILD_DIR\dream\assets.mga --compress
-Move-Item $BUILD_DIR\dream.exe $BUILD_DIR\dream\dream.exe -Force
+#New-Item -ItemType Directory -Path $BUILD_DIR\dream -Force
+#.\mgtools\deflation.exe raw_assets core_assets $BUILD_DIR\dream\assets.mga --compress
+#Move-Item $BUILD_DIR\dream.exe $BUILD_DIR\dream\dream.exe -Force
 
 # build and include temple as well
 New-Item -ItemType Directory -Path $BUILD_DIR\temple -Force
-Copy-Item -Force -Recurse .\build\temple\Release\temple.exe $BUILD_DIR\temple
+#Copy-Item -Force -Recurse .\build\temple\Release\temple.exe $BUILD_DIR\temple
 .\mgtools\deflation.exe temple\raw_assets core_assets $BUILD_DIR\temple\assets.mga --compress
 
 # make ZIP

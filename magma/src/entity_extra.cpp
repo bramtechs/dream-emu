@@ -21,12 +21,14 @@ void TranslateEntity(EntityID id, Vector2 offset){
         sprite->Translate(offset);
     }
 }
+
+#ifdef MAGMA_3D
 void TranslateEntity(EntityID id, Vector3 offset){
     assert(Group);
-
     auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
     base->Translate(offset);
 }
+#endif
 
 void SetEntityCenter(EntityID id, Vector2 pos){
     assert(Group);
@@ -41,11 +43,14 @@ void SetEntityCenter(EntityID id, Vector2 pos){
         sprite->SetCenter(pos);
     }
 }
+
+#ifdef MAGMA_3D
 void SetEntityCenter(EntityID id, Vector3 pos){
     assert(Group);
     auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
     base->SetCenter(pos);
 }
+#endif
 
 void SetEntitySize(EntityID id, Vector2 pos){
     assert(Group);
@@ -60,11 +65,14 @@ void SetEntitySize(EntityID id, Vector2 pos){
         sprite->SetCenter(pos);
     }
 }
+
+#ifdef MAGMA_3D
 void SetEntitySize(EntityID id, Vector3 pos){
     assert(Group);
     auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
     base->SetSize(pos);
 }
+#endif
 
 PhysicsBody::PhysicsBody(float density, float friction){
     this->initialized = false;
@@ -280,6 +288,8 @@ size_t DrawGroupExtended(EntityGroup* group){
 }
 
 // ===== 3d =====
+#ifdef MAGMA_3D
+
 PlayerFPS::PlayerFPS(float eyeHeight) {
     this->eyeHeight = eyeHeight;
     this->isFocused = true;
@@ -383,3 +393,5 @@ void PlayerFPS::Unfocus() {
 void PlayerFPS::Teleport(Vector3 pos) {
     camera.position = pos;
 }
+
+#endif

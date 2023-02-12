@@ -7,5 +7,5 @@ if (EMSCRIPTEN)
 endif ()
 
 add_subdirectory(magma)
-add_subdirectory(dream)
+#add_subdirectory(dream)
 add_subdirectory(temple)

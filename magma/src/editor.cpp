@@ -4,11 +4,13 @@
 
 #define REGCOMP(C,F) RegisterComponentDescriptor(C,F);
 
+#ifdef MAGMA_3D
 static Description DescribeComponentBase(void* data){
     auto base = (Base*) data;
     BoundingBox b = base->bounds;
     return { STRING(Base), TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
 }
+#endif
 
 static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
@@ -18,6 +20,7 @@ static Description DescribeComponentSprite(void* data){
     return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f\nVisible: %d",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y,isVisible), SKYBLUE };
 }
 
+#ifdef MAGMA_3D
 static Description DescribeComponentModelRenderer(void* data){
     auto renderer = (ModelRenderer*) data;
     return { STRING(ModelRenderer), TextFormat("Model: %s\nAccurate: %d\nOffset: %f %f %f",
@@ -25,6 +28,7 @@ static Description DescribeComponentModelRenderer(void* data){
                 renderer->offset.x,renderer->offset.y,renderer->offset.z), PINK
     };
 }
+#endif
 
 static Description DescribeComponentPhysicsBody(void* data){
     auto phys = (PhysicsBody*) data;
@@ -77,9 +81,11 @@ struct EditorSession {
     std::unordered_map<ItemType, ComponentDescriptor> descriptors;
 
     EditorSession(){
+#ifdef MAGMA_3D
         REGCOMP(COMP_BASE,              DescribeComponentBase);
-        REGCOMP(COMP_SPRITE,            DescribeComponentSprite);
         REGCOMP(COMP_MODEL_RENDERER,    DescribeComponentModelRenderer);
+#endif
+        REGCOMP(COMP_SPRITE,            DescribeComponentSprite);
         REGCOMP(COMP_ANIM_PLAYER,       DescribeComponentAnimationPlayer);
         REGCOMP(COMP_PLAT_PLAYER,       DescribeComponentPlatformerPlayer);
         REGCOMP(COMP_PHYS_BODY,         DescribeComponentPhysicsBody);

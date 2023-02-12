@@ -103,40 +103,51 @@ size_t DrawGroupExtended(EntityGroup* group);
 
 // component-independent entity functions
 void TranslateEntity(EntityID id, Vector2 offset);
+
+#ifdef MAGMA_3D
 void TranslateEntity(EntityID id, Vector3 offset);
+inline void TranslateEntity(EntityID id, float x, float y, float z) {
+    Vector3 offset = { x,y,z };
+    TranslateEntity(id, offset);
+}
+#endif
 
 inline void TranslateEntity(EntityID id, float x, float y){
     Vector2 offset = {x,y};
     TranslateEntity(id, offset);
 }
-inline void TranslateEntity(EntityID id, float x, float y, float z){
-    Vector3 offset = {x,y,z};
-    TranslateEntity(id, offset);
-}
 
 void SetEntityCenter(EntityID id, Vector2 pos);
+#ifdef MAGMA_3D
 void SetEntityCenter(EntityID id, Vector3 pos);
+inline void SetEntityCenter(EntityID id, float x, float y, float z) {
+    Vector3 offset = { x,y,z };
+    SetEntityCenter(id, offset);
+}
+
+#endif
 inline void SetEntityCenter(EntityID id, float x, float y){
     Vector2 offset = {x,y};
     SetEntityCenter(id, offset);
 }
-inline void SetEntityCenter(EntityID id, float x, float y, float z){
-    Vector3 offset = {x,y,z};
-    SetEntityCenter(id, offset);
-}
 
 void SetEntitySize(EntityID id, Vector2 pos);
-void SetEntitySize(EntityID id, Vector3 pos);
 inline void SetEntitySize(EntityID id, float x, float y){
     Vector2 offset = {x,y};
     SetEntitySize(id, offset);
 }
+
+#ifdef MAGMA_3D
+void SetEntitySize(EntityID id, Vector3 pos);
 inline void SetEntitySize(EntityID id, float x, float y, float z){
     Vector3 offset = {x,y,z};
     SetEntitySize(id, offset);
 }
+#endif
 
+#ifdef MAGMA_3D
 inline void ResetEntityTranslation(EntityID id){
     Vector3 origin = Vector3Zero();
     SetEntityCenter(id,origin);
 }
+#endif

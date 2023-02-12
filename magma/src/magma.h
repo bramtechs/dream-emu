@@ -103,7 +103,6 @@ inline T* NN(T* ptr){
     return ptr;
 }
 
-
 struct BoundingBox2D {
     Vector2 min;
     Vector2 max;
@@ -265,6 +264,9 @@ private:
     void DrawBackground(Texture texture, Color tint);
 };
 
+
+#if defined(MAGMA_3D)
+
 struct Base {
     BoundingBox bounds;
     Color tint;
@@ -305,6 +307,8 @@ struct Base {
     Vector3 size();
     Vector3 halfSize();
 };
+
+#endif
 
 struct Sprite {
     BoundingBox2D bounds;
@@ -371,6 +375,8 @@ struct Sprite {
     Vector2 halfSize();
 };
 
+#if defined(MAGMA_3D)
+
 struct ModelRenderer{
     const char* model;
     bool accurate;
@@ -378,6 +384,8 @@ struct ModelRenderer{
 
     ModelRenderer(const char* modelPath, Base* base);
 };
+
+#endif
 
 struct CompContainer {
     ItemType type;
@@ -395,8 +403,10 @@ struct EntityGroup {
 
     RayCollision GetRayCollision(Ray ray);
 
+#if defined(MAGMA_3D)
     bool GetMousePickedBase(Camera camera, Base** result);
     bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
+#endif
 
     void LoadGroup(const char* fileName);
     void SaveGroup(const char* fileName);
@@ -464,7 +474,9 @@ Texture RequestIndexedTexture(const std::string& name, Palette palette); // URGE
 Texture RequestIndexedTexture(const std::string& name);
 
 Image RequestImage(const std::string& name);
+#if defined(MAGMA_3D)
 Model RequestModel(const std::string& name);
+#endif
 Shader RequestShader(const std::string& name);
 Sound RequestSound(const std::string& name);
 Font RequestFont(const std::string& name);
@@ -474,7 +486,9 @@ Palette ParsePalette(char* text, const char* name="unnamed");
 
 Font GetRetroFont();
 
+#if defined(MAGMA_3D)
 Model LoadOBJFromMemory(const char* fileName);
+#endif
 
 int GetAssetType(const char* name);
 
