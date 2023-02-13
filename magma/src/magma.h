@@ -308,6 +308,14 @@ struct Base {
     Vector3 halfSize();
 };
 
+struct ModelRenderer{
+    const char* model;
+    bool accurate;
+    Vector3 offset; // from base center
+
+    ModelRenderer(const char* modelPath, Base* base);
+};
+
 #endif
 
 struct Sprite {
@@ -375,18 +383,6 @@ struct Sprite {
     Vector2 halfSize();
 };
 
-#if defined(MAGMA_3D)
-
-struct ModelRenderer{
-    const char* model;
-    bool accurate;
-    Vector3 offset; // from base center
-
-    ModelRenderer(const char* modelPath, Base* base);
-};
-
-#endif
-
 struct CompContainer {
     ItemType type;
     void* data;
@@ -404,6 +400,7 @@ struct EntityGroup {
     RayCollision GetRayCollision(Ray ray);
 
 #if defined(MAGMA_3D)
+
     bool GetMousePickedBase(Camera camera, Base** result);
     bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
 #endif
@@ -478,9 +475,6 @@ Texture RequestIndexedTexture(const std::string& name, Palette palette); // URGE
 Texture RequestIndexedTexture(const std::string& name);
 
 Image RequestImage(const std::string& name);
-#if defined(MAGMA_3D)
-Model RequestModel(const std::string& name);
-#endif
 Shader RequestShader(const std::string& name);
 Sound RequestSound(const std::string& name);
 Font RequestFont(const std::string& name);
@@ -491,6 +485,7 @@ Palette ParsePalette(char* text, const char* name="unnamed");
 Font GetRetroFont();
 
 #if defined(MAGMA_3D)
+Model RequestModel(const std::string& name);
 Model LoadOBJFromMemory(const char* fileName);
 #endif
 
