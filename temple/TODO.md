@@ -1,6 +1,7 @@
+- [ ] Tune player movement (add more friction?)
+- [ ] Player jump (check floor)
+- [ ] Keep 3D stuff and 2D stuff apart
+- [X] Player smooth collision (add editing mode for placing colliders)
+- [ ] Make tiles more interesting (RNG?)
 - [ ] Make Box2D optional dependency
 - [ ] Resize fixture on texture change
-- [ ] Player movement
-- [ ] Player jump
-- [X] Player collision
-- [ ] Make tiles more interesting

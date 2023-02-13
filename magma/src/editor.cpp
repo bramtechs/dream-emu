@@ -2,15 +2,8 @@
 // writing this was a mistake, I hate GUI programming, it's so bad
 // TODO: invent serialization/reflection or something idk.
 
-#define REGCOMP(C,F) RegisterComponentDescriptor(C,F);
-
-#ifdef MAGMA_3D
-static Description DescribeComponentBase(void* data){
-    auto base = (Base*) data;
-    BoundingBox b = base->bounds;
-    return { STRING(Base), TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
-}
-#endif
+#define REGCOMP(C,F) RegisterComponentDescriptor(C,F)
+#define RegisterStockEntityBuilder(F) RegisterEntityBuilderEx(#F,F,true)
 
 static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
@@ -21,6 +14,12 @@ static Description DescribeComponentSprite(void* data){
 }
 
 #ifdef MAGMA_3D
+static Description DescribeComponentBase(void* data){
+    auto base = (Base*) data;
+    BoundingBox b = base->bounds;
+    return { STRING(Base), TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
+}
+
 static Description DescribeComponentModelRenderer(void* data){
     auto renderer = (ModelRenderer*) data;
     return { STRING(ModelRenderer), TextFormat("Model: %s\nAccurate: %d\nOffset: %f %f %f",
@@ -61,9 +60,12 @@ static Description DescribeComponentPlatformerPlayer(void* data){
 enum EditorMode {
     MODE_NORMAL,
     MODE_SPAWN,
+    MODE_HITBOX,
     MODE_TEXTURE,
     MODE_DELAY, // hack for pop-up menus to work
 };
+
+static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos);
 
 struct EditorSession {
     bool isOpen = false;
@@ -89,8 +91,18 @@ struct EditorSession {
         REGCOMP(COMP_ANIM_PLAYER,       DescribeComponentAnimationPlayer);
         REGCOMP(COMP_PLAT_PLAYER,       DescribeComponentPlatformerPlayer);
         REGCOMP(COMP_PHYS_BODY,         DescribeComponentPhysicsBody);
+
+        // declare stock builder-functions
+        RegisterStockEntityBuilder(SpawnWallBrush);
     }
 };
+
+static bool EditorIs3D = false;
+static EditorSession Session = EditorSession();
+
+static float NextModeTime = 0.f;
+static EditorMode NextMode = MODE_NORMAL;
+
 
 // TODO: move to editor_utils.h
 static void DrawGridCell(Vector2 worldPos, float size, float thick=1.f, Color tint=GRAY){
@@ -99,16 +111,43 @@ static void DrawGridCell(Vector2 worldPos, float size, float thick=1.f, Color ti
     DrawRectangleLinesEx(cell, thick, tint);
 }
 
+static void DrawGrid(Camera2D camera){
+    Vector2 mouse = GetWindowMousePosition(camera);
+
+    // draw cursor grid cell
+    DrawGridCell(mouse, Session.gridSize);
+
+    Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(WHITE,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
+    for (int y = -3; y < 3; y++){
+        for (int x = -3; x < 3; x++){
+            Vector2 offset = { x, y };
+            Vector2 cellPos = Vector2Add(mouse,Vector2Add(Vector2Scale(offset,Session.gridSize),offset));
+            DrawGridCell(cellPos, Session.gridSize, 1.f, col);
+        }
+    }
+}
+
 static void DrawAxis(Vector2 pos, float len=20.f, float thick=2.f){
     DrawLineEx(pos, {pos.x + len, pos.y}, thick, RED);
     DrawLineEx(pos, {pos.x, pos.y + len}, thick, GREEN);
 }
 
-static bool EditorIs3D = false;
-static EditorSession Session = EditorSession();
+static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos){
+    EntityID id = group.AddEntity();
 
-static float NextModeTime = 0.f;
-static EditorMode NextMode = MODE_NORMAL;
+    Sprite sprite = Sprite({pos.x, pos.y});
+    Texture texture = RequestPlaceholderTexture();
+    sprite.SetTexture(texture);
+    sprite.SetSize(Session.gridSize,Session.gridSize);
+    sprite.SetCenter(pos.x,pos.y);
+    sprite.Hide();
+    group.AddEntityComponent(COMP_SPRITE, id, sprite);
+
+    PhysicsBody body = PhysicsBody(false);
+    group.AddEntityComponent(COMP_PHYS_BODY,id,body);
+
+    return id;
+}
 
 // HACK: We need to add an artificial delay when switching editor modes 
 // to avoid insta-clicking newly opened popup-menus
@@ -120,64 +159,61 @@ static void SwitchMode(EditorMode mode){
     DEBUG("Editor switched mode");
 }
 
-static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delta){
-    if (IsKeyPressed(KEY_F3)){ // TODO: Debug build only
-        ToggleEditor();
+static void DrawBox2DBody(PhysicsBody* phys, Color color=GRAY, bool fill=false){
+    assert(phys);
+    // only draw if box2d body exists
+    if (!phys->initialized) {
+        return;
     }
 
-    if (!Session.isOpen) return;
-
-    if (IsKeyPressed(KEY_KP_ADD)){
-        SetTimeScale(GetTimeScale()*1.1f);
-    }
-    if (IsKeyPressed(KEY_KP_SUBTRACT)){
-        SetTimeScale(GetTimeScale()*0.9f);
-    }
-    if (IsKeyPressed(KEY_HOME)){
-        SetTimeScale(1.f);
-    }
-
-    Vector2 mouse = {};
-    if (EditorIs3D){
-        // TODO: implement
-    }
-    else {
-        // draw origin
-        DrawAxis(Vector2Zero());
-
-        // draw cursor grid cell
-        mouse = GetWindowMousePosition(*(Camera2D*)camera);
-        DrawGridCell(mouse, Session.gridSize);
-
-        // draw other cells
-        // TODO: fix shoddyness
-        if (Session.drawGrid){
-            Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(WHITE,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
-            for (int y = -3; y < 3; y++){
-                for (int x = -3; x < 3; x++){
-                    Vector2 offset = { x, y };
-                    Vector2 cellPos = Vector2Add(mouse,Vector2Add(Vector2Scale(offset,Session.gridSize),offset));
-                    DrawGridCell(cellPos, Session.gridSize, 1.f, col);
+    // draw each fixture's shape
+    b2Fixture* next = phys->body->GetFixtureList();
+    while (next) {
+        b2Shape* shape = next->GetShape();
+        Vector2 worldPos = *(Vector2*)&phys->body->GetPosition();
+        switch (shape->GetType()){
+            case b2Shape::Type::e_polygon:
+                {
+                    assert(sizeof(b2Vec2) == sizeof(Vector2));
+                    auto poly = (b2PolygonShape*) shape;
+                    Vector2 vertCpy[8];
+                    for (int i = 0; i < 8; i++) {
+                        Vector2 origVert = *(Vector2*) & poly->m_vertices[i];
+                        Vector2 scled = Vector2Add(origVert, worldPos);
+                        scled = Vector2Scale(scled,PIXELS_PER_UNIT);
+                        vertCpy[i] = scled;
+                    }
+                    if (fill){
+                        b2Vec2 center = phys->body->GetWorldCenter();
+                        DrawCircle(center.x*PIXELS_PER_UNIT, center.y*PIXELS_PER_UNIT, 4.f, color);
+                    }
+                    DrawLineStrip(vertCpy, poly->m_count, color);
                 }
-            }
+                break;
+            default:
+                // TODO: implement other shapes
+                break;
         }
+        next = next->GetNext();
     }
+}
 
-    // make grid smaller or bigger
-    if (IsKeyPressed(KEY_PAGE_UP)){
-        Session.gridSize *= 2;
-    }
-    if (IsKeyPressed(KEY_PAGE_DOWN)){
-        Session.gridSize *= 0.5f;
-    }
+static void UpdateAndRenderNormalMode(void* camera, EntityGroup& group, float delta){
 
-    // index on click
+    Vector2 mouse = GetWindowMousePosition(*(Camera2D*)camera);
+
     for (const auto &comp : group.comps){
-        if (EditorIs3D){
+        
 
-        }
-        else if (comp.second.type == COMP_SPRITE){
+        if (comp.second.type == COMP_SPRITE){
             auto sprite = (Sprite*) comp.second.data;
+
+            // HACK: if a sprite has physics body and it is invisible,
+            // don't make it interactable in the editor's NORMAL_MODE
+            if (EntityHasComponent(comp.first,COMP_PHYS_BODY) && !sprite.isVisible){
+                continue;
+            }
+
             Rectangle rect = sprite->region();
 
             if (comp.first == Session.subjectID && Session.hasSubject) {
@@ -260,39 +296,120 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
 
             if (phys->initialized){
                 Color col = ColorAlpha(RED,0.5f);
-
-                // draw each fixture's shape
-                b2Fixture* next = phys->body->GetFixtureList();
-                while (next) {
-                    b2Shape* shape = next->GetShape();
-                    Vector2 worldPos = *(Vector2*)&phys->body->GetPosition();
-                    switch (shape->GetType()){
-                        case b2Shape::Type::e_polygon:
-                            {
-                                assert(sizeof(b2Vec2) == sizeof(Vector2));
-                                auto poly = (b2PolygonShape*) shape;
-                                Vector2 vertCpy[8];
-                                for (int i = 0; i < 8; i++) {
-                                    Vector2 origVert = *(Vector2*) & poly->m_vertices[i];
-                                    Vector2 scled = Vector2Add(origVert, worldPos);
-                                    scled = Vector2Scale(scled,PIXELS_PER_UNIT);
-                                    vertCpy[i] = scled;
-                                }
-                                DrawLineStrip(vertCpy, poly->m_count, col);
-                            }
-                            break;
-                        default:
-                            // TODO: implement other shapes
-                            break;
-                    }
-                    next = next->GetNext();
-                }
+                DrawBox2DBody(phys,col);
             }
         }
     }
 }
 
-void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func) {
+static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos){
+
+    // convert pixel- to physics coordinates
+    centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
+
+    std::multimap<EntityID,void*> physBodies = group.GetComponents(COMP_PHYS_BODY);
+    for (auto& phys: physBodies){
+         auto physBody = (PhysicsBody*) phys.second;
+         b2Vec2 ePos = physBody->body->GetWorldCenter();
+         if (FloatEquals(ePos.x,centerPos.x) && FloatEquals(ePos.y,centerPos.y)){
+             return true;
+         }
+    }
+    return false;
+}
+
+static void UpdateAndRenderHitboxMode(void* camera, EntityGroup& group, float delta){
+    // start dragging mouse to place hitbox objects
+    Vector2 mouse = GetWindowMousePosition(*(Camera2D*)camera);
+
+    Vector2 snapPos = Vector2Snap(mouse, Session.gridSize);
+    Vector2 size = { Session.gridSize, Session.gridSize };
+
+    // draw marker at mouse position
+    float alpha = (sin(GetTime())+1.f)*0.25f+0.5f;
+    Color color = ColorAlpha(PURPLE,alpha*0.5f);
+    DrawRectangleV(snapPos, size, color);
+
+    if (IsMouseButtonDown(0)){
+        // prevent placing hitbox ontop of an existing one
+
+        Vector2 spawnPos = {
+            snapPos.x + Session.gridSize*0.5f,
+            snapPos.y + Session.gridSize*0.5f
+        };
+
+        if (!IsHitboxAtPos(group, spawnPos)){
+            EntityID id = SpawnWallBrush(group, Vector2ToVector3(spawnPos));
+        }
+    }
+    if (IsKeyPressed(KEY_BACKSPACE)) {
+        SwitchMode(MODE_NORMAL);
+    }
+
+    // draw the physics shapes
+    Color col = ColorAlpha(ORANGE,0.8f);
+    std::multimap<EntityID,void*> physBodies = group.GetComponents(COMP_PHYS_BODY);
+    for (auto& phys: physBodies){
+        auto physBody = (PhysicsBody*) phys.second;
+        DrawBox2DBody(physBody,col,true);
+    }
+}
+
+static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delta){
+    if (IsKeyPressed(KEY_F3)){ // TODO: Debug build only
+        ToggleEditor();
+    }
+
+    if (!Session.isOpen) return;
+
+    if (IsKeyPressed(KEY_KP_ADD)){
+        SetTimeScale(GetTimeScale()*1.1f);
+    }
+    if (IsKeyPressed(KEY_KP_SUBTRACT)){
+        SetTimeScale(GetTimeScale()*0.9f);
+    }
+    if (IsKeyPressed(KEY_HOME)){
+        SetTimeScale(1.f);
+    }
+
+    if (EditorIs3D){
+        // TODO: implement
+    }
+    else {
+        // draw origin
+        DrawAxis(Vector2Zero());
+
+        // draw other cells
+        // TODO: fix shoddyness
+        if (Session.drawGrid){
+            DrawGrid(*(Camera2D*)camera);
+        }
+    }
+
+    // make grid smaller or bigger
+    if (IsKeyPressed(KEY_PAGE_UP)){
+        Session.gridSize *= 2;
+    }
+    if (IsKeyPressed(KEY_PAGE_DOWN)){
+        Session.gridSize *= 0.5f;
+    }
+
+    // index on click
+    switch (Session.mode)
+    {
+        case MODE_NORMAL:
+            UpdateAndRenderNormalMode(camera, group, delta);
+            break;
+        case MODE_HITBOX:
+            UpdateAndRenderHitboxMode(camera, group, delta);
+            break;
+        default:
+            break;
+    }
+}
+
+void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func,
+                            bool isStock) {
     // prevent adding same function twice
     for (const auto &builder : Session.builders){
         if (builder.first == std::string(name)){
@@ -300,8 +417,11 @@ void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func) {
             return;
         }
     }
-    auto namestr = std::string(name);
-    DEBUG("Registered entity builder with name %s", name);
+
+    std::string prefix = isStock ? "STOCK_":"";
+    std::string namestr = prefix + std::string(name);
+
+    DEBUG("Registered entity builder with name %s", namestr.c_str());
     Session.builders.insert({ namestr, func });
 }
 
@@ -365,7 +485,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
     y += 20;
 
     // draw selected sprite properties
-    const char* header = TextFormat("Selected Entity: %d\n=== Components ====",Session.subjectID);
+    const char* header = TextFormat("Entity count: %d\nSelected Entity: %d\n=== Components ====",group.entityCount,Session.subjectID);
     DrawRetroText(header,x,y,FONT_SIZE,WHITE);
     y += MeasureRetroText(header,FONT_SIZE).y + 20;
 
@@ -398,6 +518,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
                     menu.DrawPopButton(TextFormat("Change texture %s",suffix), !EditorIs3D); // 2d only
                 }
                 menu.DrawPopButton("Spawn entity");
+                menu.DrawPopButton("Draw hitboxes");
                 menu.EndButtons(panelPos);
 
                 int index = 0;
@@ -421,6 +542,11 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
                         case 0:
                             {
                                 SwitchMode(MODE_SPAWN);
+                            }
+                            break;
+                        case 1:
+                            {
+                                SwitchMode(MODE_HITBOX);
                             }
                             break;
                     }
@@ -513,6 +639,11 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
                 menu.EndButtons();
             }
             break;
+        case MODE_HITBOX:
+        {
+            
+        }
+        break;
         default:
             break;
     }

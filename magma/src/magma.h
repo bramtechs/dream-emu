@@ -427,6 +427,7 @@ struct EntityGroup {
         comps.insert({id, cont});
     }
 
+    bool EntityHasComponent(EntityID id, ItemType type);
     void* TryGetEntityComponent(EntityID id, ItemType filter);
     inline void* GetEntityComponent(EntityID id, ItemType filter){
         return NN(TryGetEntityComponent(id, filter));
@@ -449,6 +450,8 @@ void M_MemFree(void* ptr);
 void CheckAllocations();
 
 // math stuff
+Vector3 Vector2ToVector3(Vector2 vec2);
+Vector2 Vector3ToVector2(Vector3 vec3);
 Vector2 Vector2Absolute(Vector2 v2);
 Vector2 Vector2Snap(Vector2 v2, float gridSize);
 Vector3 Vector3Absolute(Vector3 v3);
@@ -470,6 +473,7 @@ std::vector<std::string> GetAssetNames(AssetType type=ASSET_ANY);
 size_t GetAssetCount();
 
 Texture RequestTexture(const std::string& name);
+Texture RequestPlaceholderTexture();
 Texture RequestIndexedTexture(const std::string& name, Palette palette); // URGENT TODO: cache results
 Texture RequestIndexedTexture(const std::string& name);
 
@@ -557,7 +561,7 @@ bool ToggleGamePaused();
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
-void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func);
+void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func, bool isStock=false);
 #define RegisterEntityBuilder(F) RegisterEntityBuilderEx(#F,F)
 
 struct Description {

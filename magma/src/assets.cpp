@@ -193,6 +193,10 @@ Texture RequestIndexedTexture(const std::string& name) {
     return texture;
 }
 
+Texture RequestPlaceholderTexture() {
+    return PlaceholderTexture;
+}
+
 Texture RequestTexture(const std::string& name) {
     // ATTEMPT 1: get cached texture
     for (const auto& item : Assets.textures) {

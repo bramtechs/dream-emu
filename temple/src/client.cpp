@@ -78,27 +78,6 @@ EntityID spawn_block(EntityGroup& group, Vector3 pos){
     sprite.SetTexture(blockTexture);
     group.AddEntityComponent(COMP_SPRITE, id, sprite);
 
-    // TODO: add proper ground collision without sticky corners
-    //PhysicsBody body = PhysicsBody(false);
-    //group.AddEntityComponent(COMP_PHYS_BODY, id, body);
-
-    return id;
-}
-
-EntityID spawn_wall_brush(EntityGroup& group, Vector3 pos){
-    EntityID id = group.AddEntity();
-
-    Sprite sprite = Sprite({pos.x, pos.y});
-    Texture blockTexture = RequestTexture("spr_block");
-    sprite.SetTexture(blockTexture);
-    sprite.SetSize(WIDTH,HEIGHT*0.5f);
-    sprite.SetCenter(pos.x,pos.y);
-    sprite.Hide();
-    group.AddEntityComponent(COMP_SPRITE, id, sprite);
-
-    PhysicsBody body = PhysicsBody(false);
-    group.AddEntityComponent(COMP_PHYS_BODY,id,body);
-
     return id;
 }
 
@@ -186,20 +165,19 @@ struct TempleGame {
         // palette = RequestPalette(PAL_DEFAULT);
         // SetDefaultPalette(palette);
 
-        for (int y = 0; y < 2; y++){
-            for (int x = 0; x < 10; x++){
-                spawn_block(group,{x*64.f,64*4.f+y*64.f});
-            }
-        }
-        spawn_player(group, {GetWindowCenter().x,GetWindowCenter().y,0});
+        // for (int y = 0; y < 2; y++){
+        //     for (int x = 0; x < 10; x++){
+        //         spawn_block(group,{x*64.f,64*4.f+y*64.f});
+        //     }
+        // }
+        //spawn_player(group, {GetWindowCenter().x,GetWindowCenter().y,0});
 
         // fake floor
-        spawn_wall_brush(group,{240.f,346.f,0.f});
+        //spawn_wall_brush(group,{240.f,346.f,0.f});
 
         // setup editor
         RegisterEntityBuilder(spawn_block);
         RegisterEntityBuilder(spawn_player);
-        RegisterEntityBuilder(spawn_wall_brush);
     }
 
     void update_and_render(float delta) {
@@ -252,7 +230,7 @@ int main()
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
-    SetTargetFPS(1000);
+    SetTargetFPS(60);
 
     if (LoadAssets()) {
         LoadMagmaSettings();

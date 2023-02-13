@@ -255,6 +255,15 @@ EntityID EntityGroup::AddEntity() {
     return id;
 }
 
+bool EntityGroup::EntityHasComponent(EntityID id, ItemType type){
+    for (const auto& comp : comps) {
+        if (comp.first == id && comp.second.type == filter) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void* EntityGroup::TryGetEntityComponent(EntityID id, ItemType filter) {
     for (const auto& comp : comps) {
         if (comp.first == id && comp.second.type == filter) {

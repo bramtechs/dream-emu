@@ -196,6 +196,21 @@ void CheckAllocations() {
     }
 }
 
+Vector3 Vector2ToVector3(Vector2 vec2){
+    return {
+        vec2.x,
+        vec2.y,
+        0.f
+    };
+}
+
+Vector2 Vector3ToVector2(Vector3 vec3){
+    return {
+        vec3.x,
+        vec3.y,
+    };
+}
+
 Vector2 Vector2Absolute(Vector2 v2) {
     return {
         fabs(v2.x),
