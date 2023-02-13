@@ -210,7 +210,7 @@ static void UpdateAndRenderNormalMode(void* camera, EntityGroup& group, float de
 
             // HACK: if a sprite has physics body and it is invisible,
             // don't make it interactable in the editor's NORMAL_MODE
-            if (EntityHasComponent(comp.first,COMP_PHYS_BODY) && !sprite.isVisible){
+            if (group.EntityHasComponent(comp.first,COMP_PHYS_BODY) && !sprite->isVisible){
                 continue;
             }
 

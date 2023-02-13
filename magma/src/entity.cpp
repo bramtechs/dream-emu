@@ -257,7 +257,7 @@ EntityID EntityGroup::AddEntity() {
 
 bool EntityGroup::EntityHasComponent(EntityID id, ItemType type){
     for (const auto& comp : comps) {
-        if (comp.first == id && comp.second.type == filter) {
+        if (comp.first == id && comp.second.type == type) {
             return true;
         }
     }
