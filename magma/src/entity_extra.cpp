@@ -52,17 +52,35 @@ void SetEntityCenter(EntityID id, Vector3 pos){
 }
 #endif
 
-void SetEntitySize(EntityID id, Vector2 pos){
+void SetEntitySize(EntityID id, Vector2 size){
     assert(Group);
 
     auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
     if (phys) {
         // TODO:
-        // phys->position.Set({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT});
+        b2Fixture* fixture = phys->body->GetFixtureList();
+        if(fixture){
+            const b2Shape* shape = fixture->GetShape();
+            switch (shape->GetType()){
+                case b2Shape::e_polygon:
+                    {
+                        auto poly = (b2PolygonShape*) shape;
+                        b2Vec2 pos = phys->body->GetPosition();
+                        poly->SetAsBox(size.x*0.5f, size.y*0.5f, pos, 0.f);
+                        // TODO: test
+                    }
+                    break;
+                default:
+                    ERROR("TODO: Other shapes not implemented");
+                    break;
+            }
+        }else {
+            ERROR("Physics object does not have a single fixture with a shape");
+        }
     }
     else {
         auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
-        sprite->SetCenter(pos);
+        sprite->SetSize(size);
     }
 }
 

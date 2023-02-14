@@ -1,4 +1,4 @@
-- [ ] Resize fixture on texture change
+- [ ] Resize fixture on texture change (TEST new implementation)
 - [ ] Keep 3D stuff and 2D stuff apart
 
 - [ ] Tune player movement (add more friction?)
