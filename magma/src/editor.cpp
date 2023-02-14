@@ -1,7 +1,9 @@
 #include "magma.h"
 
-#define REGCOMP(C,F) RegisterComponentDescriptor(C,F)
-#define RegisterStockEntityBuilder(F) RegisterEntityBuilderEx(#F,F,true)
+typedef void (*UpdateAndDrawMode)(EntityGroup& group, Camera* camera, float delta);
+typedef void (*UpdateAndDrawModeGUI)(EntityGroup& group, Camera* camera, float delta);
+
+static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float delta);
 
 enum EditorMode {
     MODE_NORMAL,
@@ -9,6 +11,12 @@ enum EditorMode {
     MODE_HITBOX,
     MODE_TEXTURE,
     MODE_DELAY, // hack for pop-up menus to work
+};
+
+struct EditorModeInfo {
+    std::string description;
+    UpdateAndDrawMode func;
+    UpdateAndDrawModeGUI gui;
 };
 
 struct EditorSession {
@@ -19,68 +27,36 @@ struct EditorSession {
     bool drawGrid = true;
     EditorMode mode = MODE_NORMAL;
 
-    PopMenu actionMenu = PopMenu(FOCUS_LOW);
-    PopMenu textureMenu = PopMenu(FOCUS_CRITICAL);
-    PopMenu spawnMenu = PopMenu(FOCUS_CRITICAL);
-
+    std::unordered_map<EditorMode,EditorModeInfo> modes;
     std::unordered_map<std::string, EntityBuilderFunction> builders;
     std::unordered_map<ItemType, ComponentDescriptor> descriptors;
 
     EditorSession();
+
+private:
+    inline void LinkMode(EditorMode mode, UpdateAndDrawMode func=NULL,
+                         UpdateAndDrawModeGUI gui=NULL, std::string desc=""){
+        EditorModeInfo info = {
+            desc,
+            func,
+            gui
+        };
+        modes.insert({mode,info});
+    }
+
+    void LinkModes();
 };
 
 static EditorSession Session = EditorSession();
+static bool EditorIs3D = false;
 
 #include "editor_utils.cpp"
 
-static bool EditorIs3D = false;
-
-static void DrawBox2DBody(PhysicsBody* phys, Color color=GRAY, bool fill=false){
-    assert(phys);
-    // only draw if box2d body exists
-    if (!phys->initialized) {
-        return;
-    }
-
-    // draw each fixture's shape
-    b2Fixture* next = phys->body->GetFixtureList();
-    while (next) {
-        b2Shape* shape = next->GetShape();
-        Vector2 worldPos = *(Vector2*)&phys->body->GetPosition();
-        switch (shape->GetType()){
-            case b2Shape::Type::e_polygon:
-                {
-                    assert(sizeof(b2Vec2) == sizeof(Vector2));
-                    auto poly = (b2PolygonShape*) shape;
-                    Vector2 vertCpy[8];
-                    for (int i = 0; i < 8; i++) {
-                        Vector2 origVert = *(Vector2*) & poly->m_vertices[i];
-                        Vector2 scled = Vector2Add(origVert, worldPos);
-                        scled = Vector2Scale(scled,PIXELS_PER_UNIT);
-                        vertCpy[i] = scled;
-                    }
-                    if (fill){
-                        b2Vec2 center = phys->body->GetWorldCenter();
-                        DrawCircle(center.x*PIXELS_PER_UNIT, center.y*PIXELS_PER_UNIT, 4.f, color);
-                    }
-                    DrawLineStrip(vertCpy, poly->m_count, color);
-                }
-                break;
-            default:
-                // TODO: implement other shapes
-                break;
-        }
-        next = next->GetNext();
-    }
-}
-
-static void UpdateAndRenderNormalMode(void* camera, EntityGroup& group, float delta){
+static void ProcNormalMode(EntityGroup& group, Camera* camera, float delta){
 
     Vector2 mouse = GetWindowMousePosition(*(Camera2D*)camera);
 
     for (const auto &comp : group.comps){
-        
-
         if (comp.second.type == COMP_SPRITE){
             auto sprite = (Sprite*) comp.second.data;
 
@@ -102,7 +78,7 @@ static void UpdateAndRenderNormalMode(void* camera, EntityGroup& group, float de
                 static Vector2 dragPos = {};
                 static Vector2 dragOffset = {};
                 static bool horizontal = false;
-                
+
                 // start drag
                 if (CheckCollisionPointRec(mouse,rect)){
                     if (IsMouseButtonPressed(0)){
@@ -178,23 +154,91 @@ static void UpdateAndRenderNormalMode(void* camera, EntityGroup& group, float de
     }
 }
 
-static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos){
+static void ProcNormalModeGUI(EntityGroup& group, Camera* camera, float delta){
+    // action menu
+    static PopMenu menu = PopMenu(FOCUS_LOW);
 
-    // convert pixel- to physics coordinates
-    centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
+    Vector2 panelPos = {
+        GetScreenWidth()-menu.size.x*0.5f,
+        GetScreenHeight()-menu.size.y*0.5f
+    };
+    menu.RenderPanel();
+    if (Session.hasSubject) {
+        menu.DrawPopButton("Delete");
 
-    std::multimap<EntityID,void*> physBodies = group.GetComponents(COMP_PHYS_BODY);
-    for (auto& phys: physBodies){
-         auto physBody = (PhysicsBody*) phys.second;
-         b2Vec2 ePos = physBody->body->GetWorldCenter();
-         if (FloatEquals(ePos.x,centerPos.x) && FloatEquals(ePos.y,centerPos.y)){
-             return true;
-         }
+        const char* suffix = HasDefaultPalette() ? "(paletted)":"";
+        menu.DrawPopButton(TextFormat("Change texture %s",suffix), !EditorIs3D); // 2d only
     }
-    return false;
+
+    // editor modes
+    std::vector<EditorMode> buttonModes;
+    for (const auto& mode : Session.modes){
+        if (mode.first != MODE_DELAY && mode.first != MODE_NORMAL){
+            const EditorModeInfo& info = mode.second;
+            menu.DrawPopButton(info.description.c_str());
+            buttonModes.push_back(mode.first);
+        }
+    }
+
+    menu.EndButtons(panelPos);
+
+    int index = 0;
+    if (menu.IsButtonSelected(&index)){
+        if (Session.hasSubject){
+            index -= 2;
+        }
+        switch (index){
+            case -2:
+                // TODO: temporary
+                SetEntityCenter(Session.subjectID,-9999.f,-9999.f);
+                break;
+            case -1:
+                // change texture
+                SwitchMode(MODE_TEXTURE);
+                break;
+            default:
+                // switch modes
+                SwitchMode(buttonModes[index]);
+                break;
+        }
+    }
 }
 
-static void UpdateAndRenderHitboxMode(void* camera, EntityGroup& group, float delta){
+static void ProcTextureModeGUI(EntityGroup& group, Camera* camera, float delta){
+
+    static PopMenu menu = PopMenu();
+
+    auto names = GetAssetNames(ASSET_TEXTURE);
+    menu.RenderPanel();
+    for (int i = 0; i < names.size(); i++){
+        menu.DrawPopButton(names[i].c_str());
+    }
+    menu.EndButtons();
+
+    // process selection
+    int index = 0;
+    if (menu.IsButtonSelected(&index)){
+        // change texture of subject
+        assert(Session.hasSubject); 
+
+        auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
+
+        Texture newTexture;
+        if (HasDefaultPalette()){
+            newTexture = RequestIndexedTexture(names[index]);
+        }else{
+            newTexture = RequestTexture(names[index]);
+        }
+
+        sprite->SetTexture(newTexture);
+        DEBUG("Switched entity texture to %s", names[index].c_str());
+
+        // go back to default mode
+        SwitchMode(MODE_NORMAL);
+    }
+}
+
+static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta){
     // start dragging mouse to place hitbox objects
     Vector2 mouse = GetWindowMousePosition(*(Camera2D*)camera);
 
@@ -231,7 +275,82 @@ static void UpdateAndRenderHitboxMode(void* camera, EntityGroup& group, float de
     }
 }
 
-static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delta){
+static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
+    static PopMenu menu = PopMenu();
+
+    Vector2 panelPos = {
+        GetScreenWidth()-menu.size.x*0.5f,
+        GetScreenHeight()-menu.size.y*0.5f
+    };
+
+    menu.RenderPanel();
+
+    menu.DrawPopButton("Exit");
+    menu.DrawPopButton("Simplify");
+
+    int index = 0;
+    if (menu.IsButtonSelected(&index)){
+        switch (index)
+        {
+            case 0:
+                SwitchMode(MODE_NORMAL);
+                break;
+            case 1:
+                SimplifyHitboxes(group);
+                break;
+        }
+    }
+
+    menu.EndButtons(panelPos);
+}
+
+static void ProcSpawnModeGUI(EntityGroup& group, Camera* camera, float delta){
+    static PopMenu menu = PopMenu();
+
+    menu.RenderPanel();
+
+    static std::vector<EntityBuilderFunction> builders;
+    builders.clear();
+
+    for (const auto &builder: Session.builders)
+    {
+        menu.DrawPopButton(builder.first.c_str());
+        builders.push_back(builder.second);
+    }
+    menu.DrawPopButton("",false,true);
+    menu.DrawPopButton("Close");
+
+    int index = 0;
+    if (menu.IsButtonSelected(&index))
+    {
+        // check if last
+        if (index >= Session.builders.size())
+        {
+            SwitchMode(MODE_NORMAL);
+        }
+        else
+        {
+            try {
+                // spawn new entity
+                EntityBuilderFunction func = builders.at(index);
+                Camera2D cam2d = *(Camera2D*)camera;
+
+                // get snapped pos to place entity
+                Vector2 camPos = GetWindowMousePosition(cam2d);
+                Vector2 snapPos = Vector2Snap(camPos,Session.gridSize);
+
+                (*func)(group,{snapPos.x,snapPos.y,0});
+            }
+            catch(const std::out_of_range &e) {
+                ERROR("Can't find valid spawn function!");
+            }
+        }
+    }
+
+    menu.EndButtons();
+}
+
+static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float delta){
     if (IsKeyPressed(KEY_F3)){ // TODO: Debug build only
         ToggleEditor();
     }
@@ -270,65 +389,15 @@ static void DoUpdateAndRenderEditor(void* camera, EntityGroup& group, float delt
         Session.gridSize *= 0.5f;
     }
 
-    // index on click
-    switch (Session.mode)
-    {
-        case MODE_NORMAL:
-            UpdateAndRenderNormalMode(camera, group, delta);
-            break;
-        case MODE_HITBOX:
-            UpdateAndRenderHitboxMode(camera, group, delta);
-            break;
-        default:
-            break;
-    }
-}
-
-void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func,
-                            bool isStock) {
-    // prevent adding same function twice
-    for (const auto &builder : Session.builders){
-        if (builder.first == std::string(name)){
-            ERROR("Already added entity builder function");
-            return;
+    // update and draw editor mode (world pos)
+    try {
+        EditorModeInfo info = Session.modes.at(Session.mode);
+        if (info.func != NULL) {
+            (*info.func)(group,camera,delta);
         }
     }
-
-    std::string prefix = isStock ? "STOCK_":"";
-    std::string namestr = prefix + std::string(name);
-
-    DEBUG("Registered entity builder with name %s", namestr.c_str());
-    Session.builders.insert({ namestr, func });
-}
-
-void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
-    Session.descriptors.insert({type, func});
-}
-
-Description DescribeComponent(CompContainer cont) {
-    Description desc;
-    try
-    {
-        ComponentDescriptor descriptor = Session.descriptors.at(cont.type);
-        desc = (*descriptor)(cont.data);
+    catch(const std::out_of_range &e) {
     }
-    catch(const std::out_of_range &e)
-    {
-        desc.typeName = TextFormat("Component %d",cont.type);
-        desc.info = "No further info.";
-        desc.color = LIGHTGRAY;
-    }
-    return desc;
-}
-
-void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta){
-    EditorIs3D = true;
-    DoUpdateAndRenderEditor(&camera, group,delta);
-}
-
-void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
-    EditorIs3D = false;
-    DoUpdateAndRenderEditor(&camera, group,delta);
 }
 
 void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
@@ -376,168 +445,43 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
         }
     }
 
-    switch (Session.mode){
-        case MODE_NORMAL:
-            {
-                // action menu
-                PopMenu& menu = Session.actionMenu;
-
-                Vector2 panelPos = {
-                    GetScreenWidth()-menu.size.x*0.5f,
-                    GetScreenHeight()-menu.size.y*0.5f
-                };
-                menu.RenderPanel();
-                if (Session.hasSubject) {
-                    menu.DrawPopButton("Delete");
-
-                    const char* suffix = HasDefaultPalette() ? "(paletted)":"";
-                    menu.DrawPopButton(TextFormat("Change texture %s",suffix), !EditorIs3D); // 2d only
-                }
-                menu.DrawPopButton("Spawn entity");
-                menu.DrawPopButton("Draw hitboxes");
-                menu.EndButtons(panelPos);
-
-                int index = 0;
-                if (menu.IsButtonSelected(&index)){
-                    if (Session.hasSubject){
-                        index -= 2;
-                    }
-                    switch (index){
-                        case -2:
-                            {
-                                // TODO: temporary
-                                SetEntityCenter(Session.subjectID,-9999.f,-9999.f);
-                            }
-                            break;
-                        case -1:
-                            {
-                                // change texture
-                                SwitchMode(MODE_TEXTURE);
-                            }
-                            break;
-                        case 0:
-                            {
-                                SwitchMode(MODE_SPAWN);
-                            }
-                            break;
-                        case 1:
-                            {
-                                SwitchMode(MODE_HITBOX);
-                            }
-                            break;
-                    }
-                }
-            }
-            break;
-        case MODE_TEXTURE:
-            {
-                if (EditorIs3D){
-                    SwitchMode(MODE_NORMAL);
-                    break;
-                }
-
-                PopMenu &menu = Session.textureMenu;
-
-                auto names = GetAssetNames(ASSET_TEXTURE);
-                menu.RenderPanel();
-                for (int i = 0; i < names.size(); i++){
-                    menu.DrawPopButton(names[i].c_str());
-                }
-                menu.EndButtons();
-
-                // process selection
-                int index = 0;
-                if (menu.IsButtonSelected(&index)){
-                    // change texture of subject
-                    assert(Session.hasSubject); 
-
-                    auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
-
-                    Texture newTexture;
-                    if (HasDefaultPalette()){
-                        newTexture = RequestIndexedTexture(names[index]);
-                    }else{
-                        newTexture = RequestTexture(names[index]);
-                    }
-
-                    sprite->SetTexture(newTexture);
-                    DEBUG("Switched entity texture to %s", names[index].c_str());
-
-                    // go back to default mode
-                    SwitchMode(MODE_NORMAL);
-                }
-            }
-            break;
-        case MODE_SPAWN:
-            {
-                PopMenu &menu = Session.spawnMenu;
-
-                menu.RenderPanel();
-
-                static std::vector<EntityBuilderFunction> builders;
-                builders.clear();
-
-                for (const auto &builder: Session.builders)
-                {
-                    menu.DrawPopButton(builder.first.c_str());
-                    builders.push_back(builder.second);
-                }
-                menu.DrawPopButton("",false,true);
-                menu.DrawPopButton("Close");
-
-                int index = 0;
-                if (menu.IsButtonSelected(&index))
-                {
-                    // check if last
-                    if (index >= Session.builders.size())
-                    {
-                        SwitchMode(MODE_NORMAL);
-                    }
-                    else
-                    {
-                        try {
-                            // spawn new entity
-                            EntityBuilderFunction func = builders.at(index);
-                            Camera2D cam2d = *(Camera2D*)camera;
-
-                            // get snapped pos to place entity
-                            Vector2 camPos = GetWindowMousePosition(cam2d);
-                            Vector2 snapPos = Vector2Snap(camPos,Session.gridSize);
-
-                            (*func)(group,{snapPos.x,snapPos.y,0});
-                        }
-                        catch(const std::out_of_range &e) {
-                            ERROR("Can't find valid spawn function!");
-                        }
-                    }
-                }
-
-                menu.EndButtons();
-            }
-            break;
-        case MODE_HITBOX:
-        {
-            
+    // update and draw editor mode (gui elements)
+    try {
+        EditorModeInfo info = Session.modes.at(Session.mode);
+        if (info.gui != NULL){
+            (*info.gui)(group,camera,delta);
         }
-        break;
-        default:
-            break;
+    }
+    catch(const std::out_of_range &e) {
+        DrawText("Invalid editor mode!", 50, 50, 16, RED);
     }
 }
 
-bool EditorIsOpen(){
-    return Session.isOpen;
+void EditorSession::LinkModes(){
+    LinkMode(MODE_DELAY);
+    LinkMode(MODE_NORMAL,ProcNormalMode,ProcNormalModeGUI);
+    LinkMode(MODE_TEXTURE,NULL,ProcTextureModeGUI,"Change texture");
+    LinkMode(MODE_SPAWN,NULL,ProcSpawnModeGUI,"Spawn entity");
+    LinkMode(MODE_HITBOX,ProcHitboxMode,ProcHitboxModeGUI, "Draw hitboxes");
 }
 
-void OpenEditor(){
-    Session.isOpen = true;
+void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
+    Session.descriptors.insert({type, func});
 }
 
-void CloseEditor(){
-    Session.isOpen = false;
+Description DescribeComponent(CompContainer cont) {
+    Description desc;
+    try
+    {
+        ComponentDescriptor descriptor = Session.descriptors.at(cont.type);
+        desc = (*descriptor)(cont.data);
+    }
+    catch(const std::out_of_range &e)
+    {
+        desc.typeName = TextFormat("Component %d",cont.type);
+        desc.info = "No further info.";
+        desc.color = LIGHTGRAY;
+    }
+    return desc;
 }
 
-bool ToggleEditor(){
-    Session.isOpen = !Session.isOpen;
-    return Session.isOpen;
-}

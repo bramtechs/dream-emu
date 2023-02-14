@@ -122,6 +122,7 @@ void PopMenu::RenderPanel(){
         DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
     }
 
+    this->buttonCount = 0;
     this->size = {};
     this->group.reset();
 
@@ -159,7 +160,7 @@ void PopMenu::EndButtons(){
     EndButtons(pos);
 }
 
-void PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
+int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
     Vector2 textPos = {
         topLeft.x+config.padding+config.arrowPadding*3.f,
         topLeft.y+size.y + config.padding,
@@ -192,6 +193,8 @@ void PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
         size.x = textSize.x;
     }
     size.y += textSize.y;
+
+    return buttonCount++;
 }
 
 void PopMenu::DrawMenuTriangle(Vector2 center, Color color){

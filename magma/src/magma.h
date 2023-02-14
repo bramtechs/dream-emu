@@ -212,6 +212,7 @@ struct PopMenu {
     ButtonGroup group;
     Vector2 topLeft;
     Vector2 size;
+    int buttonCount;
     bool initialized;
 
     PopMenu(PopMenuConfig config, int priority=FOCUS_NORMAL);
@@ -219,7 +220,7 @@ struct PopMenu {
     ~PopMenu();
 
     void RenderPanel();
-    void DrawPopButton(const char* text, bool selectable=true, bool isBlank=false);
+    int DrawPopButton(const char* text, bool selectable=true, bool isBlank=false);
 
     void EndButtons(Vector2 panelPos);
     void EndButtons();

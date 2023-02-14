@@ -151,3 +151,5 @@ inline void ResetEntityTranslation(EntityID id){
     SetEntityCenter(id,origin);
 }
 #endif
+
+void SimplifyHitboxes(EntityGroup& group);

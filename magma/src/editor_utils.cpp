@@ -1,5 +1,25 @@
 // descriptors
 
+#define REGCOMP(C,F) RegisterComponentDescriptor(C,F)
+#define RegisterStockEntityBuilder(F) RegisterEntityBuilderEx(#F,F,true)
+
+void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func,
+                            bool isStock) {
+    // prevent adding same function twice
+    for (const auto &builder : Session.builders){
+        if (builder.first == std::string(name)){
+            ERROR("Already added entity builder function");
+            return;
+        }
+    }
+
+    std::string prefix = isStock ? "STOCK_":"";
+    std::string namestr = prefix + std::string(name);
+
+    DEBUG("Registered entity builder with name %s", namestr.c_str());
+    Session.builders.insert({ namestr, func });
+}
+
 static Description DescribeComponentSprite(void* data){
     auto sprite = (Sprite*) data;
     Vector2 center = sprite->center();
@@ -84,6 +104,8 @@ EditorSession::EditorSession() {
 
         // declare stock builder-functions
         RegisterStockEntityBuilder(SpawnWallBrush);
+
+        LinkModes();
 }
 
 // utils
@@ -126,4 +148,88 @@ static void DrawGrid(Camera2D camera){
 static void DrawAxis(Vector2 pos, float len=20.f, float thick=2.f){
     DrawLineEx(pos, {pos.x + len, pos.y}, thick, RED);
     DrawLineEx(pos, {pos.x, pos.y + len}, thick, GREEN);
+}
+
+static void DrawBox2DBody(PhysicsBody* phys, Color color=GRAY, bool fill=false){
+    assert(phys);
+    // only draw if box2d body exists
+    if (!phys->initialized) {
+        return;
+    }
+
+    // draw each fixture's shape
+    b2Fixture* next = phys->body->GetFixtureList();
+    while (next) {
+        b2Shape* shape = next->GetShape();
+        Vector2 worldPos = *(Vector2*)&phys->body->GetPosition();
+        switch (shape->GetType()){
+            case b2Shape::Type::e_polygon:
+                {
+                    assert(sizeof(b2Vec2) == sizeof(Vector2));
+                    auto poly = (b2PolygonShape*) shape;
+                    Vector2 vertCpy[8];
+                    for (int i = 0; i < 8; i++) {
+                        Vector2 origVert = *(Vector2*) & poly->m_vertices[i];
+                        Vector2 scled = Vector2Add(origVert, worldPos);
+                        scled = Vector2Scale(scled,PIXELS_PER_UNIT);
+                        vertCpy[i] = scled;
+                    }
+                    if (fill){
+                        b2Vec2 center = phys->body->GetWorldCenter();
+                        DrawCircle(center.x*PIXELS_PER_UNIT, center.y*PIXELS_PER_UNIT, 4.f, color);
+                    }
+                    DrawLineStrip(vertCpy, poly->m_count, color);
+                }
+                break;
+            default:
+                // TODO: implement other shapes
+                break;
+        }
+        next = next->GetNext();
+    }
+}
+
+
+static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos){
+    // convert pixel- to physics coordinates
+    centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
+
+    std::multimap<EntityID,void*> physBodies = group.GetComponents(COMP_PHYS_BODY);
+    for (auto& phys: physBodies){
+         auto physBody = (PhysicsBody*) phys.second;
+         b2Vec2 ePos = physBody->body->GetWorldCenter();
+         if (FloatEquals(ePos.x,centerPos.x) && FloatEquals(ePos.y,centerPos.y)){
+             return true;
+         }
+    }
+    return false;
+}
+
+// function overload boilerplate
+void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta){
+    EditorIs3D = true;
+    DoUpdateAndRenderEditor(group, (Camera*)&camera,delta);
+}
+
+void UpdateAndRenderEditor(Camera2D camera, EntityGroup& group, float delta){
+    EditorIs3D = false;
+    DoUpdateAndRenderEditor(group, (Camera*)&camera,delta);
+}
+
+// smaller functions
+bool EditorIsOpen(){
+    return Session.isOpen;
+}
+
+void OpenEditor(){
+    Session.isOpen = true;
+}
+
+void CloseEditor(){
+    Session.isOpen = false;
+}
+
+bool ToggleEditor(){
+    Session.isOpen = !Session.isOpen;
+    return Session.isOpen;
 }

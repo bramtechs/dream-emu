@@ -92,6 +92,10 @@ void SetEntitySize(EntityID id, Vector3 pos){
 }
 #endif
 
+void SimplifyHitboxes(EntityGroup& group){
+    ERROR("NOT IMPLEMENTED");
+}
+
 PhysicsBody::PhysicsBody(float density, float friction){
     this->initialized = false;
     this->dynamic = true;
