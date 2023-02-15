@@ -24,7 +24,7 @@ struct Explorer {
         selectedIndex = 0;
         listOffsetY = 0;
 
-        SetCameraMode((Camera)cam3, CAMERA_ORBITAL);
+        // SetCameraMode((Camera)cam3, CAMERA_ORBITAL);
         cam3.position = { 0, 10, -10 };
         cam3.target = Vector3Zero();
         cam3.up = { 0, 1, 0 };
