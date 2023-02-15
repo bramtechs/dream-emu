@@ -151,16 +151,12 @@ void AnimationPlayer::SetAnimation(const SheetAnimation& anim) {
     }
 }
 
-// TODO: make function member of EntityGroup
-size_t UpdateGroupExtended(EntityGroup* group, float delta){
-    Group = group;
-
-    for (const auto& comp : group->comps) {
-        switch (comp.second.type) {
+void UpdateExtendedComponent(EntityGroup& group, IteratedComp& comp, float delta){
+    switch (comp.second.type) {
         case COMP_ANIM_PLAYER:
         {
             auto animPlayer = (AnimationPlayer*)comp.second.data;
-            auto sprite = (Sprite*) group->GetEntityComponent(comp.first, COMP_SPRITE);
+            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
 
             // advance current animation
             const SheetAnimation& anim = *animPlayer->curAnim;
@@ -205,7 +201,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
         case COMP_PHYS_BODY: 
         {
             auto phys = (PhysicsBody*) comp.second.data;
-            auto sprite = (Sprite*) group->GetEntityComponent(comp.first, COMP_SPRITE);
+            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
 
             // init if newly created
             if (!phys->initialized){
@@ -217,7 +213,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
                     bodyDef.type = b2_dynamicBody;
                 }
 
-                phys->body = group->world->CreateBody(&bodyDef);
+                phys->body = group.world->CreateBody(&bodyDef);
                 phys->body->SetFixedRotation(true);
                 phys->body->SetSleepingAllowed(false);
 
@@ -247,7 +243,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
         case COMP_PLAT_PLAYER:
         {
             auto plat = (PlatformerPlayer*) comp.second.data;
-            auto phys = (PhysicsBody*) group->GetEntityComponent(comp.first,COMP_PHYS_BODY);
+            auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first,COMP_PHYS_BODY);
             phys->body->SetGravityScale(3.f);
             
             bool isMoving = false;
@@ -271,6 +267,7 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             }
             phys->body->ApplyForceToCenter(force,true);
 
+            // TODO: take gravity into account
             // determine if falling or jumping
             PlayerPose* pose = &plat->pose;
             auto curVel = phys->body->GetLinearVelocity();
@@ -289,10 +286,12 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
             }
 
         } break;
-        default:
-            break;
-        }
     }
+}
+
+// TODO: make function member of EntityGroup
+void UpdateExtendedGroup(EntityGroup& group, float delta){
+    Group = &group;
 
     // TODO: make optional
     // run physics engine
@@ -300,13 +299,8 @@ size_t UpdateGroupExtended(EntityGroup* group, float delta){
     int velocityIterations = 6;
     int positionIterations = 2;
 
-    assert(group->world);
-    group->world->Step(timeStep, velocityIterations, positionIterations);
-    return 0;
-}
-
-size_t DrawGroupExtended(EntityGroup* group){
-    return 0;
+    assert(group.world);
+    group.world->Step(timeStep, velocityIterations, positionIterations);
 }
 
 // ===== 3d =====

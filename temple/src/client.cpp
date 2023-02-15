@@ -105,42 +105,40 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
 }
 
 // TODO: callback system instead of this manual stuff
-static void update_custom(EntityGroup& group){
-    for (const auto &comp : group.comps){
-        switch (comp.second.type) {
-            case COMP_FOX_PLAYER:
-            {
-                auto fox = (FoxPlayer*) comp.second.data;
-                auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
-                auto anim = (AnimationPlayer*) group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER);
-                auto plat = (PlatformerPlayer*) group.GetEntityComponent(comp.first, COMP_PLAT_PLAYER);
+static void update_custom_component(EntityGroup& group, IteratedComp& comp, float delta){
+    switch (comp.second.type) {
+        case COMP_FOX_PLAYER:
+        {
+            auto fox = (FoxPlayer*) comp.second.data;
+            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
+            auto anim = (AnimationPlayer*) group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER);
+            auto plat = (PlatformerPlayer*) group.GetEntityComponent(comp.first, COMP_PLAT_PLAYER);
 
-                // look left or right
-                sprite->SetFlippedX(!plat->isLookingRight);
+            // look left or right
+            sprite->SetFlippedX(!plat->isLookingRight);
 
-                // set animation according to pose
-                switch (plat->pose){
-                    case POSE_WALK:
-                        anim->SetAnimation(ANIM_FOX_WALK);
-                        break;
-                    case POSE_SLIDE:
-                        anim->SetAnimation(ANIM_FOX_STOP);
-                        break;
-                    case POSE_JUMP:
-                        anim->SetAnimation(ANIM_FOX_JUMP);
-                        break;
-                    case POSE_FALL:
-                        anim->SetAnimation(ANIM_FOX_LAND);
-                        break;
-                    default:
-                        anim->SetAnimation(ANIM_FOX_IDLE);
-                        break;
-                }
+            // set animation according to pose
+            switch (plat->pose){
+                case POSE_WALK:
+                    anim->SetAnimation(ANIM_FOX_WALK);
+                    break;
+                case POSE_SLIDE:
+                    anim->SetAnimation(ANIM_FOX_STOP);
+                    break;
+                case POSE_JUMP:
+                    anim->SetAnimation(ANIM_FOX_JUMP);
+                    break;
+                case POSE_FALL:
+                    anim->SetAnimation(ANIM_FOX_LAND);
+                    break;
+                default:
+                    anim->SetAnimation(ANIM_FOX_IDLE);
+                    break;
+            }
 
-                if (abs(sprite->center().x) > WIDTH*2 || abs(sprite->center().y) > HEIGHT*2) {
-                    SetEntityCenter(comp.first, GetWindowCenter().x,GetWindowCenter().y);
-                    WARN("Player fell off bounds!");
-                }
+            if (abs(sprite->center().x) > WIDTH*2 || abs(sprite->center().y) > HEIGHT*2) {
+                SetEntityCenter(comp.first, GetWindowCenter().x,GetWindowCenter().y);
+                WARN("Player fell off bounds!");
             }
         }
     }
@@ -178,6 +176,9 @@ struct TempleGame {
         // setup editor
         RegisterEntityBuilder(spawn_block);
         RegisterEntityBuilder(spawn_player);
+
+        // register custom entity callbacks
+        group.RegisterUpdater(update_custom_component);
     }
 
     void update_and_render(float delta) {
@@ -191,10 +192,9 @@ struct TempleGame {
 
         if (!GameIsPaused()){
             group.UpdateGroup(delta);
-            update_custom(group);
         }
         group.DrawGroup();
-        //group.DrawGroupDebug(camera);
+        group.DrawGroupDebug();
         
         // EndPaletteMode();
 

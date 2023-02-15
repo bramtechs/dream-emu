@@ -98,8 +98,10 @@ struct PlayerFPS {
     void SetFov(float fovDeb);
 };
 
-size_t UpdateGroupExtended(EntityGroup* group, float delta);
-size_t DrawGroupExtended(EntityGroup* group);
+void UpdateExtendedComponent(EntityGroup& group, IteratedComp& comp, float delta);
+void DrawExtendedComponent(EntityGroup& group, IteratedComp& comp);
+
+void UpdateExtendedGroup(EntityGroup& group, float delta);
 
 // component-independent entity functions
 void TranslateEntity(EntityID id, Vector2 offset);

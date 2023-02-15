@@ -202,20 +202,6 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
 
 #endif
 
-EntityGroup::EntityGroup(float gravity) {
-    this->entityCount = 0;
-
-    // make box2d world
-    b2Vec2 gravVec2(0.f,gravity);
-    this->world = new b2World(gravVec2);
-    DEBUG("Allocated Box2D world");
-}
-
-EntityGroup::~EntityGroup() {
-    delete this->world;
-    DEBUG("Disposed Box2D world");
-}
-
 #if defined(MAGMA_3D)
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
     RayCollision col = { 0 };
@@ -296,10 +282,7 @@ std::multimap<EntityID,void*> EntityGroup::GetComponents(ItemType type) {
     return results;
 }
 
-size_t EntityGroup::UpdateGroup(float delta) {
-    float scaledDelta = delta * GetTimeScale();
-
-    //for (const auto& comp : comps) {
+static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta){
     //    switch (comp.second.type) {
     //    case COMP_BASE:
     //    {
@@ -308,16 +291,11 @@ size_t EntityGroup::UpdateGroup(float delta) {
     //    default:
     //        break;
     //    }
-    //}
-    
-    entityCount += UpdateGroupExtended(this,scaledDelta);
-    return entityCount;
 }
 
-size_t EntityGroup::DrawGroup() {
-    for (const auto& comp : comps) {
-        switch (comp.second.type) {
 #if defined(MAGMA_3D)
+static void Draw3DComponent(EntityGroup& group, IteratedComp& comp){
+    switch (comp.second.type) {
         case COMP_MODEL_RENDERER:
         {
             // draw modelrenderers
@@ -333,7 +311,24 @@ size_t EntityGroup::DrawGroup() {
                 Vector3Zero(), 0, Vector3One(), base->tint);
 
         } break;
+    }
+}
+static void Draw3DComponentDebug(EntityGroup& group, IteratedComp& comp){
+    switch (comp.first) {
+        case COMP_BASE:
+        {
+            auto base = (Base*)comp.second.data;
+            RayCollision col = base->GetMouseRayCollision(camera);
+            Color tint = col.hit ? WHITE : GRAY;
+            DrawBoundingBox(base->bounds, tint);
+            DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
+        } break;
+    }
+}
 #endif
+
+static void DrawComponent(EntityGroup& group, IteratedComp& comp){
+    switch (comp.second.type) {
         case COMP_SPRITE:
         {
             auto sprite = (Sprite*) comp.second.data;
@@ -351,37 +346,11 @@ size_t EntityGroup::DrawGroup() {
                 DrawTexturePro(sprite->texture, src, dest, Vector2Zero(), 0.f, sprite->tint);
             }
         } break;
-        default:
-            break;
-        }
     }
-    entityCount += DrawGroupExtended(this);
-    return entityCount;
 }
 
-size_t EntityGroup::DrawGroupDebug(Camera3D camera) {
-    for (const auto& comp : comps) {
-        switch (comp.first) {
-#if defined(MAGMA_3D)
-        case COMP_BASE:
-        {
-            auto base = (Base*)comp.second.data;
-            RayCollision col = base->GetMouseRayCollision(camera);
-            Color tint = col.hit ? WHITE : GRAY;
-            DrawBoundingBox(base->bounds, tint);
-            DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
-        } break;
-#endif
-        default:
-            break;
-        }
-    }
-    return entityCount;
-}
-
-size_t EntityGroup::DrawGroupDebug(Camera2D camera) {
-    for (const auto& comp : comps) {
-        switch (comp.first) {
+static void DrawComponentDebug(IteratedComp& comp){
+    switch (comp.first) {
         case COMP_SPRITE:
         {
             auto sprite = (Sprite*)comp.second.data;
@@ -393,7 +362,75 @@ size_t EntityGroup::DrawGroupDebug(Camera2D camera) {
         } break;
         default:
             break;
+    }
+}
+
+void EntityGroup::UpdateGroup(float delta) {
+    float scaledDelta = delta * GetTimeScale();
+    for (auto& comp : comps) {
+        for (const auto& updater : updaters){
+            // run update 'hook'
+            EntityGroup& group = *this;
+            (*updater)(group,comp,scaledDelta);
         }
     }
-    return entityCount;
+    UpdateExtendedGroup(*this,delta);
+}
+
+void EntityGroup::DrawGroup() {
+    for (auto& comp : comps) {
+        for (const auto& drawer : drawers){
+            // run draw 'hook' if not debug
+            EntityGroup& group = *this;
+            bool isDebug = drawer.second;
+            if (!isDebug) {
+                (*drawer.first)(group,comp);
+            }
+        }
+    }
+}
+
+void EntityGroup::DrawGroupDebug() {
+    for (auto& comp : comps) {
+        for (const auto& drawer : drawers){
+            // run draw 'hook' if debug
+            EntityGroup& group = *this;
+            bool isDebug = drawer.second;
+            if (isDebug) {
+                (*drawer.first)(group,comp);
+            }
+        }
+    }
+}
+
+EntityGroup::EntityGroup(float gravity) {
+    this->entityCount = 0;
+
+    // make box2d world
+    b2Vec2 gravVec2(0.f,gravity);
+    this->world = new b2World(gravVec2);
+    DEBUG("Allocated Box2D world");
+
+    // add stock updators, drawers
+    RegisterUpdater(UpdateComponent);
+    RegisterDrawer(DrawComponent);
+#ifdef MAGMA_3D
+    RegisterDrawer(Update3DComponent);
+#endif
+
+    // add extended updaters, drawers
+    RegisterUpdater(UpdateExtendedComponent);
+}
+
+void EntityGroup::RegisterUpdater(UpdateComponentFunc updateFunc){
+    updaters.push_back(updateFunc);
+}
+
+void EntityGroup::RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug){
+    drawers.insert({drawFunc,isDebug});
+}
+
+EntityGroup::~EntityGroup() {
+    delete this->world;
+    DEBUG("Disposed Box2D world");
 }

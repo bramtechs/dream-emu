@@ -6,3 +6,4 @@
 - [X] Player smooth collision (add editing mode for placing colliders)
 - [ ] Make tiles more interesting (RNG?)
 - [ ] Make Box2D optional dependency
+- [ ] Greedy mesh thing for decreasing hitbox count

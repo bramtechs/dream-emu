@@ -389,9 +389,17 @@ struct CompContainer {
     void* data;
 };
 
+struct EntityGroup;
+typedef std::pair<const EntityID, CompContainer> IteratedComp;
+typedef void (*UpdateComponentFunc)(EntityGroup& group, IteratedComp& comp, float delta);
+typedef void (*DrawComponentFunc)(EntityGroup& group, IteratedComp& comp);
+
 struct EntityGroup {
-    uint entityCount;
     std::multimap<EntityID, CompContainer> comps;
+    std::multimap<DrawComponentFunc,bool> drawers;
+    std::vector<UpdateComponentFunc> updaters;
+
+    uint entityCount;
     b2World* world;
 
     // TODO: gravity should be in magma_extras
@@ -434,11 +442,12 @@ struct EntityGroup {
     std::vector<CompContainer> GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
     std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL);
 
-    size_t UpdateGroup(float delta);
+    void RegisterUpdater(UpdateComponentFunc updateFunc);
+    void RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug=false);
 
-    size_t DrawGroup();
-    size_t DrawGroupDebug(Camera3D camera);
-    size_t DrawGroupDebug(Camera2D camera);
+    void UpdateGroup(float delta);
+    void DrawGroup();
+    void DrawGroupDebug();
 };
 
 #include "magma_extra.h"
