@@ -262,15 +262,6 @@ struct PauseMenuSession {
 
 static PauseMenuSession PauseSession = PauseMenuSession();
 
-static const char* toggle(bool on, const char* suffix, const char* yes, const char* no){
-    return TextFormat("%s %s",on ? yes:no,suffix);
-}
-
-static const char* toggle(bool on, const char* suffix){
-    return toggle(on,suffix,"Hide","Show");
-}
-
-
 // TODO: remove
 static bool IsMuted = false;
 
@@ -287,14 +278,14 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
     menu.RenderPanel();
     menu.DrawPopButton("Continue", false);
     menu.DrawPopButton("Reload", false);
-    menu.DrawPopButton(toggle(IsMuted,"audio","Play","Mute"));
+    menu.DrawPopButton(IsMuted ? "Play audio":"Mute audio");
     menu.DrawPopButton("Quit");
     menu.DrawPopButton("",false,true);
 
     // TODO: define debug flags
     menu.DrawPopButton("== DEV-TOOLS ==",false,true);
-    menu.DrawPopButton(toggle(LoggerIsOpen(),"console"));
-    menu.DrawPopButton(toggle(EditorIsOpen(),"editor"));
+    menu.DrawPopButton(LoggerIsOpen() ? "Hide console":"Show console");
+    menu.DrawPopButton(EditorIsOpen() ? "Hide editor":"Open editor");
     menu.DrawPopButton("Dump asset info");
 
     // button actions

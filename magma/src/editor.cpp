@@ -25,6 +25,7 @@ struct EditorSession {
     EntityID subjectID = 0;
     bool hasSubject = false;
     bool drawGrid = true;
+    bool removingHitboxes = false;
     EditorMode mode = MODE_NORMAL;
 
     std::unordered_map<EditorMode,EditorModeInfo> modes;
@@ -285,6 +286,7 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
 
     menu.RenderPanel();
 
+    menu.DrawPopButton(Session.removingHitboxes ? "Draw":"Delete");
     menu.DrawPopButton("Exit");
     menu.DrawPopButton("Simplify");
 
@@ -293,9 +295,12 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
         switch (index)
         {
             case 0:
-                SwitchMode(MODE_NORMAL);
+                Session.removingHitboxes = !Session.removingHitboxes;
                 break;
             case 1:
+                SwitchMode(MODE_NORMAL);
+                break;
+            case 2:
                 SimplifyHitboxes(group);
                 break;
         }
