@@ -404,13 +404,8 @@ void EntityGroup::DrawGroupDebug() {
     }
 }
 
-EntityGroup::EntityGroup(float gravity) {
+EntityGroup::EntityGroup() {
     this->entityCount = 0;
-
-    // make box2d world
-    b2Vec2 gravVec2(0.f,gravity);
-    this->world = new b2World(gravVec2);
-    DEBUG("Allocated Box2D world");
 
     // add stock updators, drawers
     RegisterUpdater(UpdateComponent);

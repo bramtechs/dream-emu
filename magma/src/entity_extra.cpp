@@ -151,6 +151,18 @@ void AnimationPlayer::SetAnimation(const SheetAnimation& anim) {
     }
 }
 
+AddedEntityGroup::AddedEntityGroup(float gravity)
+    : EntityGroup() {
+
+    // make box2d world
+    b2Vec2 gravVec2(0.f,gravity);
+    this->world = new b2World(gravVec2);
+    DEBUG("Allocated Box2D world");
+
+    // add extended updaters, drawers
+    RegisterUpdater(UpdateExtendedComponent);
+}
+
 void UpdateExtendedComponent(EntityGroup& group, IteratedComp& comp, float delta){
     switch (comp.second.type) {
         case COMP_ANIM_PLAYER:

@@ -76,6 +76,10 @@ struct AnimationPlayer {
     void SetAnimation(const SheetAnimation& anim);
 };
 
+struct AddedEntityGroup : EntityGroup {
+    AddedEntityGroup(float gravity);
+};
+
 // TODO: rewrite in ECS
 struct PlayerFPS {
     Camera camera;
@@ -100,7 +104,6 @@ struct PlayerFPS {
 
 void UpdateExtendedComponent(EntityGroup& group, IteratedComp& comp, float delta);
 void DrawExtendedComponent(EntityGroup& group, IteratedComp& comp);
-
 void UpdateExtendedGroup(EntityGroup& group, float delta);
 
 // component-independent entity functions

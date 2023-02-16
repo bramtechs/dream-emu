@@ -67,8 +67,6 @@ struct FoxPlayer {
     }
 };
 
-// TODO: add other animations
-
 // factory functions
 EntityID spawn_block(EntityGroup& group, Vector3 pos){
     EntityID id = group.AddEntity();
@@ -144,12 +142,12 @@ static void update_custom_component(EntityGroup& group, IteratedComp& comp, floa
 }
 
 struct TempleGame {
-    EntityGroup group;
+    AddedEntityGroup group;
     Shader shader;
     Camera2D camera;
     Palette palette;
 
-    TempleGame() {
+    TempleGame() : group(9.8f) {
 
         // setup camera
         camera = {};

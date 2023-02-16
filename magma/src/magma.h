@@ -402,8 +402,7 @@ struct EntityGroup {
     uint entityCount;
     b2World* world;
 
-    // TODO: gravity should be in magma_extras
-    EntityGroup(float gravity=9.8f);
+    EntityGroup();
     ~EntityGroup();
 
     RayCollision GetRayCollision(Ray ray);

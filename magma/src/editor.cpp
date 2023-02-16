@@ -287,8 +287,8 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
     menu.RenderPanel();
 
     menu.DrawPopButton(Session.removingHitboxes ? "Draw":"Delete");
-    menu.DrawPopButton("Exit");
     menu.DrawPopButton("Simplify");
+    menu.DrawPopButton("Exit");
 
     int index = 0;
     if (menu.IsButtonSelected(&index)){
@@ -298,10 +298,10 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
                 Session.removingHitboxes = !Session.removingHitboxes;
                 break;
             case 1:
-                SwitchMode(MODE_NORMAL);
+                SimplifyHitboxes(group);
                 break;
             case 2:
-                SimplifyHitboxes(group);
+                SwitchMode(MODE_NORMAL);
                 break;
         }
     }
@@ -462,14 +462,6 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
     }
 }
 
-void EditorSession::LinkModes(){
-    LinkMode(MODE_DELAY);
-    LinkMode(MODE_NORMAL,ProcNormalMode,ProcNormalModeGUI);
-    LinkMode(MODE_TEXTURE,NULL,ProcTextureModeGUI,"Change texture");
-    LinkMode(MODE_SPAWN,NULL,ProcSpawnModeGUI,"Spawn entity");
-    LinkMode(MODE_HITBOX,ProcHitboxMode,ProcHitboxModeGUI, "Draw hitboxes");
-}
-
 void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
     Session.descriptors.insert({type, func});
 }
@@ -490,3 +482,10 @@ Description DescribeComponent(CompContainer cont) {
     return desc;
 }
 
+void EditorSession::LinkModes(){
+    LinkMode(MODE_DELAY);
+    LinkMode(MODE_NORMAL,ProcNormalMode,ProcNormalModeGUI);
+    LinkMode(MODE_TEXTURE,NULL,ProcTextureModeGUI,"Change texture");
+    LinkMode(MODE_SPAWN,NULL,ProcSpawnModeGUI,"Spawn entity");
+    LinkMode(MODE_HITBOX,ProcHitboxMode,ProcHitboxModeGUI, "Draw hitboxes");
+}
