@@ -76,8 +76,15 @@ struct AnimationPlayer {
     void SetAnimation(const SheetAnimation& anim);
 };
 
-struct AddedEntityGroup : EntityGroup {
-    AddedEntityGroup(float gravity);
+struct AdvEntityGroup : EntityGroup {
+    float gravity;
+    b2World* world;
+
+    AdvEntityGroup(float gravity);
+    ~AdvEntityGroup();
+
+    void ClearGroup();
+    void UpdateGroup(float delta);
 };
 
 // TODO: rewrite in ECS

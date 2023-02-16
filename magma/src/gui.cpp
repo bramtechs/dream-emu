@@ -265,7 +265,7 @@ static PauseMenuSession PauseSession = PauseMenuSession();
 // TODO: remove
 static bool IsMuted = false;
 
-void UpdateAndRenderPauseMenu(float delta, Color bgColor){
+void UpdateAndRenderPauseMenu(float delta, Color bgColor, EntityGroup* group){
     if (IsKeyPressed(KEY_ESCAPE)){
         ToggleGamePaused();
     }
@@ -284,6 +284,8 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
 
     // TODO: define debug flags
     menu.DrawPopButton("== DEV-TOOLS ==",false,true);
+    menu.DrawPopButton("Load level",group!=NULL);
+    menu.DrawPopButton("Export level",group!=NULL);
     menu.DrawPopButton(LoggerIsOpen() ? "Hide console":"Show console");
     menu.DrawPopButton(EditorIsOpen() ? "Hide editor":"Open editor");
     menu.DrawPopButton("Dump asset info");
@@ -305,13 +307,21 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor){
             case 3: // quit
                 CloseWindow();
                 break;
-            case 6: // show/hide console
+            case 6: // import
+                if (group)
+                    group->LoadGroup("test.comps");
+                break;
+            case 7: // export
+                if (group)
+                    group->SaveGroup("test.comps");
+                break;
+            case 8: // show/hide console
                 ToggleLogger();
                 break;
-            case 7: // show/hide editor
+            case 9: // show/hide editor
                 ToggleEditor();
                 break;
-            case 8:
+            case 10:
                 INFO("=========================");
                 PrintAssetList();
                 INFO("=========================");

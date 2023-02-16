@@ -224,16 +224,57 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
 }
 #endif
 
-void EntityGroup::LoadGroup(const char* fileName) {
+void EntityGroup::ClearGroup() {
+    entityCount = 0;
     comps.clear();
-    ERROR("TODO: Loaded entitygroup from %s", fileName);
 }
 
-void EntityGroup::SaveGroup(const char* fileName) {
-    auto buffer = std::ofstream(fileName, std::ofstream::binary);
-    // buffer.write();
+bool EntityGroup::LoadGroup(const char* fileName) {
+    ClearGroup();
 
-    ERROR("TODO: Exported entity component to %s", fileName);
+    INFO("TODO: Loaded entitygroup from %s", fileName);
+    return false;
+}
+
+bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
+    auto buffer = std::ofstream(fileName, std::ofstream::binary);
+
+    // version
+    buffer.write((char*)&version,sizeof(uint32_t));
+
+    // component count
+    auto size = (uint32_t) comps.size();
+    buffer.write((char*)&size, sizeof(uint32_t));
+
+    // entity count for checking
+    auto ecount = (uint32_t) entityCount;
+    buffer.write((char*)&ecount, sizeof(uint32_t));
+
+    // for each component
+    for (const auto& comp : comps) {
+        // entity id
+        auto id = (uint32_t) comp.first;
+        buffer.write((char*)&id, sizeof(uint32_t));
+
+        CompContainer cont = comp.second;
+
+        // comptype
+        auto type = (uint32_t) cont.type;
+        buffer.write((char*)&type, sizeof(uint32_t));
+
+        // compsize
+        auto csize = (uint64_t) cont.size;
+        buffer.write((char*)&csize, sizeof(uint64_t));
+
+        // raw comp data
+        buffer.write((char*)cont.data, csize);
+    }
+
+    buffer.close();
+    INFO("Exported entity component to %s", fileName);
+    
+    // TODO: return false if failed
+    return true;
 }
 
 EntityID EntityGroup::AddEntity() {
@@ -375,7 +416,6 @@ void EntityGroup::UpdateGroup(float delta) {
             (*updater)(group,comp,scaledDelta);
         }
     }
-    UpdateExtendedGroup(*this,delta);
 }
 
 void EntityGroup::DrawGroup() {
@@ -424,9 +464,4 @@ void EntityGroup::RegisterUpdater(UpdateComponentFunc updateFunc){
 
 void EntityGroup::RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug){
     drawers.insert({drawFunc,isDebug});
-}
-
-EntityGroup::~EntityGroup() {
-    delete this->world;
-    DEBUG("Disposed Box2D world");
 }

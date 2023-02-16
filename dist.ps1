@@ -5,6 +5,9 @@ $ErrorActionPreference = "Stop"
 .\deps.ps1
  
 # build everything in release mode
+if (Test-Path -Path build){
+    Remove-Item -Force -Recurse build
+}
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A Win32
 cmake --build build -j $Env:NUMBER_OF_PROCESSORS --config Release
 

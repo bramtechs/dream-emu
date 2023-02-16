@@ -387,6 +387,7 @@ struct Sprite {
 struct CompContainer {
     ItemType type;
     void* data;
+    size_t size;
 };
 
 struct EntityGroup;
@@ -398,12 +399,9 @@ struct EntityGroup {
     std::multimap<EntityID, CompContainer> comps;
     std::multimap<DrawComponentFunc,bool> drawers;
     std::vector<UpdateComponentFunc> updaters;
-
     uint entityCount;
-    b2World* world;
 
     EntityGroup();
-    ~EntityGroup();
 
     RayCollision GetRayCollision(Ray ray);
 
@@ -414,16 +412,18 @@ struct EntityGroup {
 
     // .comps -- data format
     // ====================
+    // version: uint32_t (0 means always load)
     // component count: uint32_t
-    // entity count: uint32_t
+    // entity count: uint32_t (for checking)
     // === PER COMPONENT ===
     // entityid: uint32_t
     // comptype: ItemType uint32_t
-    // compsize: uint32_t
+    // compsize: uint64_t
     // compdata: void*
 
-    void LoadGroup(const char* fileName);
-    void SaveGroup(const char* fileName);
+    void ClearGroup();
+    bool LoadGroup(const char* fileName);
+    bool SaveGroup(const char* fileName, uint version=0);
 
     EntityID AddEntity();
 
@@ -435,6 +435,7 @@ struct EntityGroup {
         CompContainer cont;
         cont.type = type;
         cont.data = M_MemAlloc(sizeof(T));
+        cont.size = sizeof(T);
         memcpy(cont.data, &data, sizeof(T));
 
         // add component in system
@@ -566,7 +567,7 @@ void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
 
 // gui
-void UpdateAndRenderPauseMenu(float delta, Color bgColor=BLANK); // returns whether game should pause
+void UpdateAndRenderPauseMenu(float delta, Color bgColor=BLANK, EntityGroup* group=NULL); // returns whether game should pause
 bool GameIsPaused();
 void PauseGame();
 void UnpauseGame();

@@ -142,7 +142,7 @@ static void update_custom_component(EntityGroup& group, IteratedComp& comp, floa
 }
 
 struct TempleGame {
-    AddedEntityGroup group;
+    AdvEntityGroup group;
     Shader shader;
     Camera2D camera;
     Palette palette;
@@ -196,7 +196,7 @@ struct TempleGame {
         // EndPaletteMode();
 
         UpdateAndRenderEditor(camera, group, delta);
-        UpdateAndRenderPauseMenu(delta,{0,0,0,50});
+        UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
 
         EndMode2D();
 

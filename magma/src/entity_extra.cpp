@@ -1,7 +1,7 @@
 #include "magma.h"
 
 // TODO: make methods member of entitygroup somehow
-static EntityGroup* Group = NULL;
+static AdvEntityGroup* Group = NULL;
 
 // contains more "advanced" components and entities, not needed for some types of games
 // can be removed from engine
@@ -151,19 +151,50 @@ void AnimationPlayer::SetAnimation(const SheetAnimation& anim) {
     }
 }
 
-AddedEntityGroup::AddedEntityGroup(float gravity)
+AdvEntityGroup::AdvEntityGroup(float gravity)
     : EntityGroup() {
+    this->gravity = gravity;
+    this->world = NULL;
+
+    ClearGroup();
+
+    // add extended updaters, drawers
+    RegisterUpdater(UpdateExtendedComponent);
+}
+
+AdvEntityGroup::~AdvEntityGroup(){
+    delete this->world;
+    DEBUG("Disposed Box2D world");
+}
+
+void AdvEntityGroup::ClearGroup() {
+    delete this->world;
 
     // make box2d world
     b2Vec2 gravVec2(0.f,gravity);
     this->world = new b2World(gravVec2);
     DEBUG("Allocated Box2D world");
 
-    // add extended updaters, drawers
-    RegisterUpdater(UpdateExtendedComponent);
+    EntityGroup::ClearGroup();
 }
 
-void UpdateExtendedComponent(EntityGroup& group, IteratedComp& comp, float delta){
+void AdvEntityGroup::UpdateGroup(float delta){
+    EntityGroup::UpdateGroup(delta);
+    Group = this;
+
+    // TODO: make optional
+    // run physics engine
+    float timeStep = delta;
+    int velocityIterations = 6;
+    int positionIterations = 2;
+
+    assert(world);
+    world->Step(timeStep, velocityIterations, positionIterations);
+}
+
+void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delta){
+    AdvEntityGroup& group = *(AdvEntityGroup*) &_group; // eww
+
     switch (comp.second.type) {
         case COMP_ANIM_PLAYER:
         {
@@ -299,20 +330,6 @@ void UpdateExtendedComponent(EntityGroup& group, IteratedComp& comp, float delta
 
         } break;
     }
-}
-
-// TODO: make function member of EntityGroup
-void UpdateExtendedGroup(EntityGroup& group, float delta){
-    Group = &group;
-
-    // TODO: make optional
-    // run physics engine
-    float timeStep = delta;
-    int velocityIterations = 6;
-    int positionIterations = 2;
-
-    assert(group.world);
-    group.world->Step(timeStep, velocityIterations, positionIterations);
 }
 
 // ===== 3d =====
