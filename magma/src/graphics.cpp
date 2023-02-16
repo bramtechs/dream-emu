@@ -158,12 +158,8 @@ Vector2 GetWindowCenter(){
 
 Ray GetWindowMouseRay(Camera3D camera) {
     Vector2 mouse = Win.scaledMouse;
-
-    // TODO do some terribleness for this to work with letterboxing
-    // TODO turn into own api function
     mouse = Vector2Scale(mouse, Win.scale);
     mouse = Vector2Add(mouse, GetWindowTopLeft());
-
     return GetMouseRay(mouse, camera);
 }
 

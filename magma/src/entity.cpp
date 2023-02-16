@@ -226,13 +226,14 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
 
 void EntityGroup::LoadGroup(const char* fileName) {
     comps.clear();
-    INFO("Loaded entitygroup from %s", fileName);
+    ERROR("TODO: Loaded entitygroup from %s", fileName);
 }
 
 void EntityGroup::SaveGroup(const char* fileName) {
-    // TODO
-    INFO("TODO");
-    INFO("Exported entity component to %s", fileName);
+    auto buffer = std::ofstream(fileName, std::ofstream::binary);
+    // buffer.write();
+
+    ERROR("TODO: Exported entity component to %s", fileName);
 }
 
 EntityID EntityGroup::AddEntity() {

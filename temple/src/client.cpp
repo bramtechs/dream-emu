@@ -104,7 +104,6 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     return id;
 }
 
-// TODO: callback system instead of this manual stuff
 static void update_custom_component(EntityGroup& group, IteratedComp& comp, float delta){
     switch (comp.second.type) {
         case COMP_FOX_PLAYER:

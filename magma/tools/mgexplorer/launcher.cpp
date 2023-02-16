@@ -64,8 +64,6 @@ int launch(std::vector<std::string> args){
     State curState = INTRO;
     bool showError = false;
 
-    // TODO remove OOP design
-
     Explorer* explorer = NULL;
     int code = 0;
 

@@ -409,10 +409,19 @@ struct EntityGroup {
     RayCollision GetRayCollision(Ray ray);
 
 #if defined(MAGMA_3D)
-
     bool GetMousePickedBase(Camera camera, Base** result);
     bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
 #endif
+
+    // .comps -- data format
+    // ====================
+    // component count: uint32_t
+    // entity count: uint32_t
+    // === PER COMPONENT ===
+    // entityid: uint32_t
+    // comptype: ItemType uint32_t
+    // compsize: uint32_t
+    // compdata: void*
 
     void LoadGroup(const char* fileName);
     void SaveGroup(const char* fileName);
