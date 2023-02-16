@@ -216,8 +216,6 @@ int main()
     SetTraceLogLevel(LOG_DEBUG);
     SetTraceLogOpenLevel(LOG_ERROR);
 
-    assert(ChangeDirectory("X:\\temple"));
-
     SetTraceLogLevel(LOG_DEBUG);
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");
     InitAudioDevice();

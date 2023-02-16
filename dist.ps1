@@ -23,7 +23,7 @@ Copy-Item -Force -Recurse .\mgtools\* $BUILD_DIR\tools
 
 # build and include temple as well
 New-Item -ItemType Directory -Path $BUILD_DIR\temple -Force
-#Copy-Item -Force -Recurse .\build\temple\Release\temple.exe $BUILD_DIR\temple
+Move-Item .\build\temple\Release\temple.exe $BUILD_DIR\temple
 .\mgtools\deflation.exe temple\raw_assets core_assets $BUILD_DIR\temple\assets.mga --compress
 
 # make ZIP

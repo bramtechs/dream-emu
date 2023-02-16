@@ -68,6 +68,7 @@ Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
     this->tint = tint;
     this->hFlip = false;
     this->vFlip = false;
+    this->isVisible = true;
 }
 
 void Sprite::Translate(Vector2 offset) {
