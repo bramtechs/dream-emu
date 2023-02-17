@@ -238,6 +238,10 @@ bool EntityGroup::LoadGroup(const char* fileName) {
 }
 
 bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
+    // create parent directory if any
+    const char* path = GetDirectoryPath(fileName);
+    CreateDirectory(path);
+
     auto buffer = std::ofstream(fileName, std::ofstream::binary);
 
     // version
@@ -276,6 +280,41 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
     
     // TODO: return false if failed
     return true;
+}
+
+static std::string ParsePath(char* file, const char* folder=NULL) {
+    if (file == NULL || TextIsEqual(file,"")){
+        return "";
+    }
+
+    std::string output = "";
+
+    // add extension if i forgor
+    if (TextIsEqual(GetFileNameWithoutExt(file),file)){
+        output = TextFormat("%s.comps",file);
+    }
+    else {
+        output = file;
+    }
+
+    // add folder before if any
+    if (folder != NULL && !TextIsEqual(folder,"")){
+        output = TextFormat("%s/%s",folder,output.c_str());
+    }
+
+    return output;
+}
+
+bool EntityGroup::SaveGroupInteractively(const char* folder, uint version){
+    const char* msg = TextFormat("Saving to folder %s; Using save version %d",folder,version);
+    char* output = ShowInputBox((char*) msg,"Save entity group","map_mylevel.comps");
+
+    std::string outputStr = ParsePath(output,folder);
+    if (!outputStr.empty()){
+        return SaveGroup(outputStr.c_str(),version);
+    }
+    WARN("EntityGroup interactive save cancelled");
+    return false;
 }
 
 EntityID EntityGroup::AddEntity() {

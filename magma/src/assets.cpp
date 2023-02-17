@@ -48,7 +48,9 @@ bool LoadAssets() {
 
     if (!ImportAssetPackage("assets.mga")) {
         // visual studio
-        return ImportAssetPackage("../../assets.mga");
+        if (!ImportAssetPackage("../../assets.mga")) {
+            return ImportAssetPackage("../../temple/assets.mga");
+        }
     }
     return true;
 }

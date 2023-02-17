@@ -227,7 +227,7 @@ static bool layout_menu(float delta){
     if (menu.IsButtonSelected(&index)){
         switch(index){
             case 0: // new game/level select
-                break;
+                return true;
             case 1: // load game
                 break;
             case 2: // options

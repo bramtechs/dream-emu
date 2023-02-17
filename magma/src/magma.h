@@ -25,6 +25,7 @@
 #ifdef __unix___ 
 #define INFO(X...)  TraceLog(LOG_INFO,X)
 #define WARN(X...)  TraceLog(LOG_WARNING,X)
+#define WARNING(X...)  TraceLog(LOG_WARNING,X)
 #define DEBUG(X...) TraceLog(LOG_DEBUG,X)
 #define ERROR(X...) TraceLog(LOG_ERROR,X)
 
@@ -32,6 +33,7 @@
 
 #define INFO(...)  TraceLog(LOG_INFO,__VA_ARGS__)
 #define WARN(...)  TraceLog(LOG_WARNING,__VA_ARGS__)
+#define WARNING(...)  TraceLog(LOG_WARNING,__VA_ARGS__)
 #define DEBUG(...) TraceLog(LOG_DEBUG,__VA_ARGS__)
 #define ERROR(...) TraceLog(LOG_ERROR,__VA_ARGS__)
 #endif
@@ -428,6 +430,7 @@ struct EntityGroup {
     void ClearGroup();
     bool LoadGroup(const char* fileName);
     bool SaveGroup(const char* fileName, uint version=0);
+    bool SaveGroupInteractively(const char* folder, uint version=0);
 
     EntityID AddEntity();
 
@@ -576,6 +579,10 @@ bool GameIsPaused();
 void PauseGame();
 void UnpauseGame();
 bool ToggleGamePaused();
+
+// visual basic bindings to show simple inputbox
+char *ShowInputBox(char *Prompt, char *Title = (char *)"", char *Default = (char *)"");
+char *ShowPasswordBox(char *Prompt, char *Title = (char *)"", char *Default = (char *)"");
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);

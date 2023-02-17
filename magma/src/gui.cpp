@@ -312,8 +312,9 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor, EntityGroup* group){
                     group->LoadGroup("test.comps");
                 break;
             case 7: // export
-                if (group)
-                    group->SaveGroup("test.comps");
+                if (group){
+                     group->SaveGroupInteractively("raw_assets");
+                }
                 break;
             case 8: // show/hide console
                 ToggleLogger();
