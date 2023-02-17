@@ -35,11 +35,11 @@ int main()
             HEIGHT,
             {
                 {
-                    "gui_splash",
+                    "gui_core_splash",
                     4.f,
                 },
                 {
-                    "gui_save_warning",
+                    "gui_core_save_warning",
                     4.f,
                 },
             },

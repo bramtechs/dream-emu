@@ -210,6 +210,39 @@ struct TempleGame {
     }
 };
 
+static bool layout_menu(float delta){
+    static auto menu = PopMenu();
+
+    menu.RenderPanel();
+
+    menu.DrawPopButton("New game");
+    menu.DrawPopButton("Load game",false);
+    menu.DrawPopButton("Options",false);
+    menu.DrawPopButton("Quit",true);
+
+    menu.EndButtons({150,250});
+
+    // process selection
+    int index = 0;
+    if (menu.IsButtonSelected(&index)){
+        switch(index){
+            case 0: // new game/level select
+                break;
+            case 1: // load game
+                break;
+            case 2: // options
+                break;
+            case 3: // quit
+                CloseWindow();
+                break;
+            default:
+                break;
+        }
+    }
+
+    return false;
+}
+
 int main()
 {
     SetTraceLogCallback(MagmaLogger);
@@ -235,17 +268,16 @@ int main()
             HEIGHT,
             {
                 {
-                    "gui_splash",
-                    4.f,
-                },
-                {
-                    "gui_save_warning",
-                    4.f,
+                    "gui_core_splash",
+                    2.f,
                 },
             },
-            "spr_sky",
-            "Dream Emulator"
-            }, true);
+            "spr_block",
+            true,
+            "Temple Mayhem",
+            "basically a mario clone, pls don't sue",
+            layout_menu,
+            }, false);
 
         TempleGame game;
 

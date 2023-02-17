@@ -398,10 +398,10 @@ void MainMenu::DrawScreenSaver(float delta) {
     c->a = 255;
 }
 
-void MainMenu::DrawBackground(Texture texture, Color tint) {
+void MainMenu::DrawBackground(Texture texture, Color tint, bool tiled) {
     Rectangle src = { 0, 0, texture.width, texture.height };
-    Rectangle dest = { 0, 0, Window.winSize.x, Window.winSize.y };
-    DrawTexturePro(texture, src, dest, Vector2Zero(), 0.f, tint);
+    Rectangle dest = { 0, 0, Window.gameSize.x, Window.gameSize.y };
+    DrawTexturePro(texture, tiled ? dest:src, dest, Vector2Zero(), 0.f, tint);
 }
 
 bool MainMenu::UpdateAndDraw(float delta) {
@@ -449,15 +449,26 @@ bool MainMenu::UpdateAndDraw(float delta) {
 
     BeginMagmaDrawing();
 
+    bool completed = curSplash >= config.splashes.size();
+
     char alphaByte = Clamp(alpha * 255, 0, 255);
     Color tint = { 255, 255, 255, alphaByte };
-    DrawBackground(texture, tint);
+    DrawBackground(texture, tint, completed ? config.bgTiled : false);
 
-    if (curSplash >= config.splashes.size()) {
-        DrawRetroText(config.title, 20, 20, 36, WHITE);
+    if (completed) {
+        // draw menu elements
+        if (config.title != NULL)
+            DrawRetroText(config.title, 20, 20, 36, WHITE);
+        if (config.subTitle != NULL)
+            DrawRetroText(config.subTitle, 20, 60, 22, WHITE);
+        // layout menu func
+        if (config.layoutFunc != NULL){
+            isDone = (*config.layoutFunc)(delta);
+        }
     }
 
-    if (IsKeyPressed(KEY_ENTER)) {
+    if (config.layoutFunc == NULL && IsKeyPressed(KEY_ENTER)) {
+        // default menu behavior
         isDone = true;
     }
 

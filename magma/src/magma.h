@@ -232,6 +232,7 @@ private:
     void DrawMenuTriangle(Vector2 center, Color color=WHITE);
 };
 
+typedef bool (*LayoutMenuFunc)(float delta);
 struct MainMenuConfig {
     int width;
     int height;
@@ -239,7 +240,10 @@ struct MainMenuConfig {
     std::vector<SplashScreen> splashes;
 
     const char* bgPath; // background image or shader!
+    bool bgTiled;
     const char* title;
+    const char* subTitle;
+    LayoutMenuFunc layoutFunc;
 };
 
 struct MainMenu {
@@ -262,7 +266,7 @@ struct MainMenu {
 
 private:
     void DrawScreenSaver(float delta);
-    void DrawBackground(Texture texture, Color tint);
+    void DrawBackground(Texture texture, Color tint, bool tiled=false);
 };
 
 
