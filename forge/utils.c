@@ -90,12 +90,13 @@ void make_dirs(int dummy, ...){
     va_end(args);
 }
 
-void run_cmd(int dummy, ...){
+// TODO: don't crash on linux when cmd fails
+bool run_cmd(bool silent, ...){
 #if __linux__
     size_t argc = 0;
 
     va_list args;
-    va_start(args,dummy);
+    va_start(args,silent);
     FOREACH_VARGS(arg, args, {
         argc++;
     });
@@ -105,7 +106,7 @@ void run_cmd(int dummy, ...){
     argc = 0;
 
     printf(">> ");
-    va_start(args,dummy);
+    va_start(args,silent);
     FOREACH_VARGS(arg, args, {
         argv[argc++] = arg;
         printf("%s ",arg);
@@ -136,10 +137,15 @@ void run_cmd(int dummy, ...){
 
 #elif defined(_WIN32) || defined(WIN32)
 
+    if (!system(NULL)){
+        PRINT_ERR("No command processor found!");
+        exit(1);
+    }
+
     size_t length = 0;
 
     va_list args;
-    va_start(args,dummy);
+    va_start(args,silent);
     FOREACH_VARGS(arg, args, {
         length += strlen(arg) - 1;
     });
@@ -148,7 +154,7 @@ void run_cmd(int dummy, ...){
     char *cmd = malloc(length+1);
 
     length = 0;
-    va_start(args,dummy);
+    va_start(args,silent);
     FOREACH_VARGS(arg, args, {
         size_t n = strlen(arg);
         memcpy(cmd + length, arg, n);
@@ -158,6 +164,8 @@ void run_cmd(int dummy, ...){
     cmd[length] = '\0';
 
     PRINT(">> %s", cmd);
-    system(cmd);
+    int code = WinExec(cmd, silent ? SW_HIDE:SW_SHOW);
+
+    return code == 0;
 #endif
 }
