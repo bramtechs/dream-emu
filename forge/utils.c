@@ -11,7 +11,7 @@
 
 const char* form_path(int dummy, ...) {
     size_t length = 0;
-    ssize_t seps = -1;
+    int seps = -1;
 
     // calculate length of vargs
     va_list args;
@@ -46,7 +46,7 @@ const char* form_path(int dummy, ...) {
 
 void make_dirs(int dummy, ...){
     size_t length = 0;
-    ssize_t seps = -1;
+    int seps = -1;
 
     // calculate length of vargs
     va_list args;
@@ -80,7 +80,7 @@ void make_dirs(int dummy, ...){
                 PRINT(".. %s",result);
             }
             else {
-                ERROR("Could not create folder %s",result,strerror(errno));
+                PRINT_ERR("Could not create folder %s",result,strerror(errno));
                 exit(1);
             }
         } else {
@@ -90,7 +90,8 @@ void make_dirs(int dummy, ...){
     va_end(args);
 }
 
-bool run_cmd(int dummy, ...){
+void run_cmd(int dummy, ...){
+#if __linux__
     size_t argc = 0;
 
     va_list args;
@@ -113,16 +114,15 @@ bool run_cmd(int dummy, ...){
     printf("\n");
 
     assert(argc >= 1);
-
-    pid_t cpid = fork();
+    int cpid = fork();
     if (cpid == -1){
-        ERROR("Could not fork a child process! %s", strerror(errno));
+        PRINT_ERR("Could not fork a child process! %s", strerror(errno));
         exit(1);
     }
 
     if (cpid == 0){
         if (execvp(argv[0], (char * const*) argv) < 0){
-            ERROR("Sub-process failed: %s",strerror(errno));
+            PRINT_ERR("Sub-process failed: %s",strerror(errno));
             exit(1);
         }
     }
@@ -130,7 +130,34 @@ bool run_cmd(int dummy, ...){
         wait(NULL); // wait for child to end
     }
     else {
-        ERROR("Fork failed: %s",strerror(errno));
+        PRINT_ERR("Fork failed: %s",strerror(errno));
         exit(1);
     }
+
+#elif defined(_WIN32) || defined(WIN32)
+
+    size_t length = 0;
+
+    va_list args;
+    va_start(args,dummy);
+    FOREACH_VARGS(arg, args, {
+        length += strlen(arg) - 1;
+    });
+    va_end(args);
+
+    char *cmd = malloc(length+1);
+
+    length = 0;
+    va_start(args,dummy);
+    FOREACH_VARGS(arg, args, {
+        size_t n = strlen(arg);
+        memcpy(cmd + length, arg, n);
+        length += n;
+    });
+    va_end(args);
+    cmd[length] = '\0';
+
+    PRINT(">> %s", cmd);
+    system(cmd);
+#endif
 }

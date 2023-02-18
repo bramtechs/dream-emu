@@ -8,17 +8,23 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <errno.h>
+
+#if __linux__
 #include <unistd.h>
+#include <sys/wait.h>
+#elif defined(_WIN32) || defined(WIN32)
+#include <windows.h>
+#include <processthreadsapi.h>
+#endif
 
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 
 #define PATH_SEP "/"
 #define PATH_SEP_LEN (sizeof(PATH_SEP)-1)
 
 #define PRINT(...)  printf(__VA_ARGS__); printf("\n")
-#define ERROR(...)  fprintf(stderr,"[ERROR]: "); \
+#define PRINT_ERR(...)  fprintf(stderr,"[ERROR]: "); \
                     fprintf(stderr,__VA_ARGS__); \
                     printf("\n") \
 
@@ -67,5 +73,5 @@ void main(int argc, char** argv) {
     else {
         PRINT("Failed");
     }
-    CMD("pwd");
+    CMD("cmake");
 }
