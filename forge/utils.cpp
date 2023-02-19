@@ -1,6 +1,16 @@
 
 #define EXISTS(X) std::filesystem::exists(X)
 
+bool SUBFILES_EXISTS(std::string& path) {
+    int count = 0;
+    for (const auto& file : std::filesystem::directory_iterator(path)){
+        if (!file.is_directory()){
+            count++;
+        }
+    }
+    return count > 0;
+}
+
 std::string concat_sep(char sep, std::initializer_list<std::string> list) {
     std::string result = "";
     for (const auto elem : list) {
