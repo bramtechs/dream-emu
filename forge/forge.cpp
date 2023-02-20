@@ -42,6 +42,7 @@ std::vector<std::pair<std::string,std::string>> REQUIRED_REPOS = {
 #include <initializer_list>
 #include <filesystem>
 #include <sstream>
+#include <thread>
 
 #if __linux__
 #include <sys/wait.h>
@@ -139,19 +140,6 @@ bool run_command(std::initializer_list<std::string> list){
 #endif
 }
 
-
-// check if all repos are downloaded
-bool owns_libs(){
-    for (const auto& repo : REQUIRED_REPOS) {
-        if (!std::filesystem::exists(repo.first) || !subfiles_exist(repo.first)){
-            std::cout << "Library " << repo.first << " is missing" << std::endl;
-            return false;
-        }
-    }
-    std::cout << "Found all libraries" << std::endl;
-    return true;
-}
-
 bool delete_recursive(std::string path){
     try {
         std::filesystem::remove_all(path);
@@ -168,6 +156,13 @@ bool check(){
     return true;
 }
 
+bool clean(){
+    if (std::filesystem::exists("build")){
+        return delete_recursive("build");
+    }
+    return true;
+}
+
 bool wipe(){
     std::cout << "Wiping libraries!" << std::endl;
     for (const auto& repo : REQUIRED_REPOS) {
@@ -180,62 +175,79 @@ bool wipe(){
 }
 
 bool download() {
-    int succ = 0; // did succeed
+    // download libraries
     std::cout << "Checking if libraries are present..." << std::endl;
     for (const auto& repo : REQUIRED_REPOS) {
         if (std::filesystem::exists(repo.first) && subfiles_exist(repo.first)) {
             std::cout << "Updating repo " << repo.first << std::endl;
-            succ += run_command({"git", "fetch", repo.first, "-p"});
-            succ += run_command({"cd",repo.first,"&","git", "merge"});
+
+            if (!run_command({"git", "fetch", repo.first, "-p"})){
+                return false;
+            }
+            if (!run_command({"cd",repo.first,"&","git", "merge"})){
+                return false;
+            }
+
         } else {
-            if (std::filesystem::exists(repo.first)){ // failsafe if folder sticked around
+
+            // fail-safe if folder sticked around
+            if (std::filesystem::exists(repo.first)){ 
                 std::cout << "Incomplete repo found! Wiping it..." << std::endl;
                 if (!delete_recursive(repo.first)){
                     return false;
                 }
             }
+
             std::cout << "Dowloading repo " << repo.second << std::endl;
-            succ += run_command({"git", "clone", repo.second, repo.first, "--recursive"});
+            if (!run_command({"git", "clone", repo.second, repo.first, "--recursive"})){
+                return false;
+            }
         }
     }
-    return succ == 3;
+    return true;
 }
 
 bool generate() {
-    if (!owns_libs()){
-        if (!download()){
-            return false;
-        }
+    if (!download()){
+        return false;
     }
 
     std::cout << "Generating cmake project..." << std::endl;
-#if __linux__
+#if LINUX
     std::cout << "TODO add linux support" << std::endl;
     return false;
-#elif defined(_WIN32) || defined(WIN32)
-    return run_command({"cmake" "-S" "." "-B" "build" "-G" "Visual Studio 17 2022" "-A" "Win32"});
+#elif defined(WINDOWS)
+    return run_command({"cmake", "-S", ".", "-B", "build", "-G", "\"Visual Studio 17 2022\"", "-A", "Win32"});
 #endif
 }
 
 bool build() {
     if (!std::filesystem::exists("build")){
-        generate();
+        if (!generate()){
+            return false;
+        }
     }
-    if (!owns_libs()){
-        download();
-    }
+
+    unsigned int threads = std::thread::hardware_concurrency();
     std::cout << "Building cmake project..." << std::endl;
+    if (threads > 0){
+        return run_command({"cmake", "--build", "build", "-j", std::to_string(threads)});
+    }
     return run_command({"cmake", "--build", "build"});
 }
 
 bool release() {
     if (!std::filesystem::exists("build")){
-        generate();
+        if (!generate()){
+            return false;
+        }
     }
-    if (!owns_libs()){
-        download();
+
+    unsigned int threads = std::thread::hardware_concurrency();
+    std::cout << "Building cmake project..." << std::endl;
+    if (threads > 0){
+        return run_command({"cmake", "--build", "build", "-j", std::to_string(threads), "--config", "Release"});
     }
-    std::cout << "Building cmake release project..." << std::endl;
     return run_command({"cmake", "--build", "build", "--config", "Release"});
 }
 
@@ -272,6 +284,7 @@ std::vector<Command> COMMANDS = {
     { "package", "Build and package optimized executable", package },
     { "run", "Run executable", run },
     { "wipe", "Remove all cloned libraries (use if things broke)", wipe },
+    { "clean", "Remove build folder", clean },
     { "help", "Show this screen", help },
 };
 
@@ -327,6 +340,36 @@ bool run_option(std::string& option){
     return false;
 }
 
+bool relocate(){
+    try {
+        auto path = std::filesystem::current_path();
+        auto parentDir = path.parent_path();
+        std::filesystem::current_path(parentDir);
+        return true;
+    } catch(std::exception const& ex){
+        std::cerr << "Failed to relocate working directory!" << std::endl;
+        return false;
+    }
+}
+
+bool find_cmake_project(){
+    if (!std::filesystem::exists("CMakeLists.txt")){
+        std::cout << "Execution directory does not contain CMakeLists.txt!" << std::endl;
+        std::cout << "Looking in parent directory..." << std::endl;
+        if (relocate()){
+            if (std::filesystem::exists("CMakeLists.txt")){
+                std::cout << "Found CMakeLists!" << std::endl;
+                return true;
+            }else{
+                std::cout << "Didn't find CMakeLists.txt!" << std::endl;
+            }
+        }
+        return false;
+    }
+    std::cout << "Found CMakeLists!" << std::endl;
+    return true;
+}
+
 int main(int argc, char** argv) {
     std::string option = argc > 1 ? std::string(argv[1]):"";
     if (option == "help"){
@@ -335,8 +378,8 @@ int main(int argc, char** argv) {
     }
 
     // check if cmake file found
-    if (!std::filesystem::exists("CMakeLists.txt")){
-        std::cerr << "Execution directory does not contain CMakeLists.txt!" << std::endl;
+    if (!find_cmake_project()){
+        return EXIT_FAILURE;
     }
 
     if (IS_CONFIGURED){
