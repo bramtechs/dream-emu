@@ -89,46 +89,7 @@ bool make_dirs(std::initializer_list<std::string> list){
     }
 }
 
-// TODO: don't crash on linux when cmd fails
 bool run_command(std::initializer_list<std::string> list){
-#ifdef __linux__
-    size_t argc = list.size();
-    const char **argv = (const char**) malloc(sizeof(const char*) * (argc - 1));
-
-    argc = 0;
-    printf(">> ");
-    for (const auto& arg : list){
-        argv[argc++] = arg.c_str();
-        printf("%s ",arg.c_str());
-    }
-    printf("\n");
-
-    assert(argc >= 1);
-    int cpid = fork();
-    if (cpid == -1){
-        std::cerr << "Could not fork a child process! " << strerror(errno)
-                                                        << std::endl;
-        return false;
-    }
-
-    if (cpid == 0){
-        if (execvp(argv[0], (char * const*) argv) < 0){
-            std::cerr << "Sub-process failed: " << strerror(errno) << std::endl;
-            return false;
-        }
-    }
-    else if (cpid > 0) {
-        wait(NULL); // wait for child to end
-    }
-    else {
-        std::cerr << "Fork failed: " << strerror(errno) << std::endl;
-        return false;
-    }
-
-    return true;
-
-#elif defined(_WIN32) || defined(WIN32)
-
     if (!system(NULL)){
         std::cerr << "No command processor found!" << std::endl;
         return false;
@@ -139,7 +100,6 @@ bool run_command(std::initializer_list<std::string> list){
 
     int code = system(cmd.c_str());
     return code == 0;
-#endif
 }
 
 bool delete_recursive(std::string path){
@@ -216,8 +176,7 @@ bool generate() {
 
     std::cout << "Generating cmake project..." << std::endl;
 #ifdef LINUX
-    std::cout << "TODO add linux support" << std::endl;
-    return false;
+    return run_command({"cmake", "-S", ".", "-B", "build", "-G", "\"CodeBlocks - Unix Makefiles\"" });
 #elif defined(WINDOWS)
     return run_command({"cmake", "-S", ".", "-B", "build", "-G", "\"Visual Studio 17 2022\"", "-A", "Win32"});
 #endif
