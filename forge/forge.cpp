@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#if __linux__
+#ifdef __linux__
     #define LINUX
 #elif defined(_WIN32) || defined(WIN32)
     #define WINDOWS
@@ -44,7 +44,8 @@ std::vector<std::pair<std::string,std::string>> REQUIRED_REPOS = {
 #include <sstream>
 #include <thread>
 
-#if __linux__
+#ifdef __linux__
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #elif defined(_WIN32) || defined(WIN32)
@@ -90,16 +91,15 @@ bool make_dirs(std::initializer_list<std::string> list){
 
 // TODO: don't crash on linux when cmd fails
 bool run_command(std::initializer_list<std::string> list){
-#if __linux__
-    size_t argc = list.count;
-    const char **argv = malloc(sizeof(const char*) * (argc - 1));
+#ifdef __linux__
+    size_t argc = list.size();
+    const char **argv = (const char**) malloc(sizeof(const char*) * (argc - 1));
 
     argc = 0;
     printf(">> ");
-    va_start(args,silent);
-    for (const auto elem : list){
-        argv[argc++] = arg;
-        printf("%s ",arg);
+    for (const auto& arg : list){
+        argv[argc++] = arg.c_str();
+        printf("%s ",arg.c_str());
     }
     printf("\n");
 
@@ -121,9 +121,11 @@ bool run_command(std::initializer_list<std::string> list){
         wait(NULL); // wait for child to end
     }
     else {
-        std::cerr << ("Fork failed: " << strerror(errno) << std::endl;
+        std::cerr << "Fork failed: " << strerror(errno) << std::endl;
         return false;
     }
+
+    return true;
 
 #elif defined(_WIN32) || defined(WIN32)
 
@@ -213,7 +215,7 @@ bool generate() {
     }
 
     std::cout << "Generating cmake project..." << std::endl;
-#if LINUX
+#ifdef LINUX
     std::cout << "TODO add linux support" << std::endl;
     return false;
 #elif defined(WINDOWS)
@@ -278,7 +280,8 @@ bool help();
 std::vector<Command> COMMANDS = {
     { "check", "Check if required programs are installed (TODO)", check },
     { "download", "Clone required libraries from Github or merge new commits.", download },
-    { "generate", "Generate CMake project files", generate },
+    { "gen", "Generate CMake project files", generate },
+    { "generate", "Generate CMake project files (alias)", generate },
     { "build", "Build project (for debugging)", build },
     { "release", "Build optimized executable", release },
     { "package", "Build and package optimized executable", package },
@@ -326,10 +329,10 @@ bool run_option(std::string& option){
         if (cmd.name == option) {
             bool succeeded = (*cmd.func)();
             if (succeeded) {
-                std::cout << "Done...";
+                std::cout << "Done..." << std::endl;
                 return true;
             }
-            std::cerr << "Failed.";
+            std::cerr << "Failed." << std::endl;
             return false;
         }
     }
