@@ -15,7 +15,7 @@
 // =============================
 
 // set to true if configured properly
-constexpr bool IS_CONFIGURED = true;
+constexpr bool IS_CONFIGURED = false;
 
 // UNIMPLEMENTED: tools required to build the program
 std::vector<std::string> REQUIRED_TOOLS = {
