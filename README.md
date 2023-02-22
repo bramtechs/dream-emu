@@ -1,9 +1,15 @@
-# game dev stuff (aka the timesink)
-for big boi c++ [raylib](https://github.com/raysan5/raylib) game development chads
+# Game-dev projects 
+written in c++ with [raylib](https://github.com/raysan5/raylib)
 
-<img src="/screenshots/chad.jpg" alt="chad" title="not actually me" width="256"/>
+## Compilation + Running
+using *Developer Command Prompt for VS 2022*
 
-(should have used unity tbh, please help...)
+```bat
+git clone https://github.com/bramtechs/dream-emu.git
+cd dream-emu/forge
+forge.bat release
+forge.bat runrel
+```
 
 ## TODO
 - [ ] Dream emulator (some small 3d game to develop my library around)
@@ -18,4 +24,3 @@ for big boi c++ [raylib](https://github.com/raysan5/raylib) game development cha
 ![004](/screenshots/indev2d.png)
 ![003](/screenshots/indev003.png)
 ![002](/screenshots/indev002.png)
-![001](/screenshots/indev001.png)
