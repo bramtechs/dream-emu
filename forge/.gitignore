@@ -1,0 +1,12 @@
+.vs
+a.out
+forge.exe
+forge.obj
+forge.sln
+forge
+forge.vc*
+x64
+dev.txt
+
+build
+releases
