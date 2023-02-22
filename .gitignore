@@ -16,3 +16,5 @@ build-web/
 dream-emu
 *.mga
 releases
+
+build
