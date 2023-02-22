@@ -7,7 +7,6 @@ using *Developer Command Prompt for VS 2022*
 ```bat
 git clone https://github.com/bramtechs/dream-emu.git
 cd dream-emu/forge
-forge.bat release
 forge.bat runrel
 ```
 
