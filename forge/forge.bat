@@ -20,7 +20,9 @@ if exist forge.cpp (
 
 :RUN
 if %succ% == 1 (
-    pushd ..
-    forge\forge.exe %*
-    popd
+    if exist forge.exe (
+        forge.exe %*
+    ) else (
+        forge\forge.exe %*
+    )
 )

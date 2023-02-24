@@ -40,11 +40,11 @@ std::vector<std::string> ADDITIONAL_FILES = {
 const std::vector<std::string> REQUIRED_TOOLS = {
     "cmake",
     "git",
-#ifdef LINUX
-    "g++",
-#elif defined(WINDOWS)
-    "cl",
-#endif
+//#ifdef LINUX
+//    "g++",
+//#elif defined(WINDOWS)
+//    "cl",
+//#endif
 };
 
 // Online libraries required to build the program (folder + url)
