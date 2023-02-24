@@ -141,75 +141,6 @@ static void update_custom_component(EntityGroup& group, IteratedComp& comp, floa
     }
 }
 
-struct TempleGame {
-    AdvEntityGroup group;
-    Shader shader;
-    Camera2D camera;
-    Palette palette;
-
-    TempleGame() : group(9.8f) {
-
-        // setup camera
-        camera = {};
-        camera.offset = Vector2Zero();          // Camera offset (displacement from target)
-        camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
-        camera.rotation = 0.f;                      // Camera rotation in degrees
-        camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
-
-        // setup shader palette
-        // palette = RequestPalette(PAL_DEFAULT);
-        // SetDefaultPalette(palette);
-
-        // for (int y = 0; y < 2; y++){
-        //     for (int x = 0; x < 10; x++){
-        //         spawn_block(group,{x*64.f,64*4.f+y*64.f});
-        //     }
-        // }
-        //spawn_player(group, {GetWindowCenter().x,GetWindowCenter().y,0});
-
-        // fake floor
-        //spawn_wall_brush(group,{240.f,346.f,0.f});
-
-        // setup editor
-        RegisterEntityBuilder(spawn_block);
-        RegisterEntityBuilder(spawn_player);
-
-        // register custom entity callbacks
-        group.RegisterUpdater(update_custom_component);
-    }
-
-    void update_and_render(float delta) {
-        BeginMagmaDrawing();
-
-        ClearBackground(SKYBLUE);
-
-        BeginMode2D(camera);
-
-        // BeginPaletteMode(palette);
-
-        if (!GameIsPaused()){
-            group.UpdateGroup(delta);
-        }
-        group.DrawGroup();
-        group.DrawGroupDebug();
-        
-        // EndPaletteMode();
-
-        UpdateAndRenderEditor(camera, group, delta);
-        UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
-
-        EndMode2D();
-
-        EndMagmaDrawing();
-        DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
-        UpdateAndDrawLog();
-
-        UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
-
-        EndDrawing();
-    }
-};
-
 static bool layout_menu(float delta){
     static auto menu = PopMenu();
 
@@ -256,6 +187,25 @@ int main()
 
     INFO("Launched at %s", GetWorkingDirectory());
 
+    // TempleGame
+    AdvEntityGroup group(9.8f);
+    Shader shader;
+
+    Camera2D camera = {};
+    camera.offset = Vector2Zero();          // Camera offset (displacement from target)
+    camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
+    camera.rotation = 0.f;                      // Camera rotation in degrees
+    camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
+
+    Palette palette;
+
+    // setup editor
+    RegisterEntityBuilder(spawn_block);
+    RegisterEntityBuilder(spawn_player);
+
+    // register custom entity callbacks
+    group.RegisterUpdater(update_custom_component);
+
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
     SetTargetFPS(60);
@@ -279,16 +229,43 @@ int main()
             layout_menu,
             }, false);
 
-        TempleGame game;
-
         while (!WindowShouldClose()) // Detect window close button or ESC key
         {
             float delta = GetFrameTime();
             float time = GetTime();
 
             if (menu.UpdateAndDraw(delta)) {
-                // draw scene here
-                game.update_and_render(delta);
+
+                // draw main stuff
+                BeginMagmaDrawing();
+
+                ClearBackground(SKYBLUE);
+
+                BeginMode2D(camera);
+
+                // BeginPaletteMode(palette);
+
+                if (!GameIsPaused()){
+                    group.UpdateGroup(delta);
+                }
+                group.DrawGroup();
+                group.DrawGroupDebug();
+                
+                // EndPaletteMode();
+
+                UpdateAndRenderEditor(camera, group, delta);
+                UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
+
+                EndMode2D();
+
+                EndMagmaDrawing();
+                DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
+                UpdateAndDrawLog();
+
+                UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
+
+                EndDrawing();
+
             }
         }
 
