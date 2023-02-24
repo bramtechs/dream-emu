@@ -323,6 +323,18 @@ EntityID EntityGroup::AddEntity() {
     return id;
 }
 
+void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, size_t size){
+    // make data stick with a malloc
+    CompContainer cont;
+    cont.type = type;
+    cont.data = M_MemAlloc(size);
+    cont.size = size;
+    memcpy(cont.data, &data, size);
+
+    // add component in system
+    comps.insert({id, cont});
+}
+
 bool EntityGroup::EntityHasComponent(EntityID id, ItemType type){
     for (const auto& comp : comps) {
         if (comp.first == id && comp.second.type == type) {

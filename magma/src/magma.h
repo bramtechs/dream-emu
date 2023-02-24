@@ -435,18 +435,11 @@ struct EntityGroup {
     EntityID AddEntity();
 
     // TODO dispose functions
-    // TODO: try to not include in header
-    template <typename T>
-    void AddEntityComponent(ItemType type, EntityID id, T data){
-        // make data stick with a malloc
-        CompContainer cont;
-        cont.type = type;
-        cont.data = M_MemAlloc(sizeof(T));
-        cont.size = sizeof(T);
-        memcpy(cont.data, &data, sizeof(T));
 
-        // add component in system
-        comps.insert({id, cont});
+    void AddEntityComponent(ItemType type, EntityID id, void* data, size_t size);
+    template <typename T>
+    inline void AddEntityComponent(ItemType type, EntityID id, T data){
+        AddEntityComponent(type, id, (void*)&data, sizeof(T));
     }
 
     bool EntityHasComponent(EntityID id, ItemType type);
