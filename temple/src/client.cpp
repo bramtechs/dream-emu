@@ -227,7 +227,7 @@ int main()
             "Temple Mayhem",
             "basically a mario clone, pls don't sue",
             layout_menu,
-            }, false);
+            }, true);
 
         while (!WindowShouldClose()) // Detect window close button or ESC key
         {

@@ -380,7 +380,6 @@ static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float de
         DrawAxis(Vector2Zero());
 
         // draw other cells
-        // TODO: fix shoddyness
         if (Session.drawGrid){
             DrawGrid(*(Camera2D*)camera);
         }

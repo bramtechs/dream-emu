@@ -227,6 +227,9 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
 
 void EntityGroup::ClearGroup() {
     entityCount = 0;
+    for (const auto& comp : comps){
+        M_MemFree(comp.second.data);
+    }
     comps.clear();
 }
 
@@ -329,7 +332,7 @@ void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, siz
     cont.type = type;
     cont.data = M_MemAlloc(size);
     cont.size = size;
-    memcpy(cont.data, &data, size);
+    memcpy(cont.data, data, size);
 
     // add component in system
     comps.insert({id, cont});

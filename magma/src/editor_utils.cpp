@@ -123,24 +123,26 @@ static void SwitchMode(EditorMode mode){
     DEBUG("Editor switched mode");
 }
 
-static void DrawGridCell(Vector2 worldPos, float size, float thick=1.f, Color tint=GRAY){
-    Vector2 pos = Vector2Snap(worldPos, size);
+static void DrawGridCell(Vector2 pos, float size, float thick=1.f, Color tint=GRAY, bool snap=true){
+    if (snap) {
+        pos = Vector2Snap(pos, size);
+    }
     Rectangle cell = { pos.x, pos.y , size, size };
     DrawRectangleLinesEx(cell, thick, tint);
 }
 
 static void DrawGrid(Camera2D camera){
-    Vector2 mouse = GetWindowMousePosition(camera);
+    Vector2 mouse = Vector2Snap(GetWindowMousePosition(camera), Session.gridSize);
 
     // draw cursor grid cell
-    DrawGridCell(mouse, Session.gridSize);
+    DrawGridCell(mouse, Session.gridSize, 1.f, RED, false);
 
     Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(WHITE,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
-    for (int y = -3; y < 3; y++){
-        for (int x = -3; x < 3; x++){
+    for (int y = -3; y <= 3; y++){
+        for (int x = -3; x <= 3; x++){
             Vector2 offset = { x, y };
-            Vector2 cellPos = Vector2Add(mouse,Vector2Add(Vector2Scale(offset,Session.gridSize),offset));
-            DrawGridCell(cellPos, Session.gridSize, 1.f, col);
+            Vector2 cellPos = Vector2Add(mouse,Vector2Scale(offset,Session.gridSize));
+            DrawGridCell(cellPos, Session.gridSize, 1.f, col, false);
         }
     }
 }

@@ -285,6 +285,7 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor, EntityGroup* group){
     // TODO: define debug flags
     menu.DrawPopButton("== DEV-TOOLS ==",false,true);
     menu.DrawPopButton("Load level",group!=NULL);
+    menu.DrawPopButton("Clear level",group!=NULL);
     menu.DrawPopButton("Export level",group!=NULL);
     menu.DrawPopButton(LoggerIsOpen() ? "Hide console":"Show console");
     menu.DrawPopButton(EditorIsOpen() ? "Hide editor":"Open editor");
@@ -311,18 +312,22 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor, EntityGroup* group){
                 if (group)
                     group->LoadGroup("test.comps");
                 break;
-            case 7: // export
+            case 7: // clear
+                if (group)
+                    group->ClearGroup();
+                break;
+            case 8: // export
                 if (group){
                      group->SaveGroupInteractively("raw_assets");
                 }
                 break;
-            case 8: // show/hide console
+            case 9: // show/hide console
                 ToggleLogger();
                 break;
-            case 9: // show/hide editor
+            case 10: // show/hide editor
                 ToggleEditor();
                 break;
-            case 10:
+            case 11:
                 INFO("=========================");
                 PrintAssetList();
                 INFO("=========================");
