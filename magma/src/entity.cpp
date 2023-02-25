@@ -285,7 +285,7 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
     return true;
 }
 
-static std::string ParsePath(char* file, const char* folder=NULL) {
+static std::string ParsePath(const char* file, const char* folder=NULL) {
     if (file == NULL || TextIsEqual(file,"")){
         return "";
     }
@@ -308,16 +308,26 @@ static std::string ParsePath(char* file, const char* folder=NULL) {
     return output;
 }
 
-bool EntityGroup::SaveGroupInteractively(const char* folder, uint version){
-    const char* msg = TextFormat("Saving to folder %s; Using save version %d",folder,version);
-    char* output = ShowInputBox((char*) msg,"Save entity group","map_mylevel.comps");
-
-    std::string outputStr = ParsePath(output,folder);
-    if (!outputStr.empty()){
-        return SaveGroup(outputStr.c_str(),version);
+// TODO: put in struct
+static EntityGroup* InteractiveEntityGroup = NULL;
+static const char* InteractiveFolder = NULL;
+static uint InteractiveVersion = NULL;
+static void SaveGroupInteractivelyCallback(std::string text){
+    std::string outputStr = ParsePath(text.c_str(),InteractiveFolder);
+    if (outputStr.empty()){
+        WARN("EntityGroup interactive save cancelled");
+    } else {
+        InteractiveEntityGroup->SaveGroup(outputStr.c_str(),InteractiveVersion);
     }
-    WARN("EntityGroup interactive save cancelled");
-    return false;
+}
+
+void EntityGroup::SaveGroupInteractively(const char* folder, uint version){
+    InteractiveFolder = folder;
+    InteractiveEntityGroup = this;
+    InteractiveVersion = version;
+    if (ShowInputBox("Save entity group", &SaveGroupInteractivelyCallback, "map_mylevel.comps", 4, 32)){
+        ERROR("Another input box is already opened!");
+    }
 }
 
 EntityID EntityGroup::AddEntity() {

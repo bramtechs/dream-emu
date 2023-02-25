@@ -255,6 +255,7 @@ int main()
 
                 UpdateAndRenderEditor(camera, group, delta);
                 UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
+                UpdateAndRenderInputBoxes(delta);
 
                 EndMode2D();
 

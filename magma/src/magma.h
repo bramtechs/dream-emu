@@ -418,7 +418,7 @@ struct EntityGroup {
     void ClearGroup();
     bool LoadGroup(const char* fileName);
     bool SaveGroup(const char* fileName, uint version=0);
-    bool SaveGroupInteractively(const char* folder, uint version=0);
+    void SaveGroupInteractively(const char* folder, uint version=0);
 
     EntityID AddEntity();
 
@@ -561,9 +561,10 @@ void PauseGame();
 void UnpauseGame();
 bool ToggleGamePaused();
 
-// visual basic bindings to show simple inputbox
-char *ShowInputBox(const char *prompt, const char *title = "", const char *defText = "");
-char *ShowPasswordBox(const char *prompt, const char *title = "", const char *defText = "");
+// gui keyboard
+typedef void (*InputBoxEntered)(std::string text);
+bool ShowInputBox(const char* title, InputBoxEntered callback, const char* defText = "", uint minLength=1, uint maxLength=16);
+void UpdateAndRenderInputBoxes(float delta);
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);

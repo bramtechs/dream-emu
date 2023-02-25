@@ -282,7 +282,7 @@ bool assets() {
         }
     }
 
-    std::string outFile = fs::path(BUILD_DIRECTORY + "/temple/assets.mga").string();
+    std::string outFile = fs::path("temple/assets.mga").string();
     return run_command({ DEFLATION_PATH, "temple/raw_assets", "core_assets", outFile, "--compress"});
 }
 

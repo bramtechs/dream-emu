@@ -153,13 +153,14 @@ void deflate(std::vector<std::string>& inputFolders, std::string& output, bool c
 }
 
 int run(std::vector<std::string> args) {
+
     if (args.size() <= 2){
         ERROR("Not enough arguments provided! Got %d args.",args.size());
         return -1;
     }
 
     bool doCompress = false;
-    if (args[args.size()-1] == "--compress"){
+    if (args[args.size()-1] == "--compress" || args[args.size()-1] == "--compressed"){
         doCompress = true;
         args.pop_back();
         INFO("Compressing package...");
@@ -172,6 +173,18 @@ int run(std::vector<std::string> args) {
     }
 
     std::string exportFolder = args[args.size()-1];
+
+    // check if an argument isn't being used as in-out folder
+    for (const auto& folder : inputFolders){
+        if (folder[0] == '-'){
+            ERROR("An argument is being treated as input folder!");
+            return -1;
+        }
+    }
+    if (exportFolder[0] == '-'){
+        ERROR("An argument is being treated as export folder!");
+        return -1;
+    }
 
     deflate(inputFolders, exportFolder, doCompress);
 
@@ -186,15 +199,8 @@ int main(int argc, char** argv)
     DEBUG("Launched at %s", GetWorkingDirectory());
 
     auto args = std::vector<std::string>();
-    //for (int i = 0; i < argc; i++) {
-    //    args.push_back(argv[i]);
-    //}
-    //run(args);
-
-    ChangeDirectory("/mnt/c/dev/dream-emu/temple");
-    args.push_back("raw_assets");
-    args.push_back("../core_assets");
-    args.push_back("assets.mga");
-    args.push_back("--compressed");
+    for (int i = 0; i < argc; i++) {
+        args.push_back(argv[i]);
+    }
     run(args);
 }

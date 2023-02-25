@@ -483,3 +483,34 @@ bool MainMenu::UpdateAndDraw(float delta) {
 
     return false;
 }
+
+// virtual keyboard
+struct InputBox {
+    bool isActive;
+    std::string title;
+    std::string curText;
+    InputBoxEntered callback;
+    uint minLength;
+    uint maxLength;
+};
+
+static InputBox ActiveInputBox = InputBox();
+
+bool ShowInputBox(const char* title, InputBoxEntered callback, const char* defText, uint minLength, uint maxLength){
+    if (ActiveInputBox.isActive){
+        return false;
+    }
+
+    // set new active inputbox
+    ActiveInputBox.curText = defText;
+    ActiveInputBox.title = title;
+    ActiveInputBox.callback = callback;
+    ActiveInputBox.minLength = minLength;
+    ActiveInputBox.maxLength = maxLength;
+}
+
+void UpdateAndRenderInputBoxes(float delta){
+    if (!ActiveInputBox.isActive){
+        return;
+    }
+}
