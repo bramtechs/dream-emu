@@ -62,6 +62,12 @@ bool ButtonGroup::IsButtonSelected(int* index){
     return false;
 }
 
+// generic gui drawing helper functions
+static void DrawPanel(Rectangle rect, Color bgColor=BLACK, Color borColor=WHITE){
+    DrawRectangleRec(rect, bgColor);
+    DrawRectangleLinesEx(rect, 4.f, borColor);
+}
+
 // === PopMenu + config ===
 
 // over-engineered system to allow one popup menu to be controlled at once
@@ -118,8 +124,7 @@ void PopMenu::RenderPanel(){
             topLeft.x,topLeft.y,
             size.x, size.y
         };
-        DrawRectangleRec(menuTarget, BLACK);
-        DrawRectangleLinesEx(menuTarget, 4.f, DARKGRAY);
+        DrawPanel(menuTarget);
     }
 
     this->buttonCount = 0;
@@ -485,32 +490,111 @@ bool MainMenu::UpdateAndDraw(float delta) {
 }
 
 // virtual keyboard
+
+std::string ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz";
+std::string ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 struct InputBox {
+    int WIDTH = 400;
+    int HEIGHT = 250;
+    int PADDING = 15;
+
     bool isActive;
     std::string title;
     std::string curText;
     InputBoxEntered callback;
     uint minLength;
     uint maxLength;
+
+    InputBox() {
+        this->isActive = false;
+    }
+
+    InputBox(const char* title, InputBoxEntered callback, const char* defText, uint minLength, uint maxLength){
+        this->isActive = true;
+        this->curText = defText;
+        this->title = title;
+        this->callback = callback;
+        this->minLength = minLength;
+        this->maxLength = maxLength;
+    }
+
+    void UpdateAndRender(float delta){
+        Vector2 topLeft = {
+            (float) Window.gameSize.x * 0.5f - WIDTH * 0.5f,
+            (float) Window.gameSize.y * 0.5f - HEIGHT * 0.5f,
+        };
+        Rectangle region = {
+            topLeft.x, topLeft.y,
+            (float) WIDTH, (float) HEIGHT
+        };
+
+        DrawPanel(region);
+
+        // draw title
+
+        float offsetX = MeasureRetroText(title.c_str(),18).x;
+        DrawRetroText(title.c_str(), topLeft.x + WIDTH * 0.5f - offsetX * 0.5f,
+                                     topLeft.y + PADDING);
+
+        // draw input text
+        DrawRetroText(curText.c_str(), topLeft.x + PADDING + 20,
+                                       topLeft.y + PADDING + 25);
+
+        // draw letters
+        Rectangle lowerRegion = {
+            topLeft.x + PADDING, topLeft.y + PADDING + 60,
+            (float) WIDTH - PADDING*2, (float) 90
+        };
+        DrawLetterSet(lowerRegion, ALPHABET_LOWER);
+
+        Rectangle upperRegion = lowerRegion;
+        upperRegion.y += lowerRegion.height + PADDING * 0.5f;
+        DrawLetterSet(upperRegion, ALPHABET_UPPER);
+    }
+
+    void DrawLetterSet(Rectangle region, std::string& letters) {
+        const int LETTERS_PER_ROW = 10;
+
+        Vector2 aCharSize = MeasureRetroText("a",18);
+        Vector2 charSize = {
+            MAX((region.width - aCharSize.x) / LETTERS_PER_ROW, aCharSize.x),
+            MAX((region.height - aCharSize.y) / LETTERS_PER_ROW, aCharSize.y)
+        };
+
+        int y = 0;
+        int x = 0;
+        for (int i = 0; i < letters.size(); i++){
+            int xx = region.x + x * charSize.x;
+            int yy = region.y + y * charSize.y;
+            char text[2] = { letters[i], '\0' };
+            DrawRetroText((const char*) &text, xx, yy);
+
+            // go to next row
+            x++;
+            if (x > LETTERS_PER_ROW){
+                x = 0;
+                y++;
+            }
+        }
+    }
 };
 
 static InputBox ActiveInputBox = InputBox();
 
-bool ShowInputBox(const char* title, InputBoxEntered callback, const char* defText, uint minLength, uint maxLength){
+bool ShowInputBox(const char* title, InputBoxEntered callback, const char* defText,
+                                                    uint minLength, uint maxLength){
     if (ActiveInputBox.isActive){
         return false;
     }
 
     // set new active inputbox
-    ActiveInputBox.curText = defText;
-    ActiveInputBox.title = title;
-    ActiveInputBox.callback = callback;
-    ActiveInputBox.minLength = minLength;
-    ActiveInputBox.maxLength = maxLength;
+    ActiveInputBox = InputBox(title, callback, defText, minLength, maxLength);
+    return true;
 }
 
 void UpdateAndRenderInputBoxes(float delta){
-    if (!ActiveInputBox.isActive){
-        return;
+    if (ActiveInputBox.isActive){
+        ActiveInputBox.UpdateAndRender(delta);
     }
 }

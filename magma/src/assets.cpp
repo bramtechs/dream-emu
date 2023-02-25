@@ -72,7 +72,7 @@ bool ImportAssetPackage(const char* filePath) {
     unsigned int dataSize = 0;
     unsigned char* data = LoadFileData(filePath, &dataSize); // TODO: find way to avoid copying data
     if (dataSize == 0) {
-        TraceLog(LOG_ERROR, "Failed opening asset package at %s", filePath);
+        TraceLog(LOG_WARNING, "Failed opening asset package at %s", filePath);
         return false;
     }
 
