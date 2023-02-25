@@ -405,8 +405,8 @@ void MainMenu::DrawScreenSaver(float delta) {
 }
 
 void MainMenu::DrawBackground(Texture texture, Color tint, bool tiled) {
-    Rectangle src = { 0, 0, texture.width, texture.height };
-    Rectangle dest = { 0, 0, Window.gameSize.x, Window.gameSize.y };
+    Rectangle src = { 0.f, 0.f, (float) texture.width, (float) texture.height };
+    Rectangle dest = { 0.f, 0.f, (float) Window.gameSize.x, (float) Window.gameSize.y };
     DrawTexturePro(texture, tiled ? dest:src, dest, Vector2Zero(), 0.f, tint);
 }
 
@@ -457,7 +457,7 @@ bool MainMenu::UpdateAndDraw(float delta) {
 
     bool completed = curSplash >= config.splashes.size();
 
-    char alphaByte = Clamp(alpha * 255, 0, 255);
+    unsigned char alphaByte = Clamp(alpha * 255, 0, 255);
     Color tint = { 255, 255, 255, alphaByte };
     DrawBackground(texture, tint, completed ? config.bgTiled : false);
 

@@ -22,21 +22,11 @@
 #define MIN(a, b) ((a)<(b)? (a) : (b))
 #define STRING( name ) #name
 
-#ifdef __unix___ 
-#define INFO(X...)  TraceLog(LOG_INFO,X)
-#define WARN(X...)  TraceLog(LOG_WARNING,X)
-#define WARNING(X...)  TraceLog(LOG_WARNING,X)
-#define DEBUG(X...) TraceLog(LOG_DEBUG,X)
-#define ERROR(X...) TraceLog(LOG_ERROR,X)
-
-#elif defined(_WIN32) || defined(WIN32)
-
 #define INFO(...)  TraceLog(LOG_INFO,__VA_ARGS__)
 #define WARN(...)  TraceLog(LOG_WARNING,__VA_ARGS__)
 #define WARNING(...)  TraceLog(LOG_WARNING,__VA_ARGS__)
 #define DEBUG(...) TraceLog(LOG_DEBUG,__VA_ARGS__)
 #define ERROR(...) TraceLog(LOG_ERROR,__VA_ARGS__)
-#endif
 
 #define TODO(M) TraceLog(LOG_FATAL,"TODO: %s", M); assert(false);
 
@@ -88,8 +78,6 @@ typedef uint ItemType;
 typedef uint EntityID;
 
 typedef int AssetType;
-
-extern size_t Allocations;
 
 #undef assert
 inline void assert(bool cond = false) {
@@ -574,8 +562,8 @@ void UnpauseGame();
 bool ToggleGamePaused();
 
 // visual basic bindings to show simple inputbox
-char *ShowInputBox(char *Prompt, char *Title = (char *)"", char *Default = (char *)"");
-char *ShowPasswordBox(char *Prompt, char *Title = (char *)"", char *Default = (char *)"");
+char *ShowInputBox(const char *prompt, const char *title = "", const char *defText = "");
+char *ShowPasswordBox(const char *prompt, const char *title = "", const char *defText = "");
 
 // editor stuff
 typedef EntityID (*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);

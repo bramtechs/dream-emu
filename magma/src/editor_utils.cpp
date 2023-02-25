@@ -140,8 +140,10 @@ static void DrawGrid(Camera2D camera){
     Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(WHITE,0.5f) : ColorAlpha(LIGHTGRAY,0.5f); 
     for (int y = -3; y <= 3; y++){
         for (int x = -3; x <= 3; x++){
-            Vector2 offset = { x, y };
-            Vector2 cellPos = Vector2Add(mouse,Vector2Scale(offset,Session.gridSize));
+            Vector2 cellPos = {
+                mouse.x + (x * Session.gridSize),
+                mouse.y + (y * Session.gridSize),
+            };
             DrawGridCell(cellPos, Session.gridSize, 1.f, col, false);
         }
     }

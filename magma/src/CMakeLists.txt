@@ -5,8 +5,16 @@ set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB SOURCE_FILES *.cpp)
 list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/editor_utils.cpp)
-
 file(GLOB HEADER_FILES *.h *.hpp)
+
+if (WIN32)
+    message("Stripping Linux code")
+    list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gui_linux_inputbox.cpp)
+else()
+    message("Stripping Windows code")
+    list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/gui_win_inputbox.cpp)
+    list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/client_win.cpp)
+endif ()
 
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_sources(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCES})

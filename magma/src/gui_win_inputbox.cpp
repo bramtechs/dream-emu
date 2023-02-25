@@ -128,7 +128,7 @@ static LRESULT CALLBACK InputBoxProc(int nCode, WPARAM wParam, LPARAM lParam) {
   return CallNextHookEx(hHook, nCode, wParam, lParam);
 }
 
-static char *InputBoxHelper(char *Prompt, char *Title, char *Default) {
+static char *InputBoxHelper(const char *Prompt, const char *Title, const char *Default) {
   // Initialize
   HRESULT hr = S_OK;
   hr = CoInitialize(NULL);
@@ -174,12 +174,12 @@ static char *InputBoxHelper(char *Prompt, char *Title, char *Default) {
   return (char*)strResult.c_str();
 }
 
-char *ShowInputBox(char *Prompt, char *Title, char *Default) {
+char *ShowInputBox(const char *prompt, const char *title, const char *defText) {
   HideInput = false;
-  return InputBoxHelper(Prompt, Title, Default);
+  return InputBoxHelper(Prompt, Title, defText);
 }
 
-char *ShowPasswordBox(char *Prompt, char *Title, char *Default) {
+char *ShowPasswordBox(const char *prompt, const char *title, const char *defText) {
   HideInput = true;
-  return InputBoxHelper(Prompt, Title, Default);
+  return InputBoxHelper(prompt, title, defText);
 }

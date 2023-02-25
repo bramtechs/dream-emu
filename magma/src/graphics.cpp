@@ -175,9 +175,8 @@ Color Palette::GetIndexColor(int index) {
     if (index == -1){
         return BLANK;
     }
-    index = Clamp(index, 0, 255);
     Color result = {
-        index,
+        (unsigned char) Clamp(index, 0, 255),
         0,
         0,
         255
@@ -191,9 +190,9 @@ Color Palette::GetColor(int index) {
         return {255,0,255,255};
     }
     Color result = {
-        colors[index * 3 + 0],
-        colors[index * 3 + 1],
-        colors[index * 3 + 2],
+        colors[(unsigned char) index * 3 + 0],
+        colors[(unsigned char) index * 3 + 1],
+        colors[(unsigned char) index * 3 + 2],
         255
     };
     return result;
@@ -221,18 +220,18 @@ int Palette::MapColorLoosely(Color color) {
     }
 
     Vector3 inCol = {
-        color.r,
-        color.g,
-        color.b
+        (float) color.r,
+        (float) color.g,
+        (float) color.b
     };
 
     int closestID = 0;
     float closestDiff = FLT_MAX;
     for (int i = 0; i < COLORS_PER_PALETTE; i++) {
         Vector3 palCol{
-            colors[i * 3 + 0],
-            colors[i * 3 + 1],
-            colors[i * 3 + 2]
+            (float) colors[i * 3 + 0],
+            (float) colors[i * 3 + 1],
+            (float) colors[i * 3 + 2]
         };
         float diff = Vector3DistanceSqr(palCol, inCol);
         if (diff < closestDiff) {

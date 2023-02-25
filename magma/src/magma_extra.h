@@ -10,7 +10,7 @@ enum PlayerPose {
     POSE_FALL,
     POSE_DUCK,
 };
-constexpr char* PlayerPoseNames[] = {
+constexpr const char* PlayerPoseNames[] = {
     STRING(POSE_IDLE),
     STRING(POSE_WALK),
     STRING(POSE_SLIDE),

@@ -471,7 +471,7 @@ Font RequestFont(const std::string& name){
         if (asset.data != NULL){
             if (GetAssetType(asset.path) == ASSET_FONT) {
                 // read from memory
-                font = LoadFontFromMemory(".ttf", (const unsigned char*) asset.data, asset.size, 72, NULL, NULL); // -- chars and glyphcount
+                font = LoadFontFromMemory(".ttf", (const unsigned char*) asset.data, asset.size, 72, NULL, 0); // -- chars and glyphcount
                 if (font.baseSize < 0) {
                     TraceLog(LOG_ERROR, "Malformed font %s!", name.c_str());
                     font = GetFontDefault();
@@ -657,12 +657,6 @@ std::vector<std::string> GetAssetNames(AssetType type){
         }
     }
     return names;
-}
-
-static std::string GetTempDirectory() {
-    std::filesystem::path path = std::filesystem::temp_directory_path();
-    std::string tempFolStr = path.string();
-    return tempFolStr;
 }
 
 AssetType GetAssetType(const char* name) {

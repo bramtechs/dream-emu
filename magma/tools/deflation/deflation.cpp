@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <system_error>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <fstream>
@@ -61,7 +62,7 @@ void process(PackList& pack, std::string path, std::string shortPath) {
     asset.data = (char*) data;
     asset.size = size;
 
-    strcpy_s(asset.path, PATH_MAX_LEN, shortPath.c_str());
+    strcpy(asset.path, shortPath.c_str());
 
     assert(asset.size > 0);
     assert(asset.data != NULL);
@@ -126,7 +127,7 @@ void save(PackList pack, const char* output, bool compress=false) {
 }
 
 void deflate(std::vector<std::string>& inputFolders, std::string& output, bool compress=false) {
-    // collect all file paths 
+    // collect all file paths
     std::vector<std::string> paths;
     for (const auto &folder : inputFolders){
         FilePathList files = LoadDirectoryFilesEx(folder.c_str(), NULL, true);
@@ -174,7 +175,7 @@ int run(std::vector<std::string> args) {
 
     deflate(inputFolders, exportFolder, doCompress);
 
-    INFO("Exported %scompressed package to %s", doCompress ? "":"un", exportFolder.c_str());
+    INFO("Exported %s compressed package to %s", doCompress ? "":"un", exportFolder.c_str());
 
     return 0;
 }
@@ -185,15 +186,15 @@ int main(int argc, char** argv)
     DEBUG("Launched at %s", GetWorkingDirectory());
 
     auto args = std::vector<std::string>();
-    for (int i = 0; i < argc; i++) {
-        args.push_back(argv[i]);
-    }
-    run(args);
-
-    //ChangeDirectory("X:\\temple");
-    //args.push_back("raw_assets");
-    //args.push_back("..\\core_assets");
-    //args.push_back("assets.mga");
-    //args.push_back("--compressed");
+    //for (int i = 0; i < argc; i++) {
+    //    args.push_back(argv[i]);
+    //}
     //run(args);
+
+    ChangeDirectory("/mnt/c/dev/dream-emu/temple");
+    args.push_back("raw_assets");
+    args.push_back("../core_assets");
+    args.push_back("assets.mga");
+    args.push_back("--compressed");
+    run(args);
 }

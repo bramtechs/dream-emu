@@ -19,8 +19,8 @@ std::string BUILD_DIRECTORY    = "build";
 #ifdef LINUX
 
 std::string CMAKE_GENERATOR    = "CodeBlocks - Unix Makefiles";
-std::string EXECUTABLE_DEBUG   = "build/temple/Debug/temple.exe";
-std::string EXECUTABLE_RELEASE = "build/temple/Release/temple.exe";
+std::string EXECUTABLE_DEBUG   = "build/temple/temple";
+std::string EXECUTABLE_RELEASE = EXECUTABLE_DEBUG;
 
 #elif defined(WINDOWS)
 
@@ -95,7 +95,6 @@ static bool has_program(std::string program);
 static bool make_archive(std::string output, std::vector<std::string>& files);
 static std::string get_date_string();
 
-// TODO: linux
 bool check(bool verbose=false){
     bool good = true;
     Table table;
@@ -271,7 +270,11 @@ bool release() {
 }
 
 bool assets() {
+#ifdef LINUX
+    std::string DEFLATION_PATH = fs::absolute(fs::path(BUILD_DIRECTORY+"/magma/tools/deflation/deflation")).string();
+#elif defined(WINDOWS)
     std::string DEFLATION_PATH = fs::absolute(fs::path(BUILD_DIRECTORY+"/magma/tools/deflation/Debug/deflation.exe")).string();
+#endif
 
     if (!fs::exists(DEFLATION_PATH)){
         if (!build()){
@@ -322,15 +325,17 @@ bool package(){
 
 bool run(std::string path) {
     auto p = fs::path(path.c_str());
-    std::string file = p.filename().string();
-    std::string folder = p.parent_path().string();
 
     // regenerate assets
     assets();
 
     if (fs::exists(path)) {
-        // TODO: might not work on linux
+#ifdef LINUX
+        return run_command({path});
+#elif defined(WINDOWS)
+        // TODO: will not find assets!
         return run_command({"cd", folder, "&", file });
+#endif
     }
 
     std::cerr << "Executable " << path << " does not exist!" << std::endl;
@@ -444,10 +449,6 @@ bool find_cmake_project(){
 }
 
 int main(int argc, char** argv) {
-#ifdef LINUX
-    std::cout << "No linux support yet" << std::endl;
-    return EXIT_FAILURE;
-#endif
     std::string option = argc > 1 ? std::string(argv[1]):"";
     if (option == "help"){
         help();
@@ -567,15 +568,14 @@ static bool has_program(std::string program){
     }
 
 #ifdef LINUX
-    char seperator = ':';
+    const char SEPERATOR = ':';
 #elif defined(WINDOWS)
-    char seperator = ';';
+    const char SEPERATOR = ';';
 #endif
 
-    // TODO: there is probably a faster way to do this
     std::string path;
     std::istringstream stream(pathVar);
-    while (std::getline(stream, path, ';')) {
+    while (std::getline(stream, path, SEPERATOR)) {
         auto folder = fs::path(path);
         if (fs::exists(folder)) {
             for (const auto& file : fs::directory_iterator(folder)) {
@@ -593,7 +593,7 @@ static bool has_program(std::string program){
 static bool make_archive(std::string output, std::vector<std::string>& files){
 
     // check file extension
-    output = std::path(output).replace_extension(".tar.xz").string();
+    output = fs::path(output).replace_extension(".tar.xz").string();
 
     std::vector<std::string> cmd = {
         "tar",
