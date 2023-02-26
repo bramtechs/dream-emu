@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include <limits>
+#include <algorithm>
 
 // the all powerful raylib
 #include "raylib.h"
@@ -560,7 +561,7 @@ void UnpauseGame();
 bool ToggleGamePaused();
 
 // gui keyboard
-typedef void (*InputBoxEntered)(std::string text);
+typedef void (*InputBoxEntered)(std::string& text);
 bool ShowInputBox(const char* title, InputBoxEntered callback, const char* defText = "", uint minLength=1, uint maxLength=16);
 void UpdateAndRenderInputBoxes(float delta);
 

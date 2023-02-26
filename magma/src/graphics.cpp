@@ -190,9 +190,9 @@ Color Palette::GetColor(int index) {
         return {255,0,255,255};
     }
     Color result = {
-        colors[(unsigned char) index * 3 + 0],
-        colors[(unsigned char) index * 3 + 1],
-        colors[(unsigned char) index * 3 + 2],
+        (unsigned char) colors[index * 3 + 0],
+        (unsigned char) colors[index * 3 + 1],
+        (unsigned char) colors[index * 3 + 2],
         255
     };
     return result;

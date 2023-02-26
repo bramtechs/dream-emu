@@ -15,7 +15,6 @@ ButtonGroup::ButtonGroup(){
 void ButtonGroup::reset(){
     count = index;
     index = 0;
-
 }
 
 void ButtonGroup::poll(bool useWASD){
@@ -548,10 +547,14 @@ struct InputBox {
 
     bool isActive;
     std::string title;
-    std::string curText;
     InputBoxEntered callback;
     uint minLength;
     uint maxLength;
+
+    std::string curText;
+
+    int enterKeyIndex;
+    int deleteKeyIndex;
 
     ButtonGroup group;
 
@@ -571,6 +574,32 @@ struct InputBox {
         uint id = PopMenus.size();
         PopMenuFocus f(id,FOCUS_CRITICAL);
         PopMenus.push_back(f);
+
+        // generate letter sets (if not done)
+        if (CACHED_LOWER.empty()){
+            for (const auto& letter : ALPHABET_LOWER){
+                std::string str = {letter};
+                CACHED_LOWER.push_back(str);
+            }
+            for (const auto& text : ALPHABET_EXTRA){
+                CACHED_LOWER.push_back(text);
+            }
+        }
+
+        if (CACHED_UPPER.empty()){
+            for (const auto& letter : ALPHABET_UPPER){
+                std::string str = {letter};
+                CACHED_UPPER.push_back(str);
+            }
+            // add padding to create perfect grid
+            for (int i = 0; i < 4; i++){
+                CACHED_UPPER.push_back("");
+            }
+        }
+
+        // determine index of special keys enter and delete
+        deleteKeyIndex = CACHED_UPPER.size()+CACHED_LOWER.size()-2;
+        enterKeyIndex  = CACHED_UPPER.size()+CACHED_LOWER.size()-1;
     }
 
     void UpdateAndRender(float delta){
@@ -603,27 +632,6 @@ struct InputBox {
         DrawRetroText(displayedText, topLeft.x + PADDING + 20,
                                        topLeft.y + PADDING + 25);
 
-        // generate letters sets (if not already done)
-        if (CACHED_LOWER.empty()){
-            for (const auto& letter : ALPHABET_LOWER){
-                std::string str = {letter};
-                CACHED_LOWER.push_back(str);
-            }
-            for (const auto& text : ALPHABET_EXTRA){
-                CACHED_LOWER.push_back(text);
-            }
-        }
-        if (CACHED_UPPER.empty()){
-            for (const auto& letter : ALPHABET_UPPER){
-                std::string str = {letter};
-                CACHED_UPPER.push_back(str);
-            }
-            // add padding to create perfect grid
-            for (int i = 0; i < 4; i++){
-                CACHED_UPPER.push_back("");
-            }
-        }
-
         // draw letters
         this->group.reset();
 
@@ -646,18 +654,24 @@ struct InputBox {
         }else{
             char c = (char) GetKeyPressed();
             if (c == 1){ // pressed enter
-                // TODO:
+                //INFO("%d",this->group.selected);
+                if (this->group.selected == enterKeyIndex){ // pressed entered
+                    AcceptInput();
+                }else if (this->group.selected == deleteKeyIndex){ // pressed delete
+                    EraseCharacter();
+                }
+                else { // put char
+                    std::string s = GetTextWithIndex(this->group.selected);
+                    if (!s.empty()){
+                        PutCharacter(s[0]);
+                    }
+                }
             }
             else if (c == 3){ // pressed backspace
-                if (curText.length() > 0){
-                    curText.pop_back();
-                }
+                EraseCharacter();
             }
             else if (c >= 32 && c <= 127){ // if pressed any useable ascii key + spacebar
-                if (curText.length() < maxLength) {
-                    curText.push_back(c);
-                }
-
+                PutCharacter(c);
                 DEBUG("pressed %c (%d)",c,c);
                 // play type sound
                 // TODO: this is annoying
@@ -667,7 +681,42 @@ struct InputBox {
             }
         }
         
-        DrawRetroText(TextFormat("%d",this->group.selected),topLeft.x+20,topLeft.y+30,16,RED);
+        //DrawRetroText(TextFormat("%d",this->group.selected),topLeft.x+20,topLeft.y+30,16,RED);
+    }
+
+    std::string GetTextWithIndex(int index){
+        // TODO: nasty code
+        if (index < CACHED_UPPER.size()){
+            return CACHED_UPPER[index];
+        } else if (index < CACHED_UPPER.size() + CACHED_LOWER.size()){
+            int i = index - CACHED_UPPER.size();
+            if (CACHED_LOWER[i] == "_"){
+                return " ";
+            }
+            return CACHED_LOWER[i];
+        } else {
+            return " ";
+        }
+    }
+
+    void PutCharacter(char c){
+        if (curText.length() < maxLength) {
+            curText.push_back(c);
+        }
+    }
+
+    void EraseCharacter(){
+        if (curText.length() > 0){
+            curText.pop_back();
+        }
+    }
+
+    void AcceptInput(){
+        isActive = false;
+        if (callback != NULL){
+            (*callback)(curText);
+        }
+        DEBUG("Accepted input: %s",curText.c_str());
     }
 
     void DrawLetterSet(Rectangle region, std::vector<std::string>& letters, uint offsetID=0) {
@@ -718,7 +767,7 @@ bool ShowInputBox(const char* title, InputBoxEntered callback, const char* defTe
 }
 
 void UpdateAndRenderInputBoxes(float delta){
-    if (ActiveInputBox.isActive){
+   if (ActiveInputBox.isActive){
         ActiveInputBox.UpdateAndRender(delta);
     }
 }

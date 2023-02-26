@@ -292,27 +292,33 @@ static std::string ParsePath(const char* file, const char* folder=NULL) {
 
     std::string output = "";
 
-    // add extension if i forgor
-    if (TextIsEqual(GetFileNameWithoutExt(file),file)){
-        output = TextFormat("%s.comps",file);
-    }
-    else {
-        output = file;
-    }
+    // set extension
+    auto path = std::filesystem::path(file);
+    path.replace_extension("comps");
+
+    // add map prefix
+    auto newName = "map_" + path.filename().string();
+    path.replace_filename(newName);
 
     // add folder before if any
     if (folder != NULL && !TextIsEqual(folder,"")){
-        output = TextFormat("%s/%s",folder,output.c_str());
+        path = std::filesystem::path(folder) / path;
     }
 
-    return output;
+    return path.string();
 }
 
 // TODO: put in struct
 static EntityGroup* InteractiveEntityGroup = NULL;
 static const char* InteractiveFolder = NULL;
-static uint InteractiveVersion = NULL;
-static void SaveGroupInteractivelyCallback(std::string text){
+static uint InteractiveVersion = 0;
+static void SaveGroupInteractivelyCallback(std::string& text){
+    // replace spaces with underscores
+    std::replace(text.begin(), text.end(), ' ', '_');
+
+    // make name always lowercase
+    text = TextToLower(text.c_str());
+
     std::string outputStr = ParsePath(text.c_str(),InteractiveFolder);
     if (outputStr.empty()){
         WARN("EntityGroup interactive save cancelled");
@@ -325,7 +331,7 @@ void EntityGroup::SaveGroupInteractively(const char* folder, uint version){
     InteractiveFolder = folder;
     InteractiveEntityGroup = this;
     InteractiveVersion = version;
-    if (ShowInputBox("Save entity group", &SaveGroupInteractivelyCallback, "map_mylevel.comps", 4, 32)){
+    if (!ShowInputBox("Save entity group", &SaveGroupInteractivelyCallback, "mylevel", 4, 32)){
         ERROR("Another input box is already opened!");
     }
 }
