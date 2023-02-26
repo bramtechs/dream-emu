@@ -18,9 +18,9 @@ void ButtonGroup::reset(){
 
 }
 
-void ButtonGroup::poll(){
+void ButtonGroup::poll(bool useWASD){
     // move cursor up and down
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)){
+    if ( IsKeyPressed(KEY_DOWN) || (useWASD && IsKeyPressed(KEY_S)) ){
         selected++;
         goingUp = false;
 
@@ -29,9 +29,48 @@ void ButtonGroup::poll(){
         PlaySound(sound);
 
     }
-    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)){
+    if ( IsKeyPressed(KEY_UP) || (useWASD && IsKeyPressed(KEY_W)) ){
         selected--;
         goingUp = true;
+
+        // play sound
+        Sound sound = RequestSound("sfx_core_hover");
+        PlaySound(sound);
+    }
+    selected = Wrap(selected,0,count);
+}
+
+void ButtonGroup::pollGrid(uint cols, bool useWASD){
+    // move cursor left and right
+    if ( IsKeyPressed(KEY_RIGHT) || (useWASD && IsKeyPressed(KEY_D)) ){
+        selected++;
+        goingUp = false;
+
+        // play sound
+        Sound sound = RequestSound("sfx_core_hover");
+        PlaySound(sound);
+    }
+    if ( IsKeyPressed(KEY_LEFT) || (useWASD && IsKeyPressed(KEY_A)) ){
+        selected--;
+        goingUp = true;
+
+        // play sound
+        Sound sound = RequestSound("sfx_core_hover");
+        PlaySound(sound);
+    }
+
+    // vertical movement
+    if ( IsKeyPressed(KEY_UP) || (useWASD && IsKeyPressed(KEY_W)) ){
+        selected -= cols+1;
+        goingUp = true;
+
+        // play sound
+        Sound sound = RequestSound("sfx_core_hover");
+        PlaySound(sound);
+    }
+    if ( IsKeyPressed(KEY_DOWN) || (useWASD && IsKeyPressed(KEY_S)) ){
+        selected += cols+1;
+        goingUp = false;
 
         // play sound
         Sound sound = RequestSound("sfx_core_hover");
@@ -66,6 +105,31 @@ bool ButtonGroup::IsButtonSelected(int* index){
 static void DrawPanel(Rectangle rect, Color bgColor=BLACK, Color borColor=WHITE){
     DrawRectangleRec(rect, bgColor);
     DrawRectangleLinesEx(rect, 4.f, borColor);
+}
+
+static void DrawMenuTriangle(Vector2 center, Color color=WHITE, float scale = 10.f,
+                                                                float oscil = 0.5f,
+                                                                bool tumbleMode=false){
+    Vector2 vertices[3] = {
+        {-1,-1},
+        {-1, 1},
+        { 1, 0},
+    };
+
+    float offsetX = 0.f;
+    if (!tumbleMode){
+        offsetX = (sinf(GetTime()*oscil)+1)*0.5f*oscil;
+    }
+
+    for (int i = 0; i < 3; i++){
+        if (tumbleMode) {
+            vertices[i].y *= (sinf(GetTime()*3.f)+1)*0.5f;
+        }
+        vertices[i].x = center.x+offsetX+(vertices[i].x*scale);
+        vertices[i].y = center.y+(vertices[i].y*scale);
+    }
+
+    DrawTriangleStrip(vertices,3,color);
 }
 
 // === PopMenu + config ===
@@ -200,29 +264,6 @@ int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
     size.y += textSize.y;
 
     return buttonCount++;
-}
-
-void PopMenu::DrawMenuTriangle(Vector2 center, Color color){
-    Vector2 vertices[3] = {
-        {-1,-1},
-        {-1, 1},
-        { 1, 0},
-    };
-
-    float offsetX = 0.f;
-    if (!config.arrowTumbleMode){
-        offsetX = (sinf(GetTime()*config.arrowOscil)+1)*0.5f*config.arrowOscil;
-    }
-
-    for (int i = 0; i < 3; i++){
-        if (config.arrowTumbleMode) {
-            vertices[i].y *= (sinf(GetTime()*3.f)+1)*0.5f;
-        }
-        vertices[i].x = center.x+offsetX+(vertices[i].x*config.arrowScale);
-        vertices[i].y = center.y+(vertices[i].y*config.arrowScale);
-    }
-
-    DrawTriangleStrip(vertices,3,color);
 }
 
 bool PopMenu::IsInFocus(){
@@ -491,13 +532,19 @@ bool MainMenu::UpdateAndDraw(float delta) {
 
 // virtual keyboard
 
-std::string ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz";
 std::string ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+std::string ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz";
+std::vector<std::string> ALPHABET_EXTRA = { "_", "Del", "Return" };
+
+std::vector<std::string> CACHED_LOWER;
+std::vector<std::string> CACHED_UPPER;
 
 struct InputBox {
     int WIDTH = 400;
     int HEIGHT = 250;
     int PADDING = 15;
+    int LETTERS_PER_ROW = 9;
+    int FONT_SIZE = 18;
 
     bool isActive;
     std::string title;
@@ -506,8 +553,11 @@ struct InputBox {
     uint minLength;
     uint maxLength;
 
+    ButtonGroup group;
+
     InputBox() {
         this->isActive = false;
+        this->group.reset();
     }
 
     InputBox(const char* title, InputBoxEntered callback, const char* defText, uint minLength, uint maxLength){
@@ -517,6 +567,10 @@ struct InputBox {
         this->callback = callback;
         this->minLength = minLength;
         this->maxLength = maxLength;
+
+        uint id = PopMenus.size();
+        PopMenuFocus f(id,FOCUS_CRITICAL);
+        PopMenus.push_back(f);
     }
 
     void UpdateAndRender(float delta){
@@ -533,30 +587,91 @@ struct InputBox {
 
         // draw title
 
-        float offsetX = MeasureRetroText(title.c_str(),18).x;
+        float offsetX = MeasureRetroText(title.c_str(),FONT_SIZE).x;
         DrawRetroText(title.c_str(), topLeft.x + WIDTH * 0.5f - offsetX * 0.5f,
                                      topLeft.y + PADDING);
 
         // draw input text
-        DrawRetroText(curText.c_str(), topLeft.x + PADDING + 20,
+        const int FLICKER_INTERVAL = 500;
+        const char* displayedText = NULL;
+        if (curText.length() < maxLength && ((int)(GetTime()*1000.f)) % (FLICKER_INTERVAL*2) > FLICKER_INTERVAL){
+            displayedText = TextFormat("%s_",curText.c_str());
+        } else {
+            displayedText = curText.c_str();
+        }
+
+        DrawRetroText(displayedText, topLeft.x + PADDING + 20,
                                        topLeft.y + PADDING + 25);
 
+        // generate letters sets (if not already done)
+        if (CACHED_LOWER.empty()){
+            for (const auto& letter : ALPHABET_LOWER){
+                std::string str = {letter};
+                CACHED_LOWER.push_back(str);
+            }
+            for (const auto& text : ALPHABET_EXTRA){
+                CACHED_LOWER.push_back(text);
+            }
+        }
+        if (CACHED_UPPER.empty()){
+            for (const auto& letter : ALPHABET_UPPER){
+                std::string str = {letter};
+                CACHED_UPPER.push_back(str);
+            }
+            // add padding to create perfect grid
+            for (int i = 0; i < 4; i++){
+                CACHED_UPPER.push_back("");
+            }
+        }
+
         // draw letters
+        this->group.reset();
+
         Rectangle lowerRegion = {
             topLeft.x + PADDING, topLeft.y + PADDING + 60,
             (float) WIDTH - PADDING*2, (float) 90
         };
-        DrawLetterSet(lowerRegion, ALPHABET_LOWER);
+        DrawLetterSet(lowerRegion, CACHED_UPPER);
 
         Rectangle upperRegion = lowerRegion;
-        upperRegion.y += lowerRegion.height + PADDING * 0.5f;
-        DrawLetterSet(upperRegion, ALPHABET_UPPER);
+        upperRegion.y += lowerRegion.height + PADDING * 0.2f;
+        DrawLetterSet(upperRegion, CACHED_LOWER, CACHED_UPPER.size());
+
+        // poll for input
+        this->group.pollGrid(LETTERS_PER_ROW, false);
+
+        // typing with keyboard (with what else lol)
+        if (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT)){
+            // TODO: prevent typing when pressing shift as it is buggy
+        }else{
+            char c = (char) GetKeyPressed();
+            if (c == 1){ // pressed enter
+                // TODO:
+            }
+            else if (c == 3){ // pressed backspace
+                if (curText.length() > 0){
+                    curText.pop_back();
+                }
+            }
+            else if (c >= 32 && c <= 127){ // if pressed any useable ascii key + spacebar
+                if (curText.length() < maxLength) {
+                    curText.push_back(c);
+                }
+
+                DEBUG("pressed %c (%d)",c,c);
+                // play type sound
+                // TODO: this is annoying
+                // TODO: play other sound when not accepted
+                Sound sound = RequestSound("sfx_core_confirm");
+                PlaySound(sound);
+            }
+        }
+        
+        DrawRetroText(TextFormat("%d",this->group.selected),topLeft.x+20,topLeft.y+30,16,RED);
     }
 
-    void DrawLetterSet(Rectangle region, std::string& letters) {
-        const int LETTERS_PER_ROW = 10;
-
-        Vector2 aCharSize = MeasureRetroText("a",18);
+    void DrawLetterSet(Rectangle region, std::vector<std::string>& letters, uint offsetID=0) {
+        Vector2 aCharSize = MeasureRetroText("a",FONT_SIZE);
         Vector2 charSize = {
             MAX((region.width - aCharSize.x) / LETTERS_PER_ROW, aCharSize.x),
             MAX((region.height - aCharSize.y) / LETTERS_PER_ROW, aCharSize.y)
@@ -567,8 +682,17 @@ struct InputBox {
         for (int i = 0; i < letters.size(); i++){
             int xx = region.x + x * charSize.x;
             int yy = region.y + y * charSize.y;
-            char text[2] = { letters[i], '\0' };
-            DrawRetroText((const char*) &text, xx, yy);
+
+            bool isSelected = this->group.selected-offsetID == i;
+            //if (isSelected){
+            //    Vector2 arrPos = {
+            //        (float)xx - 8,
+            //        (float)yy + FONT_SIZE * 0.5f - 2
+            //    };
+            //    DrawMenuTriangle(arrPos,WHITE,5.f);
+            //}
+            DrawRetroText(letters[i].c_str(), xx, yy,FONT_SIZE, isSelected ? GRAY:WHITE);
+            this->group.next();
 
             // go to next row
             x++;

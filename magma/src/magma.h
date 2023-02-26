@@ -170,7 +170,8 @@ struct ButtonGroup { // always assign as 'static'
     ButtonGroup();
 
     void reset(); // call right after static constructor
-    void poll(); // navigate menu with keyboard
+    void poll(bool useWASD=true); // navigate menu with keyboard
+    void pollGrid(uint cols, bool useWASD=true); // navigate menu with keyboard (in four directions)
     bool next();
     bool skip(); // used to skip stuff, like labels
 
@@ -217,9 +218,6 @@ struct PopMenu {
 
     bool IsInFocus();
     bool IsButtonSelected(int* index);
-
-private:
-    void DrawMenuTriangle(Vector2 center, Color color=WHITE);
 };
 
 typedef bool (*LayoutMenuFunc)(float delta);

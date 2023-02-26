@@ -210,7 +210,7 @@ int main()
 
     SetTargetFPS(60);
 
-    ShowInputBox("test", NULL, "test", 1, 16);
+    ShowInputBox("Enter your name!", NULL, "Bram", 1, 16);
 
     if (LoadAssets()) {
         LoadMagmaSettings();
