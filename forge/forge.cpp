@@ -333,8 +333,9 @@ bool run(std::string path) {
 #ifdef LINUX
         return run_command({path});
 #elif defined(WINDOWS)
-        // TODO: will not find assets!
-        return run_command({"cd", folder, "&", file });
+        // get absolute path
+        auto absPath = (std::filesystem::current_path() / p).string();
+        return run_command({ absPath });
 #endif
     }
 
