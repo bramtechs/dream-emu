@@ -199,6 +199,9 @@ int main()
 
     Palette palette;
 
+    // vsync
+    SetTargetFPS(60);
+
     // setup editor
     RegisterEntityBuilder(spawn_block);
     RegisterEntityBuilder(spawn_player);
@@ -207,8 +210,6 @@ int main()
     group.RegisterUpdater(update_custom_component);
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
-
-    SetTargetFPS(60);
 
     //ShowInputBox("Enter your name!", NULL, "Bram", 1, 16);
 

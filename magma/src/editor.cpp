@@ -459,6 +459,13 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
     catch(const std::out_of_range &e) {
         DrawText("Invalid editor mode!", 50, 50, 16, RED);
     }
+
+    // toggle framerate
+    static bool isFPSLocked = false;
+    if (IsKeyPressed(KEY_F8)){
+        isFPSLocked = !isFPSLocked;
+        SetTargetFPS(isFPSLocked ? 60:1000);
+    }
 }
 
 void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
