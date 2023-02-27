@@ -420,6 +420,7 @@ struct EntityGroup {
     void SaveGroupInteractively(const char* folder, uint version=0);
 
     EntityID AddEntity();
+    bool EntityExists(EntityID id);
 
     // TODO dispose functions
 
@@ -436,7 +437,7 @@ struct EntityGroup {
     }
 
     std::vector<CompContainer> GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
-    std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL);
+    std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL); // FIX: reference!!!
 
     void RegisterUpdater(UpdateComponentFunc updateFunc);
     void RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug=false);

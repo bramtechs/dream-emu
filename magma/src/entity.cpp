@@ -233,10 +233,59 @@ void EntityGroup::ClearGroup() {
     comps.clear();
 }
 
+#define CHECK(C) if (!(C)) break;
 bool EntityGroup::LoadGroup(const char* fileName) {
-    ClearGroup();
 
-    INFO("TODO: Loaded entitygroup from %s", fileName);
+    auto valid = true;
+    auto buffer = std::ifstream(fileName,std::ofstream::binary);
+
+    do {
+        // TODO: implement proper versioning
+        uint32_t version = 0;
+        buffer.read((char*) &version, sizeof(uint32_t));
+        CHECK(version < 30);
+
+        uint32_t compCount = 0;
+        buffer.read((char*) &compCount, sizeof(uint32_t));
+        CHECK(version < 30000);
+
+        uint32_t entityCount = 0;
+        buffer.read((char*)&entityCount, sizeof(uint32_t));
+
+        std::unordered_map<EntityID, EntityID> mappedEntities;
+        for (int i = 0; i < compCount; i++){
+            EntityID entityID = 0; // uint32_t
+            buffer.read((char*)&entityID, sizeof(uint32_t));
+
+            ItemType compType = 0; // uint32_t
+            buffer.read((char*)&compType, sizeof(uint64_t));
+
+            uint64_t compSize = 0;
+            buffer.read((char*)&compSize, sizeof(uint64_t));
+
+            void* compData = NULL;
+            buffer.read((char*)&compData, compSize);
+
+            // map saved ID's to new EntityID's
+            auto result = mappedEntities.find(entityID);
+            if (result == mappedEntities.end()){
+                EntityID id = AddEntity();
+                mappedEntities.insert({entityID,id});
+                DEBUG("Importing entity %d as %d",entityID,id);
+            }
+            else {
+                assert(result->first == entityID);
+                
+                // register component
+                EntityID destID = result->second;
+
+                // copy over component
+                AddEntityComponent(compType,destID,compData,compSize);
+            }
+        }
+    }
+    while(false);
+
     return false;
 }
 
@@ -340,6 +389,15 @@ EntityID EntityGroup::AddEntity() {
     EntityID id = entityCount;
     entityCount++;
     return id;
+}
+
+bool EntityGroup::EntityExists(EntityID id){
+    for (const auto& comp: GetComponents()){
+        if (comp.first == id){
+            return true;
+        }
+    }
+    return false;
 }
 
 void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, size_t size){
