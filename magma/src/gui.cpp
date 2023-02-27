@@ -354,8 +354,10 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor, EntityGroup* group){
                 CloseWindow();
                 break;
             case 6: // import
-                if (group)
-                    group->LoadGroup("test.comps");
+                if (group) {
+                    group->LoadGroupInteractively();
+                    ToggleGamePaused();
+                }
                 break;
             case 7: // clear
                 if (group)

@@ -33,8 +33,8 @@ void Base::SetCenter(Vector3 pos) {
     bounds.max = Vector3Add(pos, halfSize());
 }
 
-void Base::SetSize(Vector3 size){
-    bounds.max = Vector3Add(bounds.min,size);
+void Base::SetSize(Vector3 size) {
+    bounds.max = Vector3Add(bounds.min, size);
 }
 
 Vector3 Base::center() {
@@ -95,22 +95,22 @@ void Sprite::SetTopLeft(Vector2 pos) {
     bounds.max = Vector2Add(pos, size);
 }
 
-void Sprite::SetSize(Vector2 size){
-    bounds.max = Vector2Add(bounds.min,size);
+void Sprite::SetSize(Vector2 size) {
+    bounds.max = Vector2Add(bounds.min, size);
 }
 
-void Sprite::SetTexture(Texture texture, Rectangle srcRect){
+void Sprite::SetTexture(Texture texture, Rectangle srcRect) {
     this->texture = texture;
     if (srcRect.x == 0 && srcRect.y == 0 &&
-        srcRect.width == 0 && srcRect.height == 0){
+        srcRect.width == 0 && srcRect.height == 0) {
         this->srcRect = { 0.f, 0.f,
-                         (float) floorf(texture.width), (float) floorf(texture.height) };
+                         (float)floorf(texture.width), (float)floorf(texture.height) };
     }
-    else{
+    else {
         this->srcRect = srcRect;
     }
 
-    SetSize({this->srcRect.width,this->srcRect.height});
+    SetSize({ this->srcRect.width,this->srcRect.height });
 }
 
 void Sprite::SetFlipped(bool hFlip, bool vFlip) {
@@ -130,9 +130,9 @@ void Sprite::SetVisible(bool isVisible) {
     this->isVisible = isVisible;
 }
 
-Rectangle Sprite::region(){
+Rectangle Sprite::region() {
     Vector2 size = this->size();
-    return {bounds.min.x , bounds.min.y, size.x, size.y};
+    return { bounds.min.x , bounds.min.y, size.x, size.y };
 }
 
 Vector2 Sprite::center() {
@@ -227,66 +227,68 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
 
 void EntityGroup::ClearGroup() {
     entityCount = 0;
-    for (const auto& comp : comps){
+    for (const auto& comp : comps) {
         M_MemFree(comp.second.data);
     }
     comps.clear();
 }
 
-#define CHECK(C) if (!(C)) break;
+#define CHECK(C) if (!(C)) return false;
 bool EntityGroup::LoadGroup(const char* fileName) {
 
     auto valid = true;
-    auto buffer = std::ifstream(fileName,std::ofstream::binary);
+    auto buffer = std::ifstream(fileName, std::ofstream::binary);
 
-    do {
-        // TODO: implement proper versioning
-        uint32_t version = 0;
-        buffer.read((char*) &version, sizeof(uint32_t));
-        CHECK(version < 30);
+    // TODO: implement proper versioning
+    uint32_t version = 0;
+    buffer.read((char*)&version, sizeof(uint32_t));
+    CHECK(version < 30);
 
-        uint32_t compCount = 0;
-        buffer.read((char*) &compCount, sizeof(uint32_t));
-        CHECK(version < 30000);
+    uint32_t compCount = 0;
+    buffer.read((char*)&compCount, sizeof(uint32_t));
+    CHECK(version < 30000);
 
-        uint32_t entityCount = 0;
-        buffer.read((char*)&entityCount, sizeof(uint32_t));
+    uint32_t entityCount = 0;
+    buffer.read((char*)&entityCount, sizeof(uint32_t));
 
-        std::unordered_map<EntityID, EntityID> mappedEntities;
-        for (int i = 0; i < compCount; i++){
-            EntityID entityID = 0; // uint32_t
-            buffer.read((char*)&entityID, sizeof(uint32_t));
+    auto mappedEntities = std::multimap<EntityID, EntityID>();
+    for (int i = 0; i < compCount; i++) {
+        EntityID entityID = 0; // uint32_t
+        buffer.read((char*)&entityID, sizeof(uint32_t));
 
-            ItemType compType = 0; // uint32_t
-            buffer.read((char*)&compType, sizeof(uint64_t));
+        ItemType compType = 0; // uint32_t
+        buffer.read((char*)&compType, sizeof(uint32_t));
 
-            uint64_t compSize = 0;
-            buffer.read((char*)&compSize, sizeof(uint64_t));
+        uint64_t compSize = 0;
+        buffer.read((char*)&compSize, sizeof(uint64_t));
 
-            void* compData = NULL;
-            buffer.read((char*)&compData, compSize);
+        void* compData = M_MemAlloc(compSize);
+        buffer.read((char*)compData, compSize);
 
-            // map saved ID's to new EntityID's
-            auto result = mappedEntities.find(entityID);
-            if (result == mappedEntities.end()){
-                EntityID id = AddEntity();
-                mappedEntities.insert({entityID,id});
-                DEBUG("Importing entity %d as %d",entityID,id);
-            }
-            else {
-                assert(result->first == entityID);
-                
-                // register component
-                EntityID destID = result->second;
-
-                // copy over component
-                AddEntityComponent(compType,destID,compData,compSize);
+        // map saved ID's to new EntityID's
+        bool exists = false;
+        EntityID destID = 0;
+        for (const auto& entry : mappedEntities) {
+            if (entry.first == entityID) {
+                exists = true;
+                destID = entry.second;
+                break;
             }
         }
+        if (exists) {
+            // copy over component
+            AddEntityComponent(compType, destID, compData, compSize);
+            // memfree readed data
+            M_MemFree(compData);
+        }
+        else {
+            EntityID id = AddEntity();
+            mappedEntities.insert({ entityID,id });
+            DEBUG("Importing entity %d as %d", entityID, id);
+        }
     }
-    while(false);
-
-    return false;
+    buffer.close();
+    return true;
 }
 
 bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
@@ -297,30 +299,30 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
     auto buffer = std::ofstream(fileName, std::ofstream::binary);
 
     // version
-    buffer.write((char*)&version,sizeof(uint32_t));
+    buffer.write((char*)&version, sizeof(uint32_t));
 
     // component count
-    auto size = (uint32_t) comps.size();
+    auto size = (uint32_t)comps.size();
     buffer.write((char*)&size, sizeof(uint32_t));
 
     // entity count for checking
-    auto ecount = (uint32_t) entityCount;
+    auto ecount = (uint32_t)entityCount;
     buffer.write((char*)&ecount, sizeof(uint32_t));
 
     // for each component
     for (const auto& comp : comps) {
         // entity id
-        auto id = (uint32_t) comp.first;
+        auto id = (uint32_t)comp.first;
         buffer.write((char*)&id, sizeof(uint32_t));
 
         CompContainer cont = comp.second;
 
         // comptype
-        auto type = (uint32_t) cont.type;
+        auto type = (uint32_t)cont.type;
         buffer.write((char*)&type, sizeof(uint32_t));
 
         // compsize
-        auto csize = (uint64_t) cont.size;
+        auto csize = (uint64_t)cont.size;
         buffer.write((char*)&csize, sizeof(uint64_t));
 
         // raw comp data
@@ -329,13 +331,13 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
 
     buffer.close();
     INFO("Exported entity component to %s", fileName);
-    
+
     // TODO: return false if failed
     return true;
 }
 
-static std::string ParsePath(const char* file, const char* folder=NULL) {
-    if (file == NULL || TextIsEqual(file,"")){
+static std::string ParsePath(const char* file, const char* folder = NULL) {
+    if (file == NULL || TextIsEqual(file, "")) {
         return "";
     }
 
@@ -350,7 +352,7 @@ static std::string ParsePath(const char* file, const char* folder=NULL) {
     path.replace_filename(newName);
 
     // add folder before if any
-    if (folder != NULL && !TextIsEqual(folder,"")){
+    if (folder != NULL && !TextIsEqual(folder, "")) {
         path = std::filesystem::path(folder) / path;
     }
 
@@ -361,27 +363,85 @@ static std::string ParsePath(const char* file, const char* folder=NULL) {
 static EntityGroup* InteractiveEntityGroup = NULL;
 static const char* InteractiveFolder = NULL;
 static uint InteractiveVersion = 0;
-static void SaveGroupInteractivelyCallback(std::string& text){
+static void SaveGroupInteractivelyCallback(std::string& text) {
     // replace spaces with underscores
     std::replace(text.begin(), text.end(), ' ', '_');
 
     // make name always lowercase
     text = TextToLower(text.c_str());
 
-    std::string outputStr = ParsePath(text.c_str(),InteractiveFolder);
-    if (outputStr.empty()){
+    std::string outputStr = ParsePath(text.c_str(), InteractiveFolder);
+    if (outputStr.empty()) {
         WARN("EntityGroup interactive save cancelled");
-    } else {
-        InteractiveEntityGroup->SaveGroup(outputStr.c_str(),InteractiveVersion);
+    }
+    else {
+        InteractiveEntityGroup->SaveGroup(outputStr.c_str(), InteractiveVersion);
     }
 }
 
-void EntityGroup::SaveGroupInteractively(const char* folder, uint version){
+void EntityGroup::SaveGroupInteractively(const char* folder, uint version) {
     InteractiveFolder = folder;
     InteractiveEntityGroup = this;
     InteractiveVersion = version;
-    if (!ShowInputBox("Save entity group", &SaveGroupInteractivelyCallback, "mylevel", 4, 32)){
+    if (!ShowInputBox("Save entity group", &SaveGroupInteractivelyCallback, "mylevel", 4, 32)) {
         ERROR("Another input box is already opened!");
+    }
+}
+
+void CollectSavedGroups(std::vector<std::string>* groups) {
+    std::vector<std::string> searchPaths = {
+        ".",
+        "./raw_assets",
+        "./temple/raw_assets",
+        "../../temple/raw_assets",
+        "../../raw_assets",
+    };
+
+    for (const auto& path : searchPaths) {
+        FilePathList list = LoadDirectoryFilesEx(path.c_str(), ".comps", true);
+        for (int i = 0; i < list.count; i++) {
+            auto path = list.paths[i];
+            groups->push_back(path);
+            DEBUG("Found map at %s.", path);
+        }
+        UnloadDirectoryFiles(list);
+    }
+}
+
+static std::vector<std::string> InteractiveGroups;
+static PopMenu InteractivePopMenu = PopMenu(FOCUS_CRITICAL);
+void EntityGroup::LoadGroupInteractively(uint version) {
+    // TODO: put in entity_extra maybe
+    InteractiveVersion = version;
+    InteractiveGroups.clear();
+    CollectSavedGroups(&InteractiveGroups);
+}
+
+void EntityGroup::UpdateAndRenderInteractiveGroupLoader() {
+    if (InteractiveGroups.empty()) {
+        return;
+    }
+
+    auto& menu = InteractivePopMenu;
+    menu.RenderPanel();
+
+    for (const auto& group : InteractiveGroups) {
+        // TODO: check versions
+        const char* displayName = TextFormat("v%d - %s", 0, group.c_str());
+        menu.DrawPopButton(displayName);
+    }
+
+    menu.DrawPopButton("-- Cancel");
+    menu.EndButtons();
+
+    int index = 0;
+    if (menu.IsButtonSelected(&index)) {
+        if (index >= 0 && index < InteractiveGroups.size()) {
+            auto path = InteractiveGroups[index].c_str();
+            INFO("Interactively loading level %s...", path);
+            LoadGroup(path);
+        }
+        InteractiveGroups.clear();
     }
 }
 
@@ -391,16 +451,16 @@ EntityID EntityGroup::AddEntity() {
     return id;
 }
 
-bool EntityGroup::EntityExists(EntityID id){
-    for (const auto& comp: GetComponents()){
-        if (comp.first == id){
+bool EntityGroup::EntityExists(EntityID id) {
+    for (const auto& comp : GetComponents()) {
+        if (comp.first == id) {
             return true;
         }
     }
     return false;
 }
 
-void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, size_t size){
+void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, size_t size) {
     // make data stick with a malloc
     CompContainer cont;
     cont.type = type;
@@ -409,10 +469,10 @@ void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, siz
     memcpy(cont.data, data, size);
 
     // add component in system
-    comps.insert({id, cont});
+    comps.insert({ id, cont });
 }
 
-bool EntityGroup::EntityHasComponent(EntityID id, ItemType type){
+bool EntityGroup::EntityHasComponent(EntityID id, ItemType type) {
     for (const auto& comp : comps) {
         if (comp.first == id && comp.second.type == type) {
             return true;
@@ -432,9 +492,9 @@ void* EntityGroup::TryGetEntityComponent(EntityID id, ItemType filter) {
 
 std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemType type) {
     std::vector<CompContainer> conts;
-    for (const auto &comp : comps){
-        if (comp.first == id){
-            if (type == COMP_ALL || comp.second.type == type){
+    for (const auto& comp : comps) {
+        if (comp.first == id) {
+            if (type == COMP_ALL || comp.second.type == type) {
                 CompContainer container = comp.second;
                 conts.push_back(container);
             }
@@ -443,17 +503,17 @@ std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemTyp
     return conts;
 }
 
-std::multimap<EntityID,void*> EntityGroup::GetComponents(ItemType type) {
+std::multimap<EntityID, void*> EntityGroup::GetComponents(ItemType type) {
     std::multimap<EntityID, void*> results;
-    for (const auto &comp : comps) {
-        if (type == COMP_ALL || comp.second.type == type){
-            results.insert({comp.first, comp.second.data});
+    for (const auto& comp : comps) {
+        if (type == COMP_ALL || comp.second.type == type) {
+            results.insert({ comp.first, comp.second.data });
         }
     }
     return results;
 }
 
-static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta){
+static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta) {
     //    switch (comp.second.type) {
     //    case COMP_BASE:
     //    {
@@ -465,96 +525,96 @@ static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta)
 }
 
 #if defined(MAGMA_3D)
-static void Draw3DComponent(EntityGroup& group, IteratedComp& comp){
+static void Draw3DComponent(EntityGroup& group, IteratedComp& comp) {
     switch (comp.second.type) {
-        case COMP_MODEL_RENDERER:
-        {
-            // draw modelrenderers
-            auto renderer = (ModelRenderer*)comp.second.data;
-            auto base = (Base*)GetEntityComponent(comp.first, COMP_BASE);
+    case COMP_MODEL_RENDERER:
+    {
+        // draw modelrenderers
+        auto renderer = (ModelRenderer*)comp.second.data;
+        auto base = (Base*)GetEntityComponent(comp.first, COMP_BASE);
 
-            if (base == NULL) {
-                assert(false); // model renderer has no base! TODO shouldn't crash
-            }
+        if (base == NULL) {
+            assert(false); // model renderer has no base! TODO shouldn't crash
+        }
 
-            Model model = RequestModel(renderer->model);
-            DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
-                Vector3Zero(), 0, Vector3One(), base->tint);
+        Model model = RequestModel(renderer->model);
+        DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
+            Vector3Zero(), 0, Vector3One(), base->tint);
 
-        } break;
+    } break;
     }
 }
-static void Draw3DComponentDebug(EntityGroup& group, IteratedComp& comp){
+static void Draw3DComponentDebug(EntityGroup& group, IteratedComp& comp) {
     switch (comp.first) {
-        case COMP_BASE:
-        {
-            auto base = (Base*)comp.second.data;
-            RayCollision col = base->GetMouseRayCollision(camera);
-            Color tint = col.hit ? WHITE : GRAY;
-            DrawBoundingBox(base->bounds, tint);
-            DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
-        } break;
+    case COMP_BASE:
+    {
+        auto base = (Base*)comp.second.data;
+        RayCollision col = base->GetMouseRayCollision(camera);
+        Color tint = col.hit ? WHITE : GRAY;
+        DrawBoundingBox(base->bounds, tint);
+        DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
+    } break;
     }
 }
 #endif
 
-static void DrawComponent(EntityGroup& group, IteratedComp& comp){
+static void DrawComponent(EntityGroup& group, IteratedComp& comp) {
     switch (comp.second.type) {
-        case COMP_SPRITE:
+    case COMP_SPRITE:
+    {
+        auto sprite = (Sprite*)comp.second.data;
+        if (sprite->isVisible &&
+            sprite->texture.width > 0 &&
+            sprite->texture.height > 0)
         {
-            auto sprite = (Sprite*) comp.second.data;
-            if (sprite->isVisible &&
-                sprite->texture.width > 0 &&
-                sprite->texture.height > 0)
-            {
-                Rectangle dest = BoundingBoxToRect(sprite->bounds);
-                Rectangle src = {
-                    sprite->srcRect.x,
-                    sprite->srcRect.y,
-                    sprite->hFlip ? -sprite->srcRect.width : sprite->srcRect.width,
-                    sprite->vFlip ? -sprite->srcRect.height : sprite->srcRect.height
-                };
-                DrawTexturePro(sprite->texture, src, dest, Vector2Zero(), 0.f, sprite->tint);
-            }
-        } break;
+            Rectangle dest = BoundingBoxToRect(sprite->bounds);
+            Rectangle src = {
+                sprite->srcRect.x,
+                sprite->srcRect.y,
+                sprite->hFlip ? -sprite->srcRect.width : sprite->srcRect.width,
+                sprite->vFlip ? -sprite->srcRect.height : sprite->srcRect.height
+            };
+            DrawTexturePro(sprite->texture, src, dest, Vector2Zero(), 0.f, sprite->tint);
+        }
+    } break;
     }
 }
 
-static void DrawComponentDebug(IteratedComp& comp){
+static void DrawComponentDebug(IteratedComp& comp) {
     switch (comp.first) {
-        case COMP_SPRITE:
-        {
-            auto sprite = (Sprite*)comp.second.data;
-            // RayCollision col = base->GetMouseRayCollision(camera);
-            // Color tint = col.hit ? WHITE : GRAY;
-            Color tint = WHITE;
-            DrawBoundingBox(sprite->bounds, tint);
-            DrawCircleV(sprite->center(), 2.f, RED);
-        } break;
-        default:
-            break;
+    case COMP_SPRITE:
+    {
+        auto sprite = (Sprite*)comp.second.data;
+        // RayCollision col = base->GetMouseRayCollision(camera);
+        // Color tint = col.hit ? WHITE : GRAY;
+        Color tint = WHITE;
+        DrawBoundingBox(sprite->bounds, tint);
+        DrawCircleV(sprite->center(), 2.f, RED);
+    } break;
+    default:
+        break;
     }
 }
 
 void EntityGroup::UpdateGroup(float delta) {
     float scaledDelta = delta * GetTimeScale();
     for (auto& comp : comps) {
-        for (const auto& updater : updaters){
+        for (const auto& updater : updaters) {
             // run update 'hook'
             EntityGroup& group = *this;
-            (*updater)(group,comp,scaledDelta);
+            (*updater)(group, comp, scaledDelta);
         }
     }
 }
 
 void EntityGroup::DrawGroup() {
     for (auto& comp : comps) {
-        for (const auto& drawer : drawers){
+        for (const auto& drawer : drawers) {
             // run draw 'hook' if not debug
             EntityGroup& group = *this;
             bool isDebug = drawer.second;
             if (!isDebug) {
-                (*drawer.first)(group,comp);
+                (*drawer.first)(group, comp);
             }
         }
     }
@@ -562,15 +622,16 @@ void EntityGroup::DrawGroup() {
 
 void EntityGroup::DrawGroupDebug() {
     for (auto& comp : comps) {
-        for (const auto& drawer : drawers){
+        for (const auto& drawer : drawers) {
             // run draw 'hook' if debug
             EntityGroup& group = *this;
             bool isDebug = drawer.second;
             if (isDebug) {
-                (*drawer.first)(group,comp);
+                (*drawer.first)(group, comp);
             }
         }
     }
+    UpdateAndRenderInteractiveGroupLoader();
 }
 
 EntityGroup::EntityGroup() {
@@ -587,10 +648,10 @@ EntityGroup::EntityGroup() {
     RegisterUpdater(UpdateExtendedComponent);
 }
 
-void EntityGroup::RegisterUpdater(UpdateComponentFunc updateFunc){
+void EntityGroup::RegisterUpdater(UpdateComponentFunc updateFunc) {
     updaters.push_back(updateFunc);
 }
 
-void EntityGroup::RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug){
-    drawers.insert({drawFunc,isDebug});
+void EntityGroup::RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug) {
+    drawers.insert({ drawFunc,isDebug });
 }
