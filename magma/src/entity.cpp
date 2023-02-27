@@ -275,17 +275,26 @@ bool EntityGroup::LoadGroup(const char* fileName) {
                 break;
             }
         }
-        if (exists) {
-            // copy over component
-            AddEntityComponent(compType, destID, compData, compSize);
-            // memfree readed data
-            M_MemFree(compData);
-        }
-        else {
+        if (!exists) {
             EntityID id = AddEntity();
             mappedEntities.insert({ entityID,id });
+            destID = id;
             DEBUG("Importing entity %d as %d", entityID, id);
         }
+
+        // FIX: hack to not crash physics bodies
+        if (compType == COMP_PHYS_BODY) {
+            ((PhysicsBody*)compData)->initialized = false;
+        }
+
+        // copy over component
+        // FIX: loading advanced components crashes the game
+        if (compType != COMP_PLAT_PLAYER && compType != COMP_ANIM_PLAYER) {
+            AddEntityComponent(compType, destID, compData, compSize);
+        }
+
+        // memfree readed data
+        M_MemFree(compData);
     }
     buffer.close();
     return true;
@@ -427,7 +436,11 @@ void EntityGroup::UpdateAndRenderInteractiveGroupLoader() {
 
     for (const auto& group : InteractiveGroups) {
         // TODO: check versions
-        const char* displayName = TextFormat("v%d - %s", 0, group.c_str());
+        std::string smaller = group;
+        while (smaller.size() > 32){
+            smaller.pop_back();
+        }
+        const char* displayName = TextFormat("v%d - %s", 0, smaller.c_str());
         menu.DrawPopButton(displayName);
     }
 
