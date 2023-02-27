@@ -495,9 +495,10 @@ bool EntityGroup::EntityHasComponent(EntityID id, ItemType type) {
 }
 
 void* EntityGroup::TryGetEntityComponent(EntityID id, ItemType filter) {
-    for (const auto& comp : comps) {
-        if (comp.first == id && comp.second.type == filter) {
-            return comp.second.data;
+    auto items = comps.equal_range(id); // get all results
+    for (auto it=items.first; it!=items.second; ++it){
+        if (it->second.type == filter){
+            return it->second.data;
         }
     }
     return NULL;
@@ -505,12 +506,12 @@ void* EntityGroup::TryGetEntityComponent(EntityID id, ItemType filter) {
 
 std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemType type) {
     std::vector<CompContainer> conts;
-    for (const auto& comp : comps) {
-        if (comp.first == id) {
-            if (type == COMP_ALL || comp.second.type == type) {
-                CompContainer container = comp.second;
-                conts.push_back(container);
-            }
+
+    auto items = comps.equal_range(id); // get all results
+    for (auto it=items.first; it!=items.second; ++it){
+        if (type == COMP_ALL || it->second.type == type) {
+            CompContainer container = it->second;
+            conts.push_back(container);
         }
     }
     return conts;
