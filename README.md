@@ -9,6 +9,11 @@ git clone https://github.com/bramtechs/dream-emu.git
 cd dream-emu/forge
 forge.bat runrel
 ```
+> Note: If release builds crash for some reason, try building with debug:
+
+```
+forge.bat run
+```
 
 ## TODO
 - [ ] Dream emulator (some small 3d game to develop my library around)
