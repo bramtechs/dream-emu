@@ -1,5 +1,5 @@
 # Game-dev projects 
-written in c++ with [raylib](https://github.com/raysan5/raylib)
+work-in-progress video games written in c++ with [raylib](https://github.com/raysan5/raylib), relying on an ECS kind of system.
 
 ## Compilation + Running
 using *Developer Command Prompt for VS 2022*
