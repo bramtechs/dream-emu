@@ -35,7 +35,7 @@ void InitMagmaWindow(int winWidth, int winHeight, const char* title) {
 
     assert(winWidth > 0 && winHeight > 0);
 
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(winWidth, winHeight, title);
     SetWindowMinSize(winWidth / 2, winHeight / 2);
     SetWindowPosition((GetMonitorWidth(0) - winWidth) / 2, (GetMonitorHeight(0) - winHeight) / 2);

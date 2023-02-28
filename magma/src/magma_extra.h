@@ -71,6 +71,7 @@ struct AnimationPlayer {
     int curFrame;
     float timer;
 
+    AnimationPlayer();
     AnimationPlayer(const SheetAnimation& startAnim);
 
     void SetAnimation(const SheetAnimation& anim);

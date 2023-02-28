@@ -107,9 +107,15 @@ static void update_custom_component(EntityGroup& group, IteratedComp& comp, floa
         case COMP_FOX_PLAYER:
         {
             auto fox = (FoxPlayer*) comp.second.data;
-            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
-            auto anim = (AnimationPlayer*) group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER);
-            auto plat = (PlatformerPlayer*) group.GetEntityComponent(comp.first, COMP_PLAT_PLAYER);
+
+            Sprite* sprite = NULL;
+            group.GetEntityComponent(comp.first, COMP_SPRITE, &sprite);
+
+            AnimationPlayer* anim = NULL;
+            group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER, &anim);
+
+            PlatformerPlayer* plat = NULL;
+            group.GetEntityComponent(comp.first, COMP_PLAT_PLAYER, &plat);
 
             // look left or right
             sprite->SetFlippedX(!plat->isLookingRight);

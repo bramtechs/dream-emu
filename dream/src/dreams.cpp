@@ -60,6 +60,8 @@ HubDream::HubDream() {
 void HubDream::update(float delta)
 {
     // move skybox around
-    Base *skyBase = (Base*) group.GetEntityComponent(0,COMP_BASE);
+    Base* skyBase = NULL;
+    group.GetEntityComponent(0,COMP_BASE, skyBase);
+
     skyBase->SetCenter(player.camera.position);
 }

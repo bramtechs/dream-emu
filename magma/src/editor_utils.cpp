@@ -45,9 +45,15 @@ static Description DescribeComponentPhysicsBody(void* data){
 
 static Description DescribeComponentAnimationPlayer(void* data){
     auto anim = (AnimationPlayer*) data;
-    return { STRING(AnimationPlayer), TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
-            abs(anim->curFrame),anim->curAnim->name.c_str(),anim->curAnim->fps), YELLOW 
-    };
+    if (anim->curAnim){
+        return { STRING(AnimationPlayer), TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
+                abs(anim->curFrame),anim->curAnim->name.c_str(),anim->curAnim->fps), YELLOW
+        };
+    } else {
+        return { STRING(AnimationPlayer), TextFormat("Frame: %d - NO ANIMATION",
+                abs(anim->curFrame)), YELLOW
+        };
+    }
 }
 
 static Description DescribeComponentPlatformerPlayer(void* data){

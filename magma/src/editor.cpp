@@ -100,7 +100,7 @@ static void ProcNormalMode(EntityGroup& group, Camera* camera, float delta){
                         target = {mouse.x-dragOffset.x,dragPos.y};
                         target.x = Vector2Snap(target,Session.gridSize).x + sprite->halfSize().x;
                     }
-                    else{
+                    else {
                         target = {dragPos.x,mouse.y-dragOffset.y};
                         target.y = Vector2Snap(target,Session.gridSize).y + sprite->halfSize().y;
                     }
@@ -110,8 +110,8 @@ static void ProcNormalMode(EntityGroup& group, Camera* camera, float delta){
                     isDragging = false;
                 }
 
-                auto phys = (PhysicsBody*) group.TryGetEntityComponent(comp.first, COMP_PHYS_BODY);
-                if (phys != NULL){
+                PhysicsBody* phys = NULL;
+                if (group.TryGetEntityComponent(comp.first, COMP_PHYS_BODY, &phys)){
                     // brake sprite when pressing spacebar
                     if (IsKeyPressed(KEY_BACKSPACE) && phys->body) {
                         phys->body->SetLinearVelocity({0.f,0.f});
@@ -222,7 +222,8 @@ static void ProcTextureModeGUI(EntityGroup& group, Camera* camera, float delta){
         // change texture of subject
         assert(Session.hasSubject); 
 
-        auto sprite = (Sprite*) group.GetEntityComponent(Session.subjectID, COMP_SPRITE);
+        Sprite* sprite = NULL;
+        group.GetEntityComponent(Session.subjectID, COMP_SPRITE, &sprite);
 
         Texture newTexture;
         if (HasDefaultPalette()){

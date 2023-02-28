@@ -31,10 +31,15 @@
 
 #define TODO(M) TraceLog(LOG_FATAL,"TODO: %s", M); assert(false);
 
-constexpr int COMP_ALL = 0;
-constexpr int COMP_BASE = 1;
-constexpr int COMP_SPRITE = 2;
-constexpr int COMP_MODEL_RENDERER = 3;
+typedef unsigned int uint;
+typedef uint EntityID;
+typedef uint ItemType;
+typedef int AssetType;
+
+constexpr uint COMP_ALL = 0;
+constexpr uint COMP_BASE = 1;
+constexpr uint COMP_SPRITE = 2;
+constexpr uint COMP_MODEL_RENDERER = 3;
 
 constexpr float PIXELS_PER_UNIT = 16;
 
@@ -73,12 +78,6 @@ constexpr float PIXELS_PER_UNIT = 16;
 
 #define MAX_SPLASHES 8
 #define FADE_DURATION 1
-
-typedef unsigned int uint;
-typedef uint ItemType;
-typedef uint EntityID;
-
-typedef int AssetType;
 
 #undef assert
 inline void assert(bool cond = false) {
@@ -381,6 +380,7 @@ struct CompContainer {
     ItemType type;
     void* data;
     size_t size;
+    bool isStatic;
 };
 
 struct EntityGroup;
@@ -421,24 +421,44 @@ struct EntityGroup {
     void SaveGroupInteractively(const char* folder, uint version=0);
 
     EntityID AddEntity();
+
     bool EntityExists(EntityID id);
+    bool EntityHasComponent(EntityID id, ItemType type);
 
     // TODO dispose functions
-
-    void AddEntityComponent(ItemType type, EntityID id, void* data, size_t size);
-    template <typename T>
-    inline void AddEntityComponent(ItemType type, EntityID id, T data){
-        AddEntityComponent(type, id, (void*)&data, sizeof(T));
+    void* AddEntityComponent(EntityID id, ItemType type, void* data, size_t size);
+    template <typename T> // template fun and crazy time!
+    inline T* AddEntityComponent(EntityID id, ItemType type, T data){
+        return (T*) AddEntityComponent(id, type, (void*)&data, sizeof(T));
     }
 
-    bool EntityHasComponent(EntityID id, ItemType type);
-    void* TryGetEntityComponent(EntityID id, ItemType filter);
-    inline void* GetEntityComponent(EntityID id, ItemType filter){
-        return NN(TryGetEntityComponent(id, filter));
+    template <typename T>
+    bool TryGetEntityComponent(EntityID id, ItemType filter, T** result) {
+        auto items = comps.equal_range(id); // get all results
+        for (auto it=items.first; it!=items.second; ++it){
+            if (it->second.type == filter){
+                *result = (T*) it->second.data;
+                return true;
+            }
+        }
+        *result = NULL;
+        return false;
+    }
+
+    template <typename T>
+    void GetEntityComponent(EntityID id, ItemType filter, T** result) { // get **or create** a component (asserts valid pointer)
+        assert(filter != COMP_ALL);
+        if (!TryGetEntityComponent(id, filter, result)){
+            // lazily attach new component to entity
+            T empty = {};
+            *result = (T*) AddEntityComponent(id, filter, empty);
+            DEBUG("Lazily created component %d on the fly!", filter);
+        }
+        assert(*result != NULL);
     }
 
     std::vector<CompContainer> GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
-    std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL); // FIX: reference!!!
+    std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL);
 
     void RegisterUpdater(UpdateComponentFunc updateFunc);
     void RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug=false);

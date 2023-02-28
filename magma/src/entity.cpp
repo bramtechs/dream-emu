@@ -173,8 +173,11 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
 
     for (const auto& comp : comps) {
         if (comp.first == COMP_MODEL_RENDERER) {
-            auto render = (ModelRenderer*)comp.second.data;
-            auto base = (Base*)GetEntityComponent(comp.first, COMP_BASE);
+            ModelRenderer* render = (ModelRenderer*)comp.second.data;
+
+            Base* base = NULL;
+            GetEntityComponent(comp.first, COMP_BASE, base);
+
             Model model = RequestModel(render->model);
 
             if (render->accurate) { // do per triangle collisions
@@ -473,7 +476,8 @@ bool EntityGroup::EntityExists(EntityID id) {
     return false;
 }
 
-void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, size_t size) {
+void* EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data,
+                                                              size_t size) {
     // make data stick with a malloc
     CompContainer cont;
     cont.type = type;
@@ -483,6 +487,8 @@ void EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data, siz
 
     // add component in system
     comps.insert({ id, cont });
+
+    return cont.data;
 }
 
 bool EntityGroup::EntityHasComponent(EntityID id, ItemType type) {
@@ -492,16 +498,6 @@ bool EntityGroup::EntityHasComponent(EntityID id, ItemType type) {
         }
     }
     return false;
-}
-
-void* EntityGroup::TryGetEntityComponent(EntityID id, ItemType filter) {
-    auto items = comps.equal_range(id); // get all results
-    for (auto it=items.first; it!=items.second; ++it){
-        if (it->second.type == filter){
-            return it->second.data;
-        }
-    }
-    return NULL;
 }
 
 std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemType type) {
@@ -545,11 +541,9 @@ static void Draw3DComponent(EntityGroup& group, IteratedComp& comp) {
     {
         // draw modelrenderers
         auto renderer = (ModelRenderer*)comp.second.data;
-        auto base = (Base*)GetEntityComponent(comp.first, COMP_BASE);
 
-        if (base == NULL) {
-            assert(false); // model renderer has no base! TODO shouldn't crash
-        }
+        Base* base = NULL;
+        GetEntityComponent(comp.first, COMP_BASE, base);
 
         Model model = RequestModel(renderer->model);
         DrawModelEx(model, Vector3Add(base->center(), renderer->offset),

@@ -10,14 +10,15 @@ static AdvEntityGroup* Group = NULL;
 void TranslateEntity(EntityID id, Vector2 offset){
     assert(Group);
 
-    auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
-    if (phys) {
+    PhysicsBody* phys = NULL;
+    if (Group->TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
         b2Vec2 pos = phys->body->GetPosition();
         phys->body->SetTransform({pos.x + offset.x/PIXELS_PER_UNIT,
                                   pos.y + offset.y/PIXELS_PER_UNIT},0.f);
     }
     else {
-        auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
+        Sprite* sprite = NULL;
+        Group->GetEntityComponent(id, COMP_SPRITE, &sprite);
         sprite->Translate(offset);
     }
 }
@@ -25,7 +26,10 @@ void TranslateEntity(EntityID id, Vector2 offset){
 #ifdef MAGMA_3D
 void TranslateEntity(EntityID id, Vector3 offset){
     assert(Group);
-    auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
+
+    Base* base = NULL;
+    Group->GetEntityComponent(id, COMP_BASE);
+
     base->Translate(offset);
 }
 #endif
@@ -33,12 +37,13 @@ void TranslateEntity(EntityID id, Vector3 offset){
 void SetEntityCenter(EntityID id, Vector2 pos){
     assert(Group);
 
-    auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
-    if (phys) {
+    PhysicsBody* phys = NULL;
+    if (Group->TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
         phys->body->SetTransform({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT},0.f);
     }
     else {
-        auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
+        Sprite* sprite = NULL;
+        Group->GetEntityComponent(id, COMP_SPRITE, &sprite);
 
         sprite->SetCenter(pos);
     }
@@ -47,7 +52,10 @@ void SetEntityCenter(EntityID id, Vector2 pos){
 #ifdef MAGMA_3D
 void SetEntityCenter(EntityID id, Vector3 pos){
     assert(Group);
-    auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
+
+    Base* base = NULL;
+    Group->GetEntityComponent(id, COMP_BASE, base);
+
     base->SetCenter(pos);
 }
 #endif
@@ -55,8 +63,8 @@ void SetEntityCenter(EntityID id, Vector3 pos){
 void SetEntitySize(EntityID id, Vector2 size){
     assert(Group);
 
-    auto phys = (PhysicsBody*) Group->TryGetEntityComponent(id, COMP_PHYS_BODY);
-    if (phys) {
+    PhysicsBody* phys = NULL;
+    if (Group->TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
         // TODO:
         b2Fixture* fixture = phys->body->GetFixtureList();
         if(fixture){
@@ -78,8 +86,11 @@ void SetEntitySize(EntityID id, Vector2 size){
             ERROR("Physics object does not have a single fixture with a shape");
         }
     }
-    else {
-        auto sprite = (Sprite*) Group->GetEntityComponent(id, COMP_SPRITE);
+    else
+    {
+        Sprite* sprite = NULL;
+        Group->GetEntityComponent(id, COMP_SPRITE, &sprite);
+
         sprite->SetSize(size);
     }
 }
@@ -87,7 +98,10 @@ void SetEntitySize(EntityID id, Vector2 size){
 #ifdef MAGMA_3D
 void SetEntitySize(EntityID id, Vector3 pos){
     assert(Group);
-    auto base = (Base*) Group->GetEntityComponent(id, COMP_BASE);
+
+    Base* base = NULL;
+    Group->GetEntityComponent(id, COMP_BASE, base);
+
     base->SetSize(pos);
 }
 #endif
@@ -136,6 +150,10 @@ PlatformerPlayer::PlatformerPlayer(float moveSpeed, float jumpForce, PlayerPose 
     this->moveSpeed = moveSpeed;
     this->jumpForce = jumpForce;
     this->pose = defaultPose;
+}
+
+AnimationPlayer::AnimationPlayer()
+    : curFrame(0), curAnim(NULL), timer(0.f) {
 }
 
 AnimationPlayer::AnimationPlayer(const SheetAnimation& startAnim)
@@ -199,7 +217,9 @@ void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delt
         case COMP_ANIM_PLAYER:
         {
             auto animPlayer = (AnimationPlayer*)comp.second.data;
-            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
+
+            Sprite* sprite = NULL;
+            group.GetEntityComponent(comp.first, COMP_SPRITE, &sprite);
 
             // advance current animation
             const SheetAnimation& anim = *animPlayer->curAnim;
@@ -243,8 +263,9 @@ void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delt
         } break;
         case COMP_PHYS_BODY: 
         {
-            auto phys = (PhysicsBody*) comp.second.data;
-            auto sprite = (Sprite*) group.GetEntityComponent(comp.first, COMP_SPRITE);
+            PhysicsBody* phys = (PhysicsBody*) comp.second.data;
+            Sprite* sprite = NULL;
+            group.GetEntityComponent(comp.first, COMP_SPRITE, &sprite);
 
             // init if newly created
             if (!phys->initialized){
@@ -286,9 +307,12 @@ void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delt
         case COMP_PLAT_PLAYER:
         {
             auto plat = (PlatformerPlayer*) comp.second.data;
-            auto phys = (PhysicsBody*) group.GetEntityComponent(comp.first,COMP_PHYS_BODY);
-            phys->body->SetGravityScale(3.f);
-            
+
+            PhysicsBody* phys = NULL;
+            group.GetEntityComponent(comp.first,COMP_PHYS_BODY, &phys);
+
+            phys->body->SetGravityScale(3.f); // TODO: make field
+
             bool isMoving = false;
             b2Vec2 force = { 0.f, -0.01f };
             if (IsKeyDown(KEY_A)){
