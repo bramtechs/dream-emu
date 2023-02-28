@@ -74,7 +74,7 @@ EntityID spawn_block(EntityGroup& group, Vector3 pos){
     Sprite sprite = Sprite({pos.x, pos.y});
     Texture blockTexture = RequestTexture("spr_block");
     sprite.SetTexture(blockTexture);
-    group.AddEntityComponent(COMP_SPRITE, id, sprite);
+    group.AddEntityComponent(id, COMP_SPRITE, sprite, true);
 
     return id;
 }
@@ -85,19 +85,19 @@ EntityID spawn_player(EntityGroup& group, Vector3 pos) {
     Sprite sprite = Sprite({pos.x, pos.y});
     Texture foxTexture = RequestTexture("spr_player_fox");
     sprite.SetTexture(foxTexture);
-    group.AddEntityComponent(COMP_SPRITE, id, sprite);
+    group.AddEntityComponent(id, COMP_SPRITE, sprite, true);
 
     AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_IDLE);
-    group.AddEntityComponent(COMP_ANIM_PLAYER,id,animPlayer);
+    group.AddEntityComponent(id, COMP_ANIM_PLAYER,animPlayer);
 
     PhysicsBody body = PhysicsBody(30.f,0.5f);
-    group.AddEntityComponent(COMP_PHYS_BODY,id,body);
+    group.AddEntityComponent(id, COMP_PHYS_BODY,body);
 
     PlatformerPlayer player = PlatformerPlayer();
-    group.AddEntityComponent(COMP_PLAT_PLAYER,id,player);
+    group.AddEntityComponent(id, COMP_PLAT_PLAYER,player, true);
 
     FoxPlayer fox = FoxPlayer();
-    group.AddEntityComponent(COMP_FOX_PLAYER,id,fox);
+    group.AddEntityComponent(id, COMP_FOX_PLAYER,fox, true);
 
     return id;
 }

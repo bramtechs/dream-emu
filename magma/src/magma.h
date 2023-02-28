@@ -37,6 +37,7 @@ typedef uint ItemType;
 typedef int AssetType;
 
 constexpr uint COMP_ALL = 0;
+constexpr uint COMP_PERSISTENT = 10000;
 constexpr uint COMP_BASE = 1;
 constexpr uint COMP_SPRITE = 2;
 constexpr uint COMP_MODEL_RENDERER = 3;
@@ -380,7 +381,7 @@ struct CompContainer {
     ItemType type;
     void* data;
     size_t size;
-    bool isStatic;
+    bool persistent;
 };
 
 struct EntityGroup;
@@ -426,10 +427,10 @@ struct EntityGroup {
     bool EntityHasComponent(EntityID id, ItemType type);
 
     // TODO dispose functions
-    void* AddEntityComponent(EntityID id, ItemType type, void* data, size_t size);
+    void* AddEntityComponent(EntityID id, ItemType type, void* data, size_t size, bool persistent=false);
     template <typename T> // template fun and crazy time!
-    inline T* AddEntityComponent(EntityID id, ItemType type, T data){
-        return (T*) AddEntityComponent(id, type, (void*)&data, sizeof(T));
+    inline T* AddEntityComponent(EntityID id, ItemType type, T data, bool persistent=false){
+        return (T*) AddEntityComponent(id, type, (void*)&data, sizeof(T), persistent);
     }
 
     template <typename T>
@@ -458,7 +459,7 @@ struct EntityGroup {
     }
 
     std::vector<CompContainer> GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
-    std::multimap<EntityID,void*> GetComponents(ItemType type = COMP_ALL);
+    std::multimap<EntityID,CompContainer> GetComponents(ItemType type = COMP_ALL);
 
     void RegisterUpdater(UpdateComponentFunc updateFunc);
     void RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug=false);

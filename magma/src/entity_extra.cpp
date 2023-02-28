@@ -39,7 +39,9 @@ void SetEntityCenter(EntityID id, Vector2 pos){
 
     PhysicsBody* phys = NULL;
     if (Group->TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
-        phys->body->SetTransform({pos.x/PIXELS_PER_UNIT,pos.y/PIXELS_PER_UNIT},0.f);
+        if (phys->initialized) {
+            phys->body->SetTransform({ pos.x / PIXELS_PER_UNIT,pos.y / PIXELS_PER_UNIT }, 0.f);
+        }
     }
     else {
         Sprite* sprite = NULL;
@@ -162,7 +164,7 @@ AnimationPlayer::AnimationPlayer(const SheetAnimation& startAnim)
 
 void AnimationPlayer::SetAnimation(const SheetAnimation& anim) {
     // don't change animation if it already is playing
-    if (curAnim->name != anim.name) {
+    if (curAnim == NULL || curAnim->name != anim.name) {
         curAnim = &anim;
         timer = 0.f;
         curFrame = 0;
@@ -310,6 +312,9 @@ void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delt
 
             PhysicsBody* phys = NULL;
             group.GetEntityComponent(comp.first,COMP_PHYS_BODY, &phys);
+            if (!phys->initialized) {
+                break;
+            }
 
             phys->body->SetGravityScale(3.f); // TODO: make field
 

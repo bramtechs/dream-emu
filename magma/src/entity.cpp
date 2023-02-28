@@ -292,9 +292,7 @@ bool EntityGroup::LoadGroup(const char* fileName) {
 
         // copy over component
         // FIX: loading advanced components crashes the game
-        if (compType != COMP_PLAT_PLAYER && compType != COMP_ANIM_PLAYER) {
-            AddEntityComponent(compType, destID, compData, compSize);
-        }
+        AddEntityComponent(destID, compType, compData, compSize, true);
 
         // memfree readed data
         M_MemFree(compData);
@@ -304,6 +302,13 @@ bool EntityGroup::LoadGroup(const char* fileName) {
 }
 
 bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
+    // collect saveable/persisting components
+    auto persComps = GetComponents(COMP_PERSISTENT);
+    if (persComps.empty()) {
+        ERROR("There is nothing worth saving!");
+        return false;
+    }
+
     // create parent directory if any
     const char* path = GetDirectoryPath(fileName);
     CreateDirectory(path);
@@ -314,7 +319,7 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
     buffer.write((char*)&version, sizeof(uint32_t));
 
     // component count
-    auto size = (uint32_t)comps.size();
+    auto size = (uint32_t)persComps.size();
     buffer.write((char*)&size, sizeof(uint32_t));
 
     // entity count for checking
@@ -322,7 +327,7 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
     buffer.write((char*)&ecount, sizeof(uint32_t));
 
     // for each component
-    for (const auto& comp : comps) {
+    for (const auto& comp : persComps) {
         // entity id
         auto id = (uint32_t)comp.first;
         buffer.write((char*)&id, sizeof(uint32_t));
@@ -476,13 +481,13 @@ bool EntityGroup::EntityExists(EntityID id) {
     return false;
 }
 
-void* EntityGroup::AddEntityComponent(ItemType type, EntityID id, void* data,
-                                                              size_t size) {
+void* EntityGroup::AddEntityComponent(EntityID id, ItemType type, void* data, size_t size, bool persistent) {
     // make data stick with a malloc
     CompContainer cont;
     cont.type = type;
     cont.data = M_MemAlloc(size);
     cont.size = size;
+    cont.persistent = persistent;
     memcpy(cont.data, data, size);
 
     // add component in system
@@ -513,11 +518,23 @@ std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemTyp
     return conts;
 }
 
-std::multimap<EntityID, void*> EntityGroup::GetComponents(ItemType type) {
-    std::multimap<EntityID, void*> results;
-    for (const auto& comp : comps) {
-        if (type == COMP_ALL || comp.second.type == type) {
-            results.insert({ comp.first, comp.second.data });
+std::multimap<EntityID, CompContainer> EntityGroup::GetComponents(ItemType type) {
+    std::multimap<EntityID, CompContainer> results;
+    if (type == COMP_ALL) { // pass everything
+        results = comps;
+    }
+    else if (type == COMP_PERSISTENT) { // pass saveable
+        for (const auto& comp : comps) {
+            if (comp.second.persistent) {
+                results.insert({ comp.first, comp.second });
+            }
+        }
+    }
+    else { // all other types
+        for (const auto& comp : comps) {
+            if (comp.second.type == type) {
+                results.insert({ comp.first, comp.second });
+            }
         }
     }
     return results;

@@ -270,9 +270,9 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta){
 
     // draw the physics shapes
     Color col = ColorAlpha(ORANGE,0.8f);
-    std::multimap<EntityID,void*> physBodies = group.GetComponents(COMP_PHYS_BODY);
+    std::multimap<EntityID,CompContainer> physBodies = group.GetComponents(COMP_PHYS_BODY);
     for (auto& phys: physBodies){
-        auto physBody = (PhysicsBody*) phys.second;
+        auto physBody = (PhysicsBody*) phys.second.data;
         DrawBox2DBody(physBody,col,true);
     }
 }
@@ -444,7 +444,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
         for (const auto &cont : group.GetEntityComponents(Session.subjectID)){
             // call descriptor to describe the component where dealing with, (fancy toString() function)
             auto desc = DescribeComponent(cont);
-            const char* format = TextFormat("--> %s\n%s", desc.typeName.c_str(), desc.info.c_str());
+            const char* format = TextFormat("--> %s %s\n%s", desc.typeName.c_str(),cont.persistent ? "(PERSIST)":"", desc.info.c_str());
             DrawRetroText(format,x,y,FONT_SIZE,desc.color);
             y += MeasureRetroText(format,FONT_SIZE).y + 10;
         }

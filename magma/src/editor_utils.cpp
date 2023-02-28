@@ -30,7 +30,7 @@ static Description DescribeComponentSprite(void* data){
 
 static Description DescribeComponentPhysicsBody(void* data){
     auto phys = (PhysicsBody*) data;
-    if (phys->body){
+    if (phys->initialized && phys->body){
         b2Vec2 pos = phys->body->GetPosition();
         b2Vec2 vel = phys->body->GetLinearVelocity();
         float mass = phys->body->GetMass();
@@ -203,9 +203,9 @@ static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos){
     // convert pixel- to physics coordinates
     centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
 
-    std::multimap<EntityID,void*> physBodies = group.GetComponents(COMP_PHYS_BODY);
+    std::multimap<EntityID,CompContainer> physBodies = group.GetComponents(COMP_PHYS_BODY);
     for (auto& phys: physBodies){
-         auto physBody = (PhysicsBody*) phys.second;
+         auto physBody = (PhysicsBody*) phys.second.data;
          b2Vec2 ePos = physBody->body->GetWorldCenter();
          if (FloatEquals(ePos.x, centerPos.x) && FloatEquals(ePos.y, centerPos.y)) {
             return true;
