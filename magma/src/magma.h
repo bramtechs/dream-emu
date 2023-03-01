@@ -395,7 +395,9 @@ struct EntityGroup {
     std::multimap<EntityID, CompContainer> comps;
     std::multimap<DrawComponentFunc,bool> drawers;
     std::vector<UpdateComponentFunc> updaters;
-    uint entityCount;
+
+    uint nextEntity;
+    uint entityCount; // FIX: change
 
     EntityGroup();
 
@@ -422,6 +424,8 @@ struct EntityGroup {
     bool SaveGroup(const char* fileName, uint version=0);
 
     EntityID AddEntity();
+    void DestroyEntity(EntityID id);
+
     bool EntityExists(EntityID id);
     bool EntityHasComponent(EntityID id, ItemType type);
 

@@ -88,10 +88,10 @@ static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos){
     sprite.SetSize(Session.gridSize,Session.gridSize);
     sprite.SetCenter(pos.x,pos.y);
     sprite.Hide();
-    group.AddEntityComponent(COMP_SPRITE, id, sprite);
+    group.AddEntityComponent(id, COMP_SPRITE, sprite);
 
     PhysicsBody body = PhysicsBody(false);
-    group.AddEntityComponent(COMP_PHYS_BODY,id,body);
+    group.AddEntityComponent(id, COMP_PHYS_BODY,body);
 
     return id;
 }
@@ -177,18 +177,27 @@ static void DrawBox2DBody(PhysicsBody* phys, Color color=GRAY, bool fill=false){
                 {
                     assert(sizeof(b2Vec2) == sizeof(Vector2));
                     auto poly = (b2PolygonShape*) shape;
-                    Vector2 vertCpy[8];
-                    for (int i = 0; i < 8; i++) {
+                    size_t vertexCount = poly->m_count;
+                    std::vector<Vector2> vertCpy(vertexCount);
+                    for (int i = 0; i < vertexCount; i++) {
                         Vector2 origVert = *(Vector2*) & poly->m_vertices[i];
                         Vector2 scled = Vector2Add(origVert, worldPos);
                         scled = Vector2Scale(scled,PIXELS_PER_UNIT);
                         vertCpy[i] = scled;
                     }
-                    if (fill){
+                    if (fill) {
+                        // quick and dirty wireframe drawing
+                        for (int i = 0; i < vertexCount; i++){
+                            for (int j = 0; j < vertexCount; j++){
+                                if (i == j) continue;
+                                DrawLineEx(vertCpy[i], vertCpy[j], 1.f, color);
+                            }
+                        }
+
                         b2Vec2 center = phys->body->GetWorldCenter();
                         DrawCircle(center.x*PIXELS_PER_UNIT, center.y*PIXELS_PER_UNIT, 4.f, color);
                     }
-                    DrawLineStrip(vertCpy, poly->m_count, color);
+                    DrawLineStrip(&vertCpy[0], vertexCount, color);
                 }
                 break;
             default:
@@ -199,7 +208,7 @@ static void DrawBox2DBody(PhysicsBody* phys, Color color=GRAY, bool fill=false){
     }
 }
 
-static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos){
+static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos, EntityID* id=NULL){
     // convert pixel- to physics coordinates
     centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
 
@@ -208,9 +217,13 @@ static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos){
          auto physBody = (PhysicsBody*) phys.second.data;
          b2Vec2 ePos = physBody->body->GetWorldCenter();
          if (FloatEquals(ePos.x, centerPos.x) && FloatEquals(ePos.y, centerPos.y)) {
+            if (id)
+                *id = phys.first;
             return true;
          }
     }
+    if (id)
+        *id = 0;
     return false;
 }
 

@@ -254,14 +254,19 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta){
 
     if (IsMouseButtonDown(0)){
         // prevent placing hitbox ontop of an existing one
-
         Vector2 spawnPos = {
             snapPos.x + Session.gridSize*0.5f,
             snapPos.y + Session.gridSize*0.5f
         };
 
-        if (!IsHitboxAtPos(group, spawnPos)){
-            EntityID id = SpawnWallBrush(group, Vector2ToVector3(spawnPos));
+        EntityID touchedID = 0;
+        if (IsHitboxAtPos(group,spawnPos, &touchedID)){
+            if (Session.removingHitboxes){
+                // remove the hitbox
+                group.DestroyEntity(touchedID);
+            }
+        }else if (!Session.removingHitboxes){
+            SpawnWallBrush(group, Vector2ToVector3(spawnPos));
         }
     }
     if (IsKeyPressed(KEY_BACKSPACE)) {
@@ -273,7 +278,8 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta){
     std::multimap<EntityID,CompContainer> physBodies = group.GetComponents(COMP_PHYS_BODY);
     for (auto& phys: physBodies){
         auto physBody = (PhysicsBody*) phys.second.data;
-        DrawBox2DBody(physBody,col,true);
+        Color color = Session.removingHitboxes ? RED:ORANGE;
+        DrawBox2DBody(physBody, color, true);
     }
 }
 
@@ -435,7 +441,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta){
     y += 20;
 
     // draw selected sprite properties
-    const char* header = TextFormat("Entity count: %d\nSelected Entity: %d\n=== Components ====",group.entityCount,Session.subjectID);
+    const char* header = TextFormat("Entity count: %d\nNext entity: %d\nSelected Entity: %d\n=== Components ====",group.entityCount,group.nextEntity,Session.subjectID);
     DrawRetroText(header,x,y,FONT_SIZE,WHITE);
     y += MeasureRetroText(header,FONT_SIZE).y + 20;
 

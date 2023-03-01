@@ -230,6 +230,7 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
 
 void EntityGroup::ClearGroup() {
     entityCount = 0;
+    nextEntity = 0;
     for (const auto& comp : comps) {
         M_MemFree(comp.second.data);
     }
@@ -355,9 +356,31 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
 
 // TODO: put in struct
 EntityID EntityGroup::AddEntity() {
-    EntityID id = entityCount;
+    EntityID id = nextEntity;
     entityCount++;
+    nextEntity++;
     return id;
+}
+
+void EntityGroup::DestroyEntity(EntityID id) {
+    // manually free memory
+    size_t count = 0;
+    auto items = comps.equal_range(id); // get all results
+    for (auto it=items.first; it!=items.second; ++it){
+        M_MemFree(it->second.data);
+        count++;
+    }
+
+    if (count > 0){
+        // remove all components with id
+        comps.erase(id);
+
+        entityCount--;
+        DEBUG("Removed entity %d with %d components.",id ,count);
+    }
+    else{
+        WARN("Entity %d can't be removed as it doesn't exist!",id);
+    }
 }
 
 bool EntityGroup::EntityExists(EntityID id) {
@@ -548,6 +571,7 @@ void EntityGroup::DrawGroupDebug() {
 
 EntityGroup::EntityGroup() {
     this->entityCount = 0;
+    this->nextEntity = 0;
 
     // add stock updators, drawers
     RegisterUpdater(UpdateComponent);
