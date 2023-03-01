@@ -310,7 +310,7 @@ static PauseMenuSession PauseSession = PauseMenuSession();
 // TODO: remove
 static bool IsMuted = false;
 
-void UpdateAndRenderPauseMenu(float delta, Color bgColor, EntityGroup* group){
+void UpdateAndRenderPauseMenu(float delta, Color bgColor, AdvEntityGroup* group){
     if (IsKeyPressed(KEY_ESCAPE)){
         ToggleGamePaused();
     }

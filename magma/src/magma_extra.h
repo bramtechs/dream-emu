@@ -86,6 +86,13 @@ struct AdvEntityGroup : EntityGroup {
 
     void ClearGroup();
     void UpdateGroup(float delta);
+    void DrawGroupDebug();
+
+    void SaveGroupInteractively(const char* folder, uint version=0);
+    void LoadGroupInteractively(uint version=0);
+
+private:
+    void UpdateAndRenderInteractiveGroupLoader();
 };
 
 // TODO: rewrite in ECS
@@ -166,3 +173,6 @@ inline void ResetEntityTranslation(EntityID id){
 #endif
 
 void SimplifyHitboxes(EntityGroup& group);
+
+// gui
+void UpdateAndRenderPauseMenu(float delta, Color bgColor=BLANK, AdvEntityGroup* group=NULL); // returns whether game should pause

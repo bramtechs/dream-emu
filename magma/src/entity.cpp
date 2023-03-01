@@ -353,119 +353,7 @@ bool EntityGroup::SaveGroup(const char* fileName, uint32_t version) {
     return true;
 }
 
-static std::string ParsePath(const char* file, const char* folder = NULL) {
-    if (file == NULL || TextIsEqual(file, "")) {
-        return "";
-    }
-
-    std::string output = "";
-
-    // set extension
-    auto path = std::filesystem::path(file);
-    path.replace_extension("comps");
-
-    // add map prefix
-    auto newName = "map_" + path.filename().string();
-    path.replace_filename(newName);
-
-    // add folder before if any
-    if (folder != NULL && !TextIsEqual(folder, "")) {
-        path = std::filesystem::path(folder) / path;
-    }
-
-    return path.string();
-}
-
 // TODO: put in struct
-static EntityGroup* InteractiveEntityGroup = NULL;
-static const char* InteractiveFolder = NULL;
-static uint InteractiveVersion = 0;
-static void SaveGroupInteractivelyCallback(std::string& text) {
-    // replace spaces with underscores
-    std::replace(text.begin(), text.end(), ' ', '_');
-
-    // make name always lowercase
-    text = TextToLower(text.c_str());
-
-    std::string outputStr = ParsePath(text.c_str(), InteractiveFolder);
-    if (outputStr.empty()) {
-        WARN("EntityGroup interactive save cancelled");
-    }
-    else {
-        InteractiveEntityGroup->SaveGroup(outputStr.c_str(), InteractiveVersion);
-    }
-}
-
-void EntityGroup::SaveGroupInteractively(const char* folder, uint version) {
-    InteractiveFolder = folder;
-    InteractiveEntityGroup = this;
-    InteractiveVersion = version;
-    if (!ShowInputBox("Save entity group", &SaveGroupInteractivelyCallback, "mylevel", 4, 32)) {
-        ERROR("Another input box is already opened!");
-    }
-}
-
-void CollectSavedGroups(std::vector<std::string>* groups) {
-    std::vector<std::string> searchPaths = {
-        ".",
-        "./raw_assets",
-        "./temple/raw_assets",
-        "../../temple/raw_assets",
-        "../../raw_assets",
-    };
-
-    for (const auto& path : searchPaths) {
-        FilePathList list = LoadDirectoryFilesEx(path.c_str(), ".comps", true);
-        for (int i = 0; i < list.count; i++) {
-            auto path = list.paths[i];
-            groups->push_back(path);
-            DEBUG("Found map at %s.", path);
-        }
-        UnloadDirectoryFiles(list);
-    }
-}
-
-static std::vector<std::string> InteractiveGroups;
-static PopMenu InteractivePopMenu = PopMenu(FOCUS_CRITICAL);
-void EntityGroup::LoadGroupInteractively(uint version) {
-    // TODO: put in entity_extra maybe
-    InteractiveVersion = version;
-    InteractiveGroups.clear();
-    CollectSavedGroups(&InteractiveGroups);
-}
-
-void EntityGroup::UpdateAndRenderInteractiveGroupLoader() {
-    if (InteractiveGroups.empty()) {
-        return;
-    }
-
-    auto& menu = InteractivePopMenu;
-    menu.RenderPanel();
-
-    for (const auto& group : InteractiveGroups) {
-        // TODO: check versions
-        std::string smaller = group;
-        while (smaller.size() > 32){
-            smaller.pop_back();
-        }
-        const char* displayName = TextFormat("v%d - %s", 0, smaller.c_str());
-        menu.DrawPopButton(displayName);
-    }
-
-    menu.DrawPopButton("-- Cancel");
-    menu.EndButtons();
-
-    int index = 0;
-    if (menu.IsButtonSelected(&index)) {
-        if (index >= 0 && index < InteractiveGroups.size()) {
-            auto path = InteractiveGroups[index].c_str();
-            INFO("Interactively loading level %s...", path);
-            LoadGroup(path);
-        }
-        InteractiveGroups.clear();
-    }
-}
-
 EntityID EntityGroup::AddEntity() {
     EntityID id = entityCount;
     entityCount++;
@@ -656,7 +544,6 @@ void EntityGroup::DrawGroupDebug() {
             }
         }
     }
-    UpdateAndRenderInteractiveGroupLoader();
 }
 
 EntityGroup::EntityGroup() {

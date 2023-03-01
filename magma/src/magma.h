@@ -417,12 +417,9 @@ struct EntityGroup {
 
     void ClearGroup();
     bool LoadGroup(const char* fileName);
-    void LoadGroupInteractively(uint version=0); // TODO: should be in AdvEntityGroup
     bool SaveGroup(const char* fileName, uint version=0);
-    void SaveGroupInteractively(const char* folder, uint version=0);
 
     EntityID AddEntity();
-
     bool EntityExists(EntityID id);
     bool EntityHasComponent(EntityID id, ItemType type);
 
@@ -467,9 +464,6 @@ struct EntityGroup {
     void UpdateGroup(float delta);
     void DrawGroup();
     void DrawGroupDebug();
-
-private:
-    void UpdateAndRenderInteractiveGroupLoader();
 };
 
 #include "magma_extra.h"
@@ -580,7 +574,6 @@ void LoadMagmaSettings();
 bool CreateDirectory(const char* path);
 
 // gui
-void UpdateAndRenderPauseMenu(float delta, Color bgColor=BLANK, EntityGroup* group=NULL); // returns whether game should pause
 bool GameIsPaused();
 void PauseGame();
 void UnpauseGame();
