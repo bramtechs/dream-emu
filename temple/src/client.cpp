@@ -180,13 +180,14 @@ static bool layout_menu(float delta){
     return false;
 }
 
-int main()
+int main(int argc, char** argv)
 {
     SetTraceLogCallback(MagmaLogger);
     SetTraceLogLevel(LOG_DEBUG);
     SetTraceLogOpenLevel(LOG_ERROR);
 
     SetTraceLogLevel(LOG_DEBUG);
+    RegisterArguments(argc,argv);
     InitMagmaWindow(WIDTH, HEIGHT, WIDTH * SCALE, HEIGHT * SCALE, "Temple Mayhem");
     InitAudioDevice();
     //SetWindowState(FLAG_WINDOW_MAXIMIZED);

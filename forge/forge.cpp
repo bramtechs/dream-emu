@@ -174,7 +174,6 @@ bool download() {
     return true;
 }
 
-// TODO: this is awful
 void insert_if_missing(std::string* content, const std::string& text){
     std::stringstream stream(*content);
     std::string line;
@@ -323,7 +322,7 @@ bool package(){
     return true;
 }
 
-bool run(std::string path) {
+bool run(std::string path, bool debug=false) {
     auto p = fs::path(path.c_str());
 
     // regenerate assets
@@ -331,11 +330,17 @@ bool run(std::string path) {
 
     if (fs::exists(path)) {
 #ifdef LINUX
-        return run_command({path});
+        if (debug)
+            return run_command({path, "-d", "-v"});
+        else
+            return run_command({path});
 #elif defined(WINDOWS)
         // get absolute path
         auto absPath = (std::filesystem::current_path() / p).string();
-        return run_command({ absPath });
+        if (debug)
+            return run_command({ absPath , "-d", "-v"});
+        else
+            return run_command({ absPath });
 #endif
     }
 
@@ -347,7 +352,7 @@ bool rundebug() {
     if (!build()){
         return false;
     }
-    return run(EXECUTABLE_DEBUG);
+    return run(EXECUTABLE_DEBUG, true);
 }
 
 bool runrel() {

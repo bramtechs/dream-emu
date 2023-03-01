@@ -4,4 +4,4 @@
 #define HEIGHT ((int)(480*0.75f))
 #define SCALE 2 
 
-int main();
+int main(int argc, char** argv);
