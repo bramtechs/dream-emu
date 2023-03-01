@@ -673,7 +673,8 @@ std::vector<std::string> GetAssetNames(AssetType type) {
 std::vector<std::string> GetTileNames() {
     std::string prefix = "tile_";
     std::vector<std::string> names;
-    for (const auto& name : GetAssetNames(ASSET_TEXTURE)){
+    auto textures = GetAssetNames(ASSET_TEXTURE);
+    for (const auto& name : textures){
         if (name.substr(0,prefix.size()) == prefix){
             names.push_back(name);
         }
