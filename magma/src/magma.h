@@ -202,6 +202,7 @@ struct PopMenuConfig {
 struct PopMenu {
     uint id;
 
+    Color actualTextColor;
     PopMenuConfig config;
     ButtonGroup group;
     Vector2 topLeft;
@@ -213,7 +214,7 @@ struct PopMenu {
     PopMenu(int priority=FOCUS_NORMAL);
     ~PopMenu();
 
-    void RenderPanel();
+    void RenderPanel(Color overrideColor=BLANK);
     int DrawPopButton(const char* text, bool selectable=true, bool isBlank=false);
 
     void EndButtons(Vector2 panelPos);
@@ -499,6 +500,7 @@ void DisposeAssets();
 bool ImportAssetPackage(const char* filePath);
 std::vector<std::string> GetAssetPaths(AssetType type=ASSET_ANY);
 std::vector<std::string> GetAssetNames(AssetType type=ASSET_ANY);
+std::vector<std::string> GetTileNames();
 size_t GetAssetCount();
 
 Texture RequestTexture(const std::string& name);
@@ -536,10 +538,10 @@ void CloseMagmaWindow();
 void RegisterArguments(int argc, char** argv);
 bool IsRunningWithArguments(std::initializer_list<std::string> args);
 inline bool IsRunningWithArgument(std::string arg){
-    IsRunningWithArguments({arg});
+    return IsRunningWithArguments({arg});
 }
 inline bool IsRunningWithArgumentPair(std::string shortArg, std::string longArg){
-    IsRunningWithArguments({shortArg, longArg});
+    return IsRunningWithArguments({shortArg, longArg});
 }
 
 Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)

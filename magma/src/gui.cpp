@@ -181,13 +181,16 @@ PopMenu::~PopMenu(){
     assert(false);
 }
 
-void PopMenu::RenderPanel(){
+void PopMenu::RenderPanel(Color overrideColor){
     if (this->initialized) { // hide first frame
         Rectangle menuTarget = {
             topLeft.x,topLeft.y,
             size.x, size.y
         };
-        DrawPanel(menuTarget);
+
+        actualTextColor = overrideColor.a == 0 ? config.textColor:overrideColor;
+        Color borderColor = overrideColor.a == 0 ? config.lineColor:overrideColor;
+        DrawPanel(menuTarget, config.backColor, borderColor);
     }
 
     this->buttonCount = 0;
@@ -234,7 +237,7 @@ int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
         topLeft.y+size.y + config.padding,
     };
 
-    Color actualColor = config.textColor;
+    Color actualColor = actualTextColor; // nice variable names
     if (!selectable){
         actualColor = ColorBrightness(config.textColor,-0.3);
     }

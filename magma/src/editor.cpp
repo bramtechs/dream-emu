@@ -9,6 +9,7 @@ enum EditorMode {
     MODE_NORMAL,
     MODE_SPAWN,
     MODE_HITBOX,
+    MODE_TILE,
     MODE_TEXTURE,
     MODE_DELAY, // hack for pop-up menus to work
 };
@@ -25,8 +26,10 @@ struct EditorSession {
     EntityID subjectID = 0;
     bool hasSubject = false;
     bool drawGrid = true;
-    bool removingHitboxes = false;
+    bool removalMode = false;
     EditorMode mode = MODE_NORMAL;
+    Texture tileBeingDrawn = {};
+    std::pair<std::string,EntityBuilderFunction> builderBeingUsed = { "", NULL };
 
     std::unordered_map<EditorMode,EditorModeInfo> modes;
     std::unordered_map<std::string, EntityBuilderFunction> builders;
@@ -68,7 +71,6 @@ static void ProcNormalMode(EntityGroup& group, Camera* camera, float delta){
             }
 
             Rectangle rect = sprite->region();
-
             if (comp.first == Session.subjectID && Session.hasSubject) {
                 // overlay selected sprite
                 Color overlay = ColorAlpha(GREEN,0.5f);
@@ -220,7 +222,7 @@ static void ProcTextureModeGUI(EntityGroup& group, Camera* camera, float delta){
     int index = 0;
     if (menu.IsButtonSelected(&index)){
         // change texture of subject
-        assert(Session.hasSubject); 
+        assert(Session.hasSubject);
 
         Sprite* sprite = NULL;
         group.GetEntityComponent(Session.subjectID, COMP_SPRITE, &sprite);
@@ -260,15 +262,16 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta){
         };
 
         EntityID touchedID = 0;
-        if (IsHitboxAtPos(group,spawnPos, &touchedID)){
-            if (Session.removingHitboxes){
+        if (IsHitboxAtPos(group,spawnPos, &touchedID)) {
+            if (Session.removalMode){
                 // remove the hitbox
                 group.DestroyEntity(touchedID);
             }
-        }else if (!Session.removingHitboxes){
+        } else if (!Session.removalMode){
             SpawnWallBrush(group, Vector2ToVector3(spawnPos));
         }
     }
+
     if (IsKeyPressed(KEY_BACKSPACE)) {
         SwitchMode(MODE_NORMAL);
     }
@@ -278,7 +281,7 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta){
     std::multimap<EntityID,CompContainer> physBodies = group.GetComponents(COMP_PHYS_BODY);
     for (auto& phys: physBodies){
         auto physBody = (PhysicsBody*) phys.second.data;
-        Color color = Session.removingHitboxes ? RED:ORANGE;
+        Color color = Session.removalMode ? RED:ORANGE;
         DrawBox2DBody(physBody, color, true);
     }
 }
@@ -291,9 +294,9 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
         GetScreenHeight()-menu.size.y*0.5f
     };
 
-    menu.RenderPanel();
+    menu.RenderPanel(Session.removalMode ? RED:WHITE);
 
-    menu.DrawPopButton(Session.removingHitboxes ? "Draw":"Delete");
+    menu.DrawPopButton(Session.removalMode ? "Draw":"Delete");
     menu.DrawPopButton("Simplify");
     menu.DrawPopButton("Exit");
 
@@ -302,7 +305,7 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
         switch (index)
         {
             case 0:
-                Session.removingHitboxes = !Session.removingHitboxes;
+                Session.removalMode = !Session.removalMode;
                 break;
             case 1:
                 SimplifyHitboxes(group);
@@ -316,19 +319,116 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta){
     menu.EndButtons(panelPos);
 }
 
+static void BuildEntity(EntityGroup& group, Camera* camera, EntityBuilderFunction func){
+    // spawn new entity
+    Camera2D cam2d = *(Camera2D*)camera;
+
+    // get snapped pos to place entity
+    Vector2 camPos = GetWindowMousePosition(cam2d);
+    Vector2 snapPos = Vector2Snap(camPos,Session.gridSize);
+
+    (*func)(group,{snapPos.x,snapPos.y,0});
+}
+
+static void ProcTileMode(EntityGroup& group, Camera* camera, float delta) {
+    // get snapped pos to render ghost
+    Camera2D cam2d = *(Camera2D*)camera;
+    Vector2 camPos = GetWindowMousePosition(cam2d);
+    Vector2 snapPos = Vector2Snap(camPos,Session.gridSize);
+
+    if (Session.tileBeingDrawn.id > 0){ // if any tile texture selected
+        DrawTextureEx(Session.tileBeingDrawn, snapPos, 0.f, 1.f, ColorAlpha(WHITE, 0.6f));
+    } else if (Session.builderBeingUsed.second != NULL) {
+        Rectangle rect = {
+            snapPos.x, snapPos.y,
+            Session.gridSize, Session.gridSize
+        };
+        const char* text = Session.builderBeingUsed.first.c_str();
+        Vector2 textPos = MeasureRetroText(text, 12);
+        DrawRetroText(text, rect.x + textPos.x * 0.5f, rect.y + textPos.y * 0.5f, 12, BLUE);
+        DrawRectangleLinesEx(rect, 3.f, BLUE);
+    }
+}
+
+static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
+    static PopMenu menu = PopMenu();
+
+    Vector2 panelPos = {
+        GetScreenWidth()-menu.size.x*0.5f,
+        GetScreenHeight()-menu.size.y*0.5f
+    };
+
+    menu.RenderPanel(Session.removalMode ? RED:WHITE);
+
+    // cache builder functions
+    static std::vector<std::pair<std::string, EntityBuilderFunction>> builders;
+    if (builders.empty()) {
+        for (const auto &builder: Session.builders){
+            builders.push_back({builder.first,builder.second});
+        }
+    }
+
+    // label all spawners
+    menu.DrawPopButton("=== Spawners ===", false, false);
+    for (const auto &builder: Session.builders){
+        menu.DrawPopButton(builder.first.c_str());
+    }
+
+    // label all raw tiles
+    menu.DrawPopButton("=== Tiles ===", false, false);
+
+    static auto tiles = GetTileNames();
+    for (const auto& tile: tiles) {
+        menu.DrawPopButton(tile.c_str());
+    }
+    menu.DrawPopButton("",false,false);
+    menu.DrawPopButton(Session.removalMode ? "Draw":"Delete");
+    menu.DrawPopButton("Exit");
+
+    int amountOfOptions = 1 + Session.builders.size() + 1 + tiles.size() + 3;
+    int index = 0;
+    if (menu.IsButtonSelected(&index)) {
+        if (index == amountOfOptions - 2) {
+            Session.removalMode = !Session.removalMode;
+        } else if (index == amountOfOptions - 1) {
+            SwitchMode(MODE_NORMAL);
+        } else {
+            // reverse-engineer the selected item
+            if (index > 0 && index <= Session.builders.size()) {
+                int i = index-1;
+                assert(i >= 0 && i < Session.builders.size());
+                Session.builderBeingUsed = builders[i];
+                Session.tileBeingDrawn = {};
+            } else if (index > 1+Session.builders.size()+1) {
+                int i = index - 2 - Session.builders.size();
+                assert(i >= 0 && i < tiles.size());
+                Session.tileBeingDrawn = RequestTexture(tiles[i]);
+                Session.builderBeingUsed = { "", NULL };
+            } else {
+                assert(false);
+            }
+        }
+    }
+    menu.EndButtons(panelPos);
+}
+
 static void ProcSpawnModeGUI(EntityGroup& group, Camera* camera, float delta){
     static PopMenu menu = PopMenu();
 
     menu.RenderPanel();
 
+    // cache builder functions
     static std::vector<EntityBuilderFunction> builders;
-    builders.clear();
-
-    for (const auto &builder: Session.builders)
-    {
-        menu.DrawPopButton(builder.first.c_str());
-        builders.push_back(builder.second);
+    if (builders.empty()) {
+        for (const auto &builder: Session.builders){
+            builders.push_back(builder.second);
+        }
     }
+
+    for (const auto &builder: Session.builders){
+        menu.DrawPopButton(builder.first.c_str());
+    }
+
     menu.DrawPopButton("",false,true);
     menu.DrawPopButton("Close");
 
@@ -345,13 +445,7 @@ static void ProcSpawnModeGUI(EntityGroup& group, Camera* camera, float delta){
             try {
                 // spawn new entity
                 EntityBuilderFunction func = builders.at(index);
-                Camera2D cam2d = *(Camera2D*)camera;
-
-                // get snapped pos to place entity
-                Vector2 camPos = GetWindowMousePosition(cam2d);
-                Vector2 snapPos = Vector2Snap(camPos,Session.gridSize);
-
-                (*func)(group,{snapPos.x,snapPos.y,0});
+                BuildEntity(group, camera, func);
             }
             catch(const std::out_of_range &e) {
                 ERROR("Can't find valid spawn function!");
@@ -501,4 +595,5 @@ void EditorSession::LinkModes(){
     LinkMode(MODE_TEXTURE,NULL,ProcTextureModeGUI,"Change texture");
     LinkMode(MODE_SPAWN,NULL,ProcSpawnModeGUI,"Spawn entity");
     LinkMode(MODE_HITBOX,ProcHitboxMode,ProcHitboxModeGUI, "Draw hitboxes");
+    LinkMode(MODE_TILE, ProcTileMode, ProcTileModeGUI, "Draw tiles");
 }

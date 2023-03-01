@@ -260,7 +260,7 @@ int main(int argc, char** argv)
                 }
                 group.DrawGroup();
                 group.DrawGroupDebug();
-                
+
                 // EndPaletteMode();
 
                 UpdateAndRenderEditor(camera, group, delta);

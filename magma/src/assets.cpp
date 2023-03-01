@@ -659,11 +659,22 @@ std::vector<std::string> GetAssetPaths(AssetType type) {
     return paths;
 }
 
-std::vector<std::string> GetAssetNames(AssetType type){
+std::vector<std::string> GetAssetNames(AssetType type) {
     std::vector<std::string> names;
     for (auto& item : Assets.assets) {
         if (type == ASSET_ANY || GetAssetType(item.path) == type){
             const char* name = GetFileNameWithoutExt(item.path);
+            names.push_back(name);
+        }
+    }
+    return names;
+}
+
+std::vector<std::string> GetTileNames() {
+    std::string prefix = "tile_";
+    std::vector<std::string> names;
+    for (const auto& name : GetAssetNames(ASSET_TEXTURE)){
+        if (name.substr(0,prefix.size()) == prefix){
             names.push_back(name);
         }
     }

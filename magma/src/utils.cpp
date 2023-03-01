@@ -1,6 +1,6 @@
 #include "magma.h"
 
-static bool IS_DEBUG = false;
+bool IS_DEBUG = false;
 
 std::vector<std::string> CommandArguments;
 bool InitializedArguments;
