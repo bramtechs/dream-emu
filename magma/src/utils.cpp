@@ -1,11 +1,47 @@
 #include "magma.h"
 
+static bool IS_DEBUG = false;
+
+std::vector<std::string> CommandArguments;
+bool InitializedArguments;
+
+void RegisterArguments(int argc, char** argv){
+    if (InitializedArguments){
+        ERROR("Already registered application arguments.");
+    }else{
+        for (int i = 0; i < argc; i++){
+            CommandArguments.push_back(argv[i]);
+        }
+        DEBUG("Registered %d application arguments.", argc);
+
+        // interpret given arguments
+        if (IsRunningWithArguments({"--debug","--dev","-d"})){
+            IS_DEBUG = true;
+        }
+        if (IsRunningWithArguments({"--console","--verbose","-v"})){
+            OpenSystemConsole();
+        }
+    }
+}
+
+bool IsRunningWithArguments(std::initializer_list<std::string> args){
+    for (const auto& arg : CommandArguments){
+        for (const auto& option : args){
+            if (arg == option){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 // TODO put logger stuff in struct
 struct LogLine {
     TraceLogLevel level;
     char msg[512];
 };
 
+// TODO: structify
 static std::vector<LogLine> Buffer;
 static size_t Allocations = 0;
 static bool ShowLogger = false;

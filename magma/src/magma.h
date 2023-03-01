@@ -94,6 +94,8 @@ inline T* NN(T* ptr){
     return ptr;
 }
 
+extern bool IS_DEBUG;
+
 struct BoundingBox2D {
     Vector2 min;
     Vector2 max;
@@ -526,6 +528,16 @@ void ShowFailScreen(const std::string& text); // do not run in game loop
 void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
 void InitMagmaWindow(int winWidth, int winHeight, const char* title);
 void CloseMagmaWindow();
+
+void RegisterArguments(int argc, char** argv);
+bool IsRunningWithArguments(std::initializer_list<std::string> args);
+inline bool IsRunningWithArgument(std::string arg){
+    IsRunningWithArguments({arg});
+}
+inline bool IsRunningWithArgumentPair(std::string shortArg, std::string longArg){
+    IsRunningWithArguments({shortArg, longArg});
+}
+
 Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
 Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
 

@@ -687,7 +687,6 @@ struct InputBox {
     }
 
     std::string GetTextWithIndex(int index){
-        // TODO: nasty code
         if (index < CACHED_UPPER.size()){
             return CACHED_UPPER[index];
         } else if (index < CACHED_UPPER.size() + CACHED_LOWER.size()){

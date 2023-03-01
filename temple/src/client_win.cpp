@@ -1,9 +1,9 @@
 #include "client.hpp"
 #include "windows.h"
 
-// some windows duct-taping
+// some windows boilerplate
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-	PSTR lpCmdLine, INT nCmdShow)
+    PSTR lpCmdLine, INT nCmdShow)
 {
-	return main();
+    return main(__argc, __argv);
 }
