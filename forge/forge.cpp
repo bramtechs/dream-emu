@@ -40,11 +40,9 @@ std::vector<std::string> ADDITIONAL_FILES = {
 const std::vector<std::string> REQUIRED_TOOLS = {
     "cmake",
     "git",
-//#ifdef LINUX
-//    "g++",
-//#elif defined(WINDOWS)
-//    "cl",
-//#endif
+#ifdef LINUX
+    "g++",
+#endif
 };
 
 // Online libraries required to build the program (folder + url)
@@ -282,6 +280,7 @@ bool assets() {
     }
 
     std::string outFile = fs::path("temple/assets.mga").string();
+    std::cout << "Exporting assets to " << outFile << std::endl;
     return run_command({ DEFLATION_PATH, "temple/raw_assets", "core_assets", outFile, "--compress"});
 }
 

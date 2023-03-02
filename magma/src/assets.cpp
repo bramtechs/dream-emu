@@ -46,24 +46,24 @@ static RawAsset QueryAsset(const std::string& name, std::string filterExt = "") 
 // traverse each directory until assets.mga is found
 static std::vector<std::string> CrawlAssetDirs = {
     "assets.mga",
-    "temple/assets.mga",
-    "../../assets.mga",
-    "../../temple/assets.mga"
-    "../../temple/assets.mga",
+    "X:/temple/assets.mga"
 };
 
 bool LoadAssets() {
     INFO("Loading assets...");
 
+    bool didFind = false;
     for (const auto& dir : CrawlAssetDirs){
         if (ImportAssetPackage(dir.c_str())){
             // move process into the same folder where assets.mga is
             const char* p = GetDirectoryPath(dir.c_str());
             ChangeDirectory(p);
+            INFO("Moving execution directory to %s...", p);
+            didFind = true;
             break;
         }
     }
-    return true;
+    return didFind;
 }
 
 bool ImportAssetPackage(const char* filePath) {
