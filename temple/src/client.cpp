@@ -152,12 +152,12 @@ static bool layout_menu(float delta){
 
 
     ButtonTable buttons;
-    buttons.AddButton("New game",NULL,false);
-    buttons.AddButton("Load game",NULL,false);
-    buttons.AddButton("Options",NULL,false);
+    buttons.AddButton("New game",NULL);
+    buttons.AddButton("Load game",NULL);
+    buttons.AddButton("Options",NULL);
     buttons.AddButton("Quit",[](){
         CloseWindow();
-    },true);
+    });
 
     menu.RenderPanel();
     menu.DrawPopButtons(buttons);

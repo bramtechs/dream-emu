@@ -157,6 +157,22 @@ PopMenuConfig::PopMenuConfig(Color bgColor, Color fgColor, Color textColor)
         : backColor(bgColor), lineColor(fgColor), textColor(textColor){
 }
 
+void ButtonTable::AddButton(std::string text, ButtonBehavior behavior, std::function<void()> func,
+                                                                       std::function<void()> hover){
+    Button but = { text, behavior, func, hover };
+    emplace_back(but);
+}
+
+void ButtonTable::AddButton(std::string text, std::function<void()> func, std::function<void()> hover){
+    Button but = {text, BUTTON_ACTIVE, func, hover};
+    emplace_back(but);
+}
+
+void ButtonTable::AddSpacer(std::string text){
+    Button but = {text, BUTTON_SPACER, NULL, NULL};
+    emplace_back(but);
+}
+
 PopMenu::PopMenu(int priority){
     this->config = PopMenuConfig();
     this->initialized = false;
@@ -284,10 +300,8 @@ int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
 }
 
 void PopMenu::DrawPopButtons(ButtonTable& table) {
-    for (const auto& elem : table) {
-        const char* text = std::get<0>(elem).c_str();
-        DrawPopButton(text, std::get<1>(elem),
-                              std::get<2>(elem));
+    for (const auto& but : table) {
+        DrawPopButton(but.text.c_str(), but.behavior == BUTTON_ACTIVE, but.behavior == BUTTON_SPACER);
     }
 }
 
@@ -295,11 +309,9 @@ void PopMenu::ProcessSelectedButton(ButtonTable& table) {
     int index = 0;
     if (IsButtonSelected(&index)) {
         if (index >= 0 && index < table.size()) {
-            auto& tuple = table[index];
-            bool selectable = std::get<1>(tuple);
-            auto func = std::get<3>(tuple);
-            if (selectable && func){
-                func();
+            auto& but = table[index];
+            if (but.behavior == BUTTON_ACTIVE && but.onClick){
+                but.onClick();
             }
         }
     }
@@ -359,30 +371,32 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor, AdvEntityGroup* group)
     DrawRectangleRec(GetWindowBounds(),bgColor);
 
     ButtonTable buttons;
+    ButtonBehavior behavior = group == NULL ? BUTTON_INACTIVE:BUTTON_ACTIVE;
 
-    buttons.AddButton("Continue", [](){}, false);
-    buttons.AddButton("Reload", [](){}, false);
+    buttons.AddButton("Continue", NULL);
+    buttons.AddButton("Reload", NULL);
     buttons.AddButton(IsMuted ? "Play audio":"Mute audio", [](){
         IsMuted = !IsMuted;
         SetMasterVolume(IsMuted ? 0.f:1.f);
     });
-    buttons.AddButton("Quit", [](){
+    buttons.AddButton("Quit",behavior,[](){
         CloseWindow();
-    }, false);
+    });
 
     buttons.AddSpacer();
 
     buttons.AddSpacer("== DEV-TOOLS ==");
-    buttons.AddButton("Load level",[group](){
+    buttons.AddButton("Load level",behavior,[group](){
         group->LoadGroupInteractively();
         ToggleGamePaused();
-    }, group != NULL);
-    buttons.AddButton("Clear level",[group](){
+    });
+    buttons.AddButton("Clear level",behavior,[group](){
         group->ClearGroup();
-    }, group != NULL );
-    buttons.AddButton("Export level",[group](){
+    });
+    buttons.AddButton("Export level",behavior,[group](){
         group->SaveGroupInteractively("raw_assets");
-    }, group != NULL);
+    });
+
     buttons.AddButton(LoggerIsOpen() ? "Hide console":"Show console",[](){
         ToggleLogger();
     });

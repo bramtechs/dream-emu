@@ -200,13 +200,23 @@ struct PopMenuConfig {
     PopMenuConfig(Color bgColor=BLACK, Color fgColor=WHITE, Color textColor=WHITE);
 };
 
-struct ButtonTable : std::vector<std::tuple<std::string, bool, bool, std::function<void()>>> {
-    inline void AddButton(const char* text, std::function<void()> func, bool isSelectable=true, bool doesSkip=false) {
-        emplace_back(text, isSelectable, doesSkip, func);
-    }
-    inline void AddSpacer(const char* text=""){
-        emplace_back(text, false, true, [](){});
-    }
+enum ButtonBehavior {
+    BUTTON_ACTIVE,
+    BUTTON_INACTIVE,
+    BUTTON_SPACER,
+};
+
+struct Button {
+    std::string text;
+    ButtonBehavior behavior;
+    std::function<void()> onClick;
+    std::function<void()> onHover;
+};
+
+struct ButtonTable : std::vector<Button> {
+    void AddButton(std::string text, ButtonBehavior behavior, std::function<void()> func, std::function<void()> hover=NULL);
+    void AddButton(std::string text, std::function<void()> func, std::function<void()> hover=NULL);
+    void AddSpacer(std::string text="");
 };
 
 struct PopMenu {
