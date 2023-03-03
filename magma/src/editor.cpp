@@ -169,9 +169,6 @@ static void ProcNormalModeGUI(EntityGroup& group, Camera* camera, float delta) {
     menu.RenderPanel();
     if (Session.hasSubject) {
         menu.DrawPopButton("Delete");
-
-        const char* suffix = HasDefaultPalette() ? "(paletted)" : "";
-        menu.DrawPopButton(TextFormat("Change texture %s", suffix), !EditorIs3D); // 2d only
     }
 
     // editor modes
@@ -298,13 +295,13 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta) {
     };
 
     ButtonTable buttons;
-    buttons.emplace_back(Session.removalMode ? "Draw":"Delete",true,true, []() {
+    buttons.emplace_back(Session.removalMode ? "Draw":"Delete",true, false, []() {
         Session.removalMode = !Session.removalMode;
     });
-    buttons.emplace_back("Simplify",true,true, [&group](){
+    buttons.emplace_back("Simplify",true,false, [&group](){
         SimplifyHitboxes(group);
     });
-    buttons.emplace_back("Exit",true,true, [&group]() {
+    buttons.emplace_back("Exit",true,false, [&group]() {
         SwitchMode(MODE_NORMAL);
     });
 
@@ -389,61 +386,44 @@ static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
         GetScreenHeight() - menu.size.y * 0.5f
     };
 
-    menu.RenderPanel(Session.removalMode ? RED : WHITE);
-
-    // cache builder functions
-    static std::vector<std::pair<std::string, EntityBuilderFunction>> builders;
-    if (builders.empty()) {
-        for (const auto& builder : Session.builders) {
-            builders.push_back({ builder.first,builder.second });
-        }
-    }
+    ButtonTable buttons;
 
     // label all spawners
-    menu.DrawPopButton("=== Spawners ===", false, false);
+    buttons.emplace_back("=== Spawners ===", false, true, [](){});
     for (const auto& builder : Session.builders) {
-        menu.DrawPopButton(builder.first.c_str());
+        const char* name = builder.first.c_str();
+        buttons.emplace_back(name, true, false, [&builder](){
+            Session.builderBeingUsed = builder;
+            Session.tileBeingDrawn = {};
+        });
     }
 
     // label all raw tiles
-    menu.DrawPopButton("=== Tiles ===", false, false);
-
+    buttons.emplace_back("=== Tiles ===", false, true, [](){});
     static auto tiles = GetTileNames();
     for (const auto& tile : tiles) {
-        menu.DrawPopButton(tile.c_str());
-    }
-    menu.DrawPopButton("", false, false);
-    menu.DrawPopButton(Session.removalMode ? "Draw" : "Delete");
-    menu.DrawPopButton(Session.includeHitbox ? "Including hitboxes" : "Not including hitboxes");
-    menu.DrawPopButton("Exit");
-
-    int amountOfOptions = 1 + Session.builders.size() + 1 + tiles.size() + 3;
-
-    // on hover
-    int index = menu.group.selected;
-    // reverse-engineer the selected item
-    if (index > 0 && index <= Session.builders.size()) {
-        int i = index - 1;
-        assert(i >= 0 && i < Session.builders.size());
-        Session.builderBeingUsed = builders[i];
-        Session.tileBeingDrawn = {};
-    }
-    else if (index > 0 && index > 1 + Session.builders.size() + 1 && index < amountOfOptions - 2) {
-        int i = index - 2 - Session.builders.size();
-        assert(i >= 0 && i < tiles.size());
-        Session.tileBeingDrawn = RequestTexture(tiles[i]);
-        Session.builderBeingUsed = { "", NULL };
+        buttons.emplace_back(tile.c_str(), true, false, [&tile](){
+            Session.builderBeingUsed = { "", NULL };
+            Session.tileBeingDrawn = RequestTexture(tile);
+        });
     }
 
-    // on click
-    if (menu.IsButtonSelected(&index)) {
-        if (index == amountOfOptions - 2) {
-            Session.removalMode = !Session.removalMode;
-        }
-        else if (index == amountOfOptions - 1) {
-            SwitchMode(MODE_NORMAL);
-        }
-    }
+    // extra utilities
+    buttons.emplace_back("", false, true, [](){});
+    buttons.emplace_back(Session.removalMode ? "Draw" : "Delete", true, false, [](){
+        Session.removalMode = !Session.removalMode;
+    });
+    buttons.emplace_back(Session.includeHitbox ? "Including hitboxes" : "Not including hitboxes", true, false, [](){
+        Session.includeHitbox = !Session.includeHitbox;
+    });
+    buttons.emplace_back("Exit", true, false, [](){
+        SwitchMode(MODE_NORMAL);
+    });
+
+    menu.RenderPanel(Session.removalMode ? RED : WHITE);
+    menu.DrawPopButtons(buttons);
+    menu.ProcessSelectedButton(buttons);
+
     menu.EndButtons(panelPos);
 }
 

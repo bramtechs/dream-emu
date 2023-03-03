@@ -1,5 +1,7 @@
 #include "magma.h"
 
+static bool GUI_DEBUG = true;
+
 // === ButtonGroup ===
 // do not combine ButtonGroup with PopMenu struct as we 
 // might want different type of ui components, buttons with images etc...
@@ -80,7 +82,9 @@ void ButtonGroup::pollGrid(uint cols, bool useWASD){
 
 bool ButtonGroup::next() {
     index++;
-    return selected == index-1;
+    int s = index - 1;
+    // assert(selected >= 0 && s >= 0);
+    return selected == s;
 }
 
 bool ButtonGroup::skip() { // use to skip stuff like labels
@@ -91,7 +95,7 @@ bool ButtonGroup::skip() { // use to skip stuff like labels
     return false;
 }
 
-// WARN: does not account for disabled buttons
+// WARN: does not account for inactive buttons
 bool ButtonGroup::IsButtonSelected(int* index){
     if (IsKeyPressed(KEY_ENTER)){
         *index = selected;
@@ -157,6 +161,7 @@ PopMenu::PopMenu(int priority){
     this->config = PopMenuConfig();
     this->initialized = false;
     this->id = PopMenus.size();
+    this->group = ButtonGroup();
 
     PopMenuFocus f(id,priority);
     PopMenus.push_back(f);
@@ -165,7 +170,8 @@ PopMenu::PopMenu(int priority){
 PopMenu::PopMenu(PopMenuConfig config, int priority){
     this->config = config;
     this->initialized = false;
-    this->id = PopMenus.size(); 
+    this->id = PopMenus.size();
+    this->group = ButtonGroup();
 
     PopMenuFocus f(id, priority);
     PopMenus.push_back(f);
@@ -191,6 +197,11 @@ void PopMenu::RenderPanel(Color overrideColor){
         actualTextColor = overrideColor.a == 0 ? config.textColor:overrideColor;
         Color borderColor = overrideColor.a == 0 ? config.lineColor:overrideColor;
         DrawPanel(menuTarget, config.backColor, borderColor);
+
+        if (GUI_DEBUG) {
+            const char* f = TextFormat("%d", this->group.selected);
+            DrawRetroText(f,menuTarget.x-30, menuTarget.y-15, 14, YELLOW);
+        }
     }
 
     this->buttonCount = 0;
@@ -258,6 +269,10 @@ int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
 
     if (this->initialized) {
         DrawRetroText(text,textPos.x,textPos.y,config.fontSize,actualColor);
+        if (GUI_DEBUG) {
+            const char* indexText = TextFormat("%d", buttonCount);
+            DrawRetroText(indexText, textPos.x - 50, textPos.y, 14, isSelected ? GREEN : RED);
+        }
     }
 
     if (size.x < textSize.x){
@@ -271,7 +286,8 @@ int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
 void PopMenu::DrawPopButtons(ButtonTable& table) {
     for (const auto& elem : table) {
         const char* text = std::get<0>(elem).c_str();
-        DrawPopButton(text, std::get<1>(elem), std::get<2>(elem));
+        DrawPopButton(text, std::get<1>(elem),
+                              std::get<2>(elem));
     }
 }
 
