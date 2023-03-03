@@ -331,7 +331,11 @@ static void BuildTile(EntityGroup& group, Camera* camera, Texture texture, bool 
     Vector2 snapPos = Vector2Snap(camPos, Session.gridSize);
 
     if (includeHitbox) {
-        SpawnWallBrush(group, Vector2ToVector3(snapPos));
+        Vector2 hitboxPos = {
+            snapPos.x + texture.width * 1.0f,
+            snapPos.y + texture.height * 1.0f
+        };
+        SpawnWallBrush(group, Vector2ToVector3(hitboxPos));
     }
 
     // spawn a bland tile
@@ -351,11 +355,16 @@ static void ProcTileMode(EntityGroup& group, Camera* camera, float delta) {
 
     if (Session.tileBeingDrawn.id > 0) { // if any tile texture selected
         Session.gridSize = Session.tileBeingDrawn.width;
-        DrawTextureEx(Session.tileBeingDrawn, snapPos, 0.f, 1.f, ColorAlpha(WHITE, 0.6f));
+        DrawTextureEx(Session.tileBeingDrawn, snapPos, 0.f, 1.f,
+                                        ColorAlpha(WHITE, 0.6f));
 
         if (isHolding) {
             EntityID touchedID = 0;
-            if (group.IsEntityAtPos(snapPos, &touchedID)) {
+            Vector2 checkPos = {
+                snapPos.x + Session.tileBeingDrawn.width*0.5f,
+                snapPos.y + Session.tileBeingDrawn.height*0.5f
+            };
+            if (group.IsEntityAtPos(checkPos, &touchedID)) {
                 if (Session.removalMode) {
                     // remove the tile
                     group.DestroyEntity(touchedID);

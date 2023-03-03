@@ -82,11 +82,11 @@ static Description DescribeComponentModelRenderer(void* data){
 static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos){
     EntityID id = group.AddEntity();
 
-    Sprite sprite = Sprite({pos.x, pos.y});
+    Sprite sprite = Sprite();
     Texture texture = RequestPlaceholderTexture();
     sprite.SetTexture(texture);
     sprite.SetSize(Session.gridSize,Session.gridSize);
-    sprite.SetCenter(pos.x,pos.y);
+    sprite.SetCenter({pos.x,pos.y});
     sprite.Hide();
     group.AddEntityComponent(id, COMP_SPRITE, sprite);
 
