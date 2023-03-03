@@ -243,19 +243,25 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta) {
 
     if (IsMouseButtonDown(0)) {
         // prevent placing hitbox ontop of an existing one
-        Vector2 spawnPos = {
+        // HACK: weird offsetting
+        Vector2 checkPos = {
             snapPos.x + Session.gridSize * 0.5f,
             snapPos.y + Session.gridSize * 0.5f
         };
 
         EntityID touchedID = 0;
-        if (((AdvEntityGroup*)&group)->IsHitboxAtPos(spawnPos, &touchedID)) {
+        if (((AdvEntityGroup*)&group)->IsHitboxAtPos(checkPos, &touchedID)) {
             if (Session.removalMode) {
                 // remove the hitbox
                 group.DestroyEntity(touchedID);
             }
         }
         else if (!Session.removalMode) {
+            // HACK: weird offsetting
+            Vector2 spawnPos = {
+                snapPos.x + Session.gridSize,
+                snapPos.y + Session.gridSize
+            };
             SpawnWallBrush(group, Vector2ToVector3(spawnPos));
         }
     }
