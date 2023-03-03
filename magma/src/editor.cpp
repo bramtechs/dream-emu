@@ -295,13 +295,13 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta) {
     };
 
     ButtonTable buttons;
-    buttons.emplace_back(Session.removalMode ? "Draw":"Delete",true, false, []() {
+    buttons.AddButton(Session.removalMode ? "Draw":"Delete", []() {
         Session.removalMode = !Session.removalMode;
     });
-    buttons.emplace_back("Simplify",true,false, [&group](){
+    buttons.AddButton("Simplify", [&group](){
         SimplifyHitboxes(group);
     });
-    buttons.emplace_back("Exit",true,false, [&group]() {
+    buttons.AddButton("Exit", [&group]() {
         SwitchMode(MODE_NORMAL);
     });
 
@@ -389,34 +389,34 @@ static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
     ButtonTable buttons;
 
     // label all spawners
-    buttons.emplace_back("=== Spawners ===", false, true, [](){});
+    buttons.AddSpacer("=== Spawners ===");
     for (const auto& builder : Session.builders) {
         const char* name = builder.first.c_str();
-        buttons.emplace_back(name, true, false, [&builder](){
+        buttons.AddButton(name, [&builder](){
             Session.builderBeingUsed = builder;
             Session.tileBeingDrawn = {};
         });
     }
 
     // label all raw tiles
-    buttons.emplace_back("=== Tiles ===", false, true, [](){});
+    buttons.AddSpacer("=== Tiles ===");
     static auto tiles = GetTileNames();
     for (const auto& tile : tiles) {
-        buttons.emplace_back(tile.c_str(), true, false, [&tile](){
+        buttons.AddButton(tile.c_str(), [&tile](){
             Session.builderBeingUsed = { "", NULL };
             Session.tileBeingDrawn = RequestTexture(tile);
         });
     }
 
     // extra utilities
-    buttons.emplace_back("", false, true, [](){});
-    buttons.emplace_back(Session.removalMode ? "Draw" : "Delete", true, false, [](){
+    buttons.AddSpacer();
+    buttons.AddButton(Session.removalMode ? "Draw" : "Delete", [](){
         Session.removalMode = !Session.removalMode;
     });
-    buttons.emplace_back(Session.includeHitbox ? "Including hitboxes" : "Not including hitboxes", true, false, [](){
+    buttons.AddButton(Session.includeHitbox ? "Including hitboxes" : "Not including hitboxes", [](){
         Session.includeHitbox = !Session.includeHitbox;
     });
-    buttons.emplace_back("Exit", true, false, [](){
+    buttons.AddButton("Exit", [](){
         SwitchMode(MODE_NORMAL);
     });
 

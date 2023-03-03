@@ -200,7 +200,15 @@ struct PopMenuConfig {
     PopMenuConfig(Color bgColor=BLACK, Color fgColor=WHITE, Color textColor=WHITE);
 };
 
-typedef std::vector<std::tuple<std::string, bool, bool, std::function<void()>>> ButtonTable;
+struct ButtonTable : std::vector<std::tuple<std::string, bool, bool, std::function<void()>>> {
+    inline void AddButton(const char* text, std::function<void()> func, bool isSelectable=true, bool doesSkip=false) {
+        emplace_back(text, isSelectable, doesSkip, func);
+    }
+    inline void AddSpacer(const char* text=""){
+        emplace_back(text, false, true, [](){});
+    }
+};
+
 struct PopMenu {
     uint id;
 

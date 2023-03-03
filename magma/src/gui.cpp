@@ -296,7 +296,10 @@ void PopMenu::ProcessSelectedButton(ButtonTable& table) {
     if (IsButtonSelected(&index)) {
         if (index >= 0 && index < table.size()) {
             auto& tuple = table[index];
-            std::get<3>(tuple)();
+            bool selectable = std::get<1>(tuple);
+            if (selectable){
+                std::get<3>(tuple)();
+            }
         }
     }
 }
@@ -338,7 +341,6 @@ bool PopMenu::IsButtonSelected(int* index){
 // === Pause menu ===
 struct PauseMenuSession {
     bool isOpened = false;
-    PopMenu menu = PopMenu(FOCUS_HIGH);
 };
 
 static PauseMenuSession PauseSession = PauseMenuSession();
@@ -355,72 +357,50 @@ void UpdateAndRenderPauseMenu(float delta, Color bgColor, AdvEntityGroup* group)
     // draw bg (if any)
     DrawRectangleRec(GetWindowBounds(),bgColor);
 
-    PopMenu& menu = PauseSession.menu;
+    ButtonTable buttons;
+
+    buttons.AddButton("Continue", [](){}, false);
+    buttons.AddButton("Reload", [](){}, false);
+    buttons.AddButton(IsMuted ? "Play audio":"Mute audio", [](){
+        IsMuted = !IsMuted;
+        SetMasterVolume(IsMuted ? 0.f:1.f);
+    });
+    buttons.AddButton("Quit", [](){
+        CloseWindow();
+    }, false);
+
+    buttons.AddSpacer();
+
+    buttons.AddSpacer("== DEV-TOOLS ==");
+    buttons.AddButton("Load level",[group](){
+        group->LoadGroupInteractively();
+        ToggleGamePaused();
+    }, group != NULL);
+    buttons.AddButton("Clear level",[group](){
+        group->ClearGroup();
+    }, group != NULL );
+    buttons.AddButton("Export level",[group](){
+        group->SaveGroupInteractively("raw_assets");
+    }, group != NULL);
+    buttons.AddButton(LoggerIsOpen() ? "Hide console":"Show console",[](){
+        ToggleLogger();
+    });
+    buttons.AddButton(EditorIsOpen() ? "Hide editor":"Open editor",[](){
+        ToggleEditor();
+    });
+    buttons.AddButton("Dump asset info",[](){
+        INFO("=========================");
+        PrintAssetList();
+        INFO("=========================");
+        PrintAssetStats();
+        INFO("=========================");
+        OpenLogger();
+    });
+
+    static PopMenu menu = PopMenu(FOCUS_HIGH);
     menu.RenderPanel();
-    menu.DrawPopButton("Continue", false);
-    menu.DrawPopButton("Reload", false);
-    menu.DrawPopButton(IsMuted ? "Play audio":"Mute audio");
-    menu.DrawPopButton("Quit");
-    menu.DrawPopButton("",false,true);
-
-    // TODO: define debug flags
-    menu.DrawPopButton("== DEV-TOOLS ==",false,true);
-    menu.DrawPopButton("Load level",group!=NULL);
-    menu.DrawPopButton("Clear level",group!=NULL);
-    menu.DrawPopButton("Export level",group!=NULL);
-    menu.DrawPopButton(LoggerIsOpen() ? "Hide console":"Show console");
-    menu.DrawPopButton(EditorIsOpen() ? "Hide editor":"Open editor");
-    menu.DrawPopButton("Dump asset info");
-
-    // button actions
-    int index = 0;
-    if (menu.IsButtonSelected(&index))
-    {
-        switch (index){
-            case 0: // continue
-                break;
-            case 1: // reload
-                // TODO: implement
-                break;
-            case 2: // mute/unmute 
-                IsMuted = !IsMuted;
-                SetMasterVolume(IsMuted ? 0.f:1.f);
-                break;
-            case 3: // quit
-                CloseWindow();
-                break;
-            case 6: // import
-                if (group) {
-                    group->LoadGroupInteractively();
-                    ToggleGamePaused();
-                }
-                break;
-            case 7: // clear
-                if (group)
-                    group->ClearGroup();
-                break;
-            case 8: // export
-                if (group){
-                     group->SaveGroupInteractively("raw_assets");
-                }
-                break;
-            case 9: // show/hide console
-                ToggleLogger();
-                break;
-            case 10: // show/hide editor
-                ToggleEditor();
-                break;
-            case 11:
-                INFO("=========================");
-                PrintAssetList();
-                INFO("=========================");
-                PrintAssetStats();
-                INFO("=========================");
-                OpenLogger();
-                break;
-        }
-    }
-
+    menu.DrawPopButtons(buttons);
+    menu.ProcessSelectedButton(buttons);
     menu.EndButtons();
 }
 
