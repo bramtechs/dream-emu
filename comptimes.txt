@@ -1,5 +1,15 @@
-Compilation times
+Compilation times WINDOWS MSVC
 
-benchmarking
+benchmarking (release build)
 
-before:
+```
+forge benchmark
+```
+
+before: 16.6685 seconds
+
+strip magma header: 15.8529 seconds
+
+/MP flag (not confirmed): 14.5577 seconds
+
+remove raylib features: 14.1056 seconds

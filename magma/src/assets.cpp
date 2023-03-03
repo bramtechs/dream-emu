@@ -1,5 +1,11 @@
 #include "magma.h"
 
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#include <filesystem>
+
 template<typename T>
 class AssetMap : public std::map<std::string,T>{
 };

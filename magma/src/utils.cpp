@@ -1,5 +1,7 @@
 #include "magma.h"
 
+#include <filesystem>
+
 bool IS_DEBUG = false;
 
 std::vector<std::string> CommandArguments;

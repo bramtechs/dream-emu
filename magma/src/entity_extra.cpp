@@ -1,5 +1,7 @@
 #include "magma.h"
 
+#include <filesystem>
+
 // TODO: make methods member of entitygroup somehow
 static AdvEntityGroup* Group = NULL;
 

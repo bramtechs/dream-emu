@@ -1,4 +1,5 @@
 #include "magma.h"
+#include <fstream>
 
 void SetEntityCenter(EntityID id, Vector2 pos);
 void SetEntityCenter(EntityID id, Vector3 pos);

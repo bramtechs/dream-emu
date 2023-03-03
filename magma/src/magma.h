@@ -3,13 +3,7 @@
 // c(++) libraries
 #include <iostream>
 #include <vector>
-#include <filesystem>
 #include <map>
-#include <unordered_map>
-#include <memory>
-#include <sstream>
-#include <fstream>
-#include <limits>
 #include <algorithm>
 
 // the all powerful raylib
@@ -378,7 +372,7 @@ struct Sprite {
     }
 
     inline void ResetTranslation() {
-        SetCenter(Vector2Zero());
+        SetCenter({0.f,0.f});
     }
 
     RayCollision GetMouseRayCollision(Camera2D camera);
