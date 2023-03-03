@@ -208,25 +208,6 @@ static void DrawBox2DBody(PhysicsBody* phys, Color color=GRAY, bool fill=false){
     }
 }
 
-static bool IsHitboxAtPos(EntityGroup& group, Vector2 centerPos, EntityID* id=NULL){
-    // convert pixel- to physics coordinates
-    centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
-
-    std::multimap<EntityID,CompContainer> physBodies = group.GetComponents(COMP_PHYS_BODY);
-    for (auto& phys: physBodies){
-         auto physBody = (PhysicsBody*) phys.second.data;
-         b2Vec2 ePos = physBody->body->GetWorldCenter();
-         if (FloatEquals(ePos.x, centerPos.x) && FloatEquals(ePos.y, centerPos.y)) {
-            if (id)
-                *id = phys.first;
-            return true;
-         }
-    }
-    if (id)
-        *id = 0;
-    return false;
-}
-
 // function overload boilerplate
 void UpdateAndRenderEditor(Camera3D camera, EntityGroup& group, float delta){
     EditorIs3D = true;

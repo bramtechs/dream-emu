@@ -206,7 +206,7 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
 
 #endif
 
-#if defined(MAGMA_3D)
+#ifdef MAGMA_3D
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
     RayCollision col = { 0 };
     return GetMousePickedBaseEx(camera, result, &col);
@@ -388,6 +388,24 @@ bool EntityGroup::EntityExists(EntityID id) {
         if (comp.first == id) {
             return true;
         }
+    }
+    return false;
+}
+
+bool EntityGroup::IsEntityAtPos(Vector2 centerPos, EntityID* found) {
+    std::multimap<EntityID,CompContainer> sprites = GetComponents(COMP_SPRITE);
+    for (auto& comp: sprites){
+         auto sprite = (Sprite*) comp.second.data;
+         Vector2 sprCenter = sprite->center();
+         if (FloatEquals(sprCenter.x, centerPos.x) && FloatEquals(sprCenter.y, centerPos.y)) {
+            if (found) {
+                *found = comp.first;
+            }
+            return true;
+         }
+    }
+    if (found){
+        *found = -1;
     }
     return false;
 }

@@ -330,6 +330,24 @@ void AdvEntityGroup::UpdateAndRenderInteractiveGroupLoader() {
     }
 }
 
+bool AdvEntityGroup::IsHitboxAtPos(Vector2 centerPos, EntityID* id){
+    // convert pixel- to physics coordinates
+    centerPos = Vector2Scale(centerPos,1.f/PIXELS_PER_UNIT);
+
+    std::multimap<EntityID,CompContainer> physBodies = GetComponents(COMP_PHYS_BODY);
+    for (auto& phys: physBodies){
+         auto physBody = (PhysicsBody*) phys.second.data;
+         b2Vec2 ePos = physBody->body->GetWorldCenter();
+         if (FloatEquals(ePos.x, centerPos.x) && FloatEquals(ePos.y, centerPos.y)) {
+            if (id)
+                *id = phys.first;
+            return true;
+         }
+    }
+    if (id)
+        *id = 0;
+    return false;
+}
 
 void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delta){
     AdvEntityGroup& group = *(AdvEntityGroup*) &_group; // eww

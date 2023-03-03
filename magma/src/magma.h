@@ -18,6 +18,7 @@
 
 // box2d cuz i can't math
 #include <Box2D/Box2D.h>
+#include <functional>
 
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
@@ -199,6 +200,7 @@ struct PopMenuConfig {
     PopMenuConfig(Color bgColor=BLACK, Color fgColor=WHITE, Color textColor=WHITE);
 };
 
+typedef std::vector<std::tuple<std::string, bool, bool, std::function<void()>>> ButtonTable;
 struct PopMenu {
     uint id;
 
@@ -216,12 +218,14 @@ struct PopMenu {
 
     void RenderPanel(Color overrideColor=BLANK);
     int DrawPopButton(const char* text, bool selectable=true, bool isBlank=false);
+    void DrawPopButtons(ButtonTable& table);
 
     void EndButtons(Vector2 panelPos);
     void EndButtons();
 
     bool IsInFocus();
     bool IsButtonSelected(int* index);
+    void ProcessSelectedButton(ButtonTable& table);
 };
 
 typedef bool (*LayoutMenuFunc)(float delta);
@@ -429,6 +433,8 @@ struct EntityGroup {
 
     bool EntityExists(EntityID id);
     bool EntityHasComponent(EntityID id, ItemType type);
+
+    bool IsEntityAtPos(Vector2 centerPos, EntityID* found=NULL);
 
     // TODO dispose functions
     void* AddEntityComponent(EntityID id, ItemType type, void* data, size_t size, bool persistent=false);

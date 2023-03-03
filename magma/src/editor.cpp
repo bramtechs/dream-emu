@@ -27,6 +27,7 @@ struct EditorSession {
     bool hasSubject = false;
     bool drawGrid = true;
     bool removalMode = false;
+    bool includeHitbox = false;
     EditorMode mode = MODE_NORMAL;
     Texture tileBeingDrawn = {};
     std::pair<std::string, EntityBuilderFunction> builderBeingUsed = { "", NULL };
@@ -263,7 +264,7 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta) {
         };
 
         EntityID touchedID = 0;
-        if (IsHitboxAtPos(group, spawnPos, &touchedID)) {
+        if (((AdvEntityGroup*)&group)->IsHitboxAtPos(spawnPos, &touchedID)) {
             if (Session.removalMode) {
                 // remove the hitbox
                 group.DestroyEntity(touchedID);
@@ -296,28 +297,20 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta) {
         GetScreenHeight() - menu.size.y * 0.5f
     };
 
+    ButtonTable buttons;
+    buttons.emplace_back(Session.removalMode ? "Draw":"Delete",true,true, []() {
+        Session.removalMode = !Session.removalMode;
+    });
+    buttons.emplace_back("Simplify",true,true, [&group](){
+        SimplifyHitboxes(group);
+    });
+    buttons.emplace_back("Exit",true,true, [&group]() {
+        SwitchMode(MODE_NORMAL);
+    });
+
     menu.RenderPanel(Session.removalMode ? RED : WHITE);
-
-    menu.DrawPopButton(Session.removalMode ? "Draw" : "Delete");
-    menu.DrawPopButton("Simplify");
-    menu.DrawPopButton("Exit");
-
-    int index = 0;
-    if (menu.IsButtonSelected(&index)) {
-        switch (index)
-        {
-        case 0:
-            Session.removalMode = !Session.removalMode;
-            break;
-        case 1:
-            SimplifyHitboxes(group);
-            break;
-        case 2:
-            SwitchMode(MODE_NORMAL);
-            break;
-        }
-    }
-
+    menu.DrawPopButtons(buttons);
+    menu.ProcessSelectedButton(buttons);
     menu.EndButtons(panelPos);
 }
 
@@ -332,14 +325,49 @@ static void BuildEntity(EntityGroup& group, Camera* camera, EntityBuilderFunctio
     (*func)(group, { snapPos.x,snapPos.y,0 });
 }
 
+static void BuildTile(EntityGroup& group, Camera* camera, Texture texture, bool includeHitbox) {
+    // spawn new entity
+    Camera2D cam2d = *(Camera2D*)camera;
+
+    // get snapped pos to place entity
+    Vector2 camPos = GetWindowMousePosition(cam2d);
+    Vector2 snapPos = Vector2Snap(camPos, Session.gridSize);
+
+    if (includeHitbox) {
+        SpawnWallBrush(group, Vector2ToVector3(snapPos));
+    }
+
+    // spawn a bland tile
+    EntityID id = group.AddEntity();
+    Sprite sprite = Sprite({snapPos.x, snapPos.y});
+    sprite.SetTexture(texture);
+    group.AddEntityComponent(id, COMP_SPRITE, sprite, true);
+}
+
 static void ProcTileMode(EntityGroup& group, Camera* camera, float delta) {
     // get snapped pos to render ghost
     Camera2D cam2d = *(Camera2D*)camera;
     Vector2 camPos = GetWindowMousePosition(cam2d);
     Vector2 snapPos = Vector2Snap(camPos, Session.gridSize);
 
+    bool isHolding = IsMouseButtonDown(0);
+
     if (Session.tileBeingDrawn.id > 0) { // if any tile texture selected
+        Session.gridSize = Session.tileBeingDrawn.width;
         DrawTextureEx(Session.tileBeingDrawn, snapPos, 0.f, 1.f, ColorAlpha(WHITE, 0.6f));
+
+        if (isHolding) {
+            EntityID touchedID = 0;
+            if (group.IsEntityAtPos(snapPos, &touchedID)) {
+                if (Session.removalMode) {
+                    // remove the tile
+                    group.DestroyEntity(touchedID);
+                }
+            }
+            else if (!Session.removalMode) {
+                BuildTile(group, camera, Session.tileBeingDrawn, Session.includeHitbox);
+            }
+        }
     }
     else if (Session.builderBeingUsed.second != NULL) {
         Rectangle rect = {
@@ -386,6 +414,7 @@ static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
     }
     menu.DrawPopButton("", false, false);
     menu.DrawPopButton(Session.removalMode ? "Draw" : "Delete");
+    menu.DrawPopButton(Session.includeHitbox ? "Including hitboxes" : "Not including hitboxes");
     menu.DrawPopButton("Exit");
 
     int amountOfOptions = 1 + Session.builders.size() + 1 + tiles.size() + 3;
@@ -399,7 +428,7 @@ static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
         Session.builderBeingUsed = builders[i];
         Session.tileBeingDrawn = {};
     }
-    else if (index > 0 && index >= 1 + Session.builders.size() + 1) {
+    else if (index > 0 && index > 1 + Session.builders.size() + 1 && index < amountOfOptions - 2) {
         int i = index - 2 - Session.builders.size();
         assert(i >= 0 && i < tiles.size());
         Session.tileBeingDrawn = RequestTexture(tiles[i]);

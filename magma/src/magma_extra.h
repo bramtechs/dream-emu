@@ -91,6 +91,8 @@ struct AdvEntityGroup : EntityGroup {
     void SaveGroupInteractively(const char* folder, uint version=0);
     void LoadGroupInteractively(uint version=0);
 
+    bool IsHitboxAtPos(Vector2 centerPos, EntityID* id=NULL);
+
 private:
     void UpdateAndRenderInteractiveGroupLoader();
 };

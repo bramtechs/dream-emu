@@ -268,6 +268,23 @@ int PopMenu::DrawPopButton(const char* text, bool selectable, bool isBlank){
     return buttonCount++;
 }
 
+void PopMenu::DrawPopButtons(ButtonTable& table) {
+    for (const auto& elem : table) {
+        const char* text = std::get<0>(elem).c_str();
+        DrawPopButton(text, std::get<1>(elem), std::get<2>(elem));
+    }
+}
+
+void PopMenu::ProcessSelectedButton(ButtonTable& table) {
+    int index = 0;
+    if (IsButtonSelected(&index)) {
+        if (index >= 0 && index < table.size()) {
+            auto& tuple = table[index];
+            std::get<3>(tuple)();
+        }
+    }
+}
+
 bool PopMenu::IsInFocus(){
     // get highest priority available
     int highestPriority = 0;
