@@ -150,32 +150,19 @@ static void update_custom_component(EntityGroup& group, IteratedComp& comp, floa
 static bool layout_menu(float delta){
     static auto menu = PopMenu();
 
+
+    ButtonTable buttons;
+    buttons.AddButton("New game",NULL,false);
+    buttons.AddButton("Load game",NULL,false);
+    buttons.AddButton("Options",NULL,false);
+    buttons.AddButton("Quit",[](){
+        CloseWindow();
+    },true);
+
     menu.RenderPanel();
-
-    menu.DrawPopButton("New game");
-    menu.DrawPopButton("Load game",false);
-    menu.DrawPopButton("Options",false);
-    menu.DrawPopButton("Quit",true);
-
+    menu.DrawPopButtons(buttons);
+    menu.ProcessSelectedButton(buttons);
     menu.EndButtons({150,250});
-
-    // process selection
-    int index = 0;
-    if (menu.IsButtonSelected(&index)){
-        switch(index){
-            case 0: // new game/level select
-                return true;
-            case 1: // load game
-                break;
-            case 2: // options
-                break;
-            case 3: // quit
-                CloseWindow();
-                break;
-            default:
-                break;
-        }
-    }
 
     return false;
 }

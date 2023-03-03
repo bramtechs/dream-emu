@@ -1,6 +1,6 @@
 #include "magma.h"
 
-static bool GUI_DEBUG = true;
+static bool GUI_DEBUG = false;
 
 // === ButtonGroup ===
 // do not combine ButtonGroup with PopMenu struct as we 
@@ -297,8 +297,9 @@ void PopMenu::ProcessSelectedButton(ButtonTable& table) {
         if (index >= 0 && index < table.size()) {
             auto& tuple = table[index];
             bool selectable = std::get<1>(tuple);
-            if (selectable){
-                std::get<3>(tuple)();
+            auto func = std::get<3>(tuple);
+            if (selectable && func){
+                func();
             }
         }
     }
