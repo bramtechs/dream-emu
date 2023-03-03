@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <chrono>
 
 #ifdef __linux__
     #define LINUX
@@ -361,6 +362,32 @@ bool runrel() {
     return run(EXECUTABLE_RELEASE);
 }
 
+bool benchmark() {
+    std::cout << "Wiping repo's before benchmark!" << std::endl;
+    if (!clean()){
+        return false;
+    }
+    std::cout << "Generating project first..." << std::endl;
+    if (!generate()){
+        return false;
+    }
+    std::cout << "Starting benchmark, compiling...!" << std::endl;
+    auto start = std::chrono::steady_clock::now();
+    if (release()){
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::cout << "=====================================" << std::endl;
+        std::cout << "Compilation took " << elapsed_seconds.count() << " seconds" << std::endl;
+        std::cout << "=====================================" << std::endl;
+        return true;
+    } else {
+        std::cout << "=====================================" << std::endl;
+        std::cout << "Could not complete benchmark, compilation did fail." << std::endl;
+        std::cout << "=====================================" << std::endl;
+        return false;
+    }
+}
+
 // === main cli functions
 
 typedef bool (*CommandFunc)();
@@ -383,6 +410,7 @@ std::vector<Command> COMMANDS = {
     { "package", "Build and package optimized executable", package },
     { "run", "Run executable (debug)", rundebug },
     { "runrel", "Run executable (release)", runrel },
+    { "benchmark", "Measure compilation time", benchmark },
     { "clean", "Remove build folder", clean },
     { "wipe", "clean + remove downloaded libraries", wipe },
     { "help", "Show this screen", help },
