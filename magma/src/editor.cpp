@@ -166,43 +166,31 @@ static void ProcNormalModeGUI(EntityGroup& group, Camera* camera, float delta) {
         GetScreenWidth() - menu.size.x * 0.5f,
         GetScreenHeight() - menu.size.y * 0.5f
     };
-    menu.RenderPanel();
+
+    ButtonTable buttons;
     if (Session.hasSubject) {
-        menu.DrawPopButton("Delete");
+        buttons.AddButton("Delete",[&group](){
+            group.DestroyEntity(Session.subjectID);
+            Session.hasSubject = false;
+        });
+        buttons.AddButton("Change texture",[](){
+            SwitchMode(MODE_TEXTURE);
+        });
     }
 
     // editor modes
-    std::vector<EditorMode> buttonModes;
     for (const auto& mode : Session.modes) {
         if (mode.first != MODE_DELAY && mode.first != MODE_NORMAL) {
-            const EditorModeInfo& info = mode.second;
-            menu.DrawPopButton(info.description.c_str());
-            buttonModes.push_back(mode.first);
+            buttons.AddButton(mode.second.description.c_str(), [&mode](){
+                SwitchMode(mode.first);
+            });
         }
     }
 
+    menu.RenderPanel();
+    menu.DrawPopButtons(buttons);
+    menu.ProcessSelectedButton(buttons);
     menu.EndButtons(panelPos);
-
-    int index = 0;
-    if (menu.IsButtonSelected(&index)) {
-        if (Session.hasSubject) {
-            index -= 2;
-        }
-        switch (index) {
-        case -2:
-            // TODO: temporary
-            SetEntityCenter(Session.subjectID, -9999.f, -9999.f);
-            break;
-        case -1:
-            // change texture
-            SwitchMode(MODE_TEXTURE);
-            break;
-        default:
-            // switch modes
-            SwitchMode(buttonModes[index]);
-            break;
-        }
-    }
 }
 
 static void ProcTextureModeGUI(EntityGroup& group, Camera* camera, float delta) {
