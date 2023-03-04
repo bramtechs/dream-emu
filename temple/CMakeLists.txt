@@ -15,6 +15,7 @@ endif ()
 
 # magma settings
 set(MAGMA_3D                    OFF CACHE BOOL "" FORCE)
+set(MAGMA_VIDEO                 ON  CACHE BOOL "" FORCE)
 
 # Declaring our executable
 add_executable(${PROJECT_NAME} WIN32 ${THESAUCE})

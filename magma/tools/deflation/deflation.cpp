@@ -20,11 +20,13 @@ std::vector<std::string> get_supported_formats() {
         ".mtl",
         ".wav",
         ".mp3",
+        ".ogg",
         ".pal",
         ".fs",
         ".vs",
         ".wav",
-        ".ttf"
+        ".ttf",
+        ".mpeg"
     };
 };
 

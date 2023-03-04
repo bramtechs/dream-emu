@@ -1,5 +1,8 @@
 #pragma once
 
+// TODO: implement!
+#define MAGMA_VIDEO
+
 // c(++) libraries
 #include <iostream>
 #include <vector>
@@ -51,6 +54,8 @@ constexpr float PIXELS_PER_UNIT = 16;
 #define ASSET_FRAG_SHADER      3
 #define ASSET_VERT_SHADER      4
 #define ASSET_FONT             5
+#define ASSET_MUSIC            6
+#define ASSET_VIDEO            7
 
 #define FOCUS_LOW              0 // use for menus that stay open to avoid softlock
 #define FOCUS_NORMAL           5
@@ -126,6 +131,49 @@ constexpr Palette INVALID_PALETTE = {
         255,0,255
     }
 };
+
+#ifdef MAGMA_VIDEO
+struct plm_t;
+struct Video {
+    plm_t* mpeg;
+    uint8_t* frameData;
+
+    float timeScale;
+    Music audio;
+};
+
+Video LoadVideo(const char* fileName, const char* audioFileName=NULL);
+Video LoadVideoFromMemory(uint8_t *bytes, size_t length, Music audio={});
+void UnloadVideo(Video video, bool includeAudio=true);
+
+bool VideoHasAudio(Video video);
+
+// easy playback
+void PlayAndDrawVideo(Video video, Rectangle dest, Color tint=WHITE);
+void PlayAndDrawVideo(Video video, Vector2 pos, Color tint=WHITE);
+inline void PlayAndDrawVideo(Video video, int posX, int posY, Color tint=WHITE) {
+    Vector2 v2 = {(float)posX,(float)posY};
+    PlayAndDrawVideo(video, v2, tint);
+}
+
+// advanced playback
+void DrawVideoFrame(Video video, Rectangle dest, Color tint=WHITE);
+void DrawVideoFrame(Video video, Vector2 pos, Color tint=WHITE);
+inline void DrawVideoFrame(Video video, int posX, int posY, Color tint=WHITE) {
+    Vector2 v2 = {(float)posX,(float)posY};
+    DrawVideoFrame(video, v2,tint);
+}
+void PlayVideoAudio(Video video);
+
+Image GetVideoFrame(Video video);
+Texture GetVideoFrameTexture(Video video); // WARN: Dispose after use!
+float GetVideoFrameRate(Video video);
+void AdvanceVideo(Video video, float delta);
+inline void AdvanceVideo(Video video){
+    AdvanceVideo(video, GetFrameTime());
+}
+
+#endif
 
 struct MagmaWindow {
     Vector2 gameSize;
@@ -254,6 +302,7 @@ struct MainMenuConfig {
     LayoutMenuFunc layoutFunc;
 };
 
+// TODO: make flexible queue system instead: MenuSequence
 struct MainMenu {
     MainMenuConfig config;
 
@@ -529,8 +578,15 @@ Texture RequestIndexedTexture(const std::string& name);
 Image RequestImage(const std::string& name);
 Shader RequestShader(const std::string& name);
 Sound RequestSound(const std::string& name);
+Music RequestMusic(const std::string& name); // WARN: not cached
 Font RequestFont(const std::string& name);
+
+#ifdef MAGMA_VIDEO
+Video RequestVideo(const std::string& name); // WARN: not cached
+#endif
+
 char* RequestCustom(const std::string& name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
+
 Palette RequestPalette(const std::string& name);
 Palette ParsePalette(char* text, const char* name="unnamed");
 

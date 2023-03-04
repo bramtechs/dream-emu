@@ -1,4 +1,15 @@
+// LONG TERM TODO: rewrite in modern c++ with templates -- DRY
+// TODO: Deprecate palettes
+// TODO: Deprecate disk loading
+// TODO: combine music and sound into one asset type
+
 #include "magma.h"
+
+#ifdef MAGMA_VIDEO
+#define PL_MPEG_IMPLEMENTATION
+#endif
+
+#include "external/pl_mpeg.h"
 
 #include <iostream>
 #include <string>
@@ -25,7 +36,12 @@ struct GameAssets {
     AssetMap<Palette> palettes;
     AssetMap<Shader> shaders;
     AssetMap<Sound> sounds;
+    AssetMap<Music> music;
     AssetMap<Font> fonts;
+
+#ifdef MAGMA_VIDEO
+    AssetMap<Video> videos;
+#endif
 };
 
 static GameAssets Assets = {};
@@ -149,7 +165,7 @@ void DisposeAssets() {
     for (const auto& item : Assets.indexedTextures) {
         UnloadTexture(item.second.texture);
     }
-#if defined(MAGMA_3D)
+#ifdef MAGMA_3D
     for (const auto& item : Assets.models) {
         UnloadModel(item.second);
     }
@@ -163,7 +179,11 @@ void DisposeAssets() {
     for (const auto& item : Assets.fonts) {
         UnloadFont(item.second);
     }
-
+#ifdef MAGMA_VIDEO
+    for (const auto& item : Assets.videos) {
+        UnloadVideo(item.second);
+    }
+#endif
     TraceLog(LOG_DEBUG, "Disposed asset pack");
     UnloadTexture(PlaceholderTexture);
 }
@@ -473,6 +493,36 @@ Sound RequestSound(const std::string& name){
     return sound;
 }
 
+// NOTE: Maybe music shouldn't be cached at all
+
+Music RequestMusic(const std::string& name){
+    // ATTEMPT 1: Load music from cache
+    for (const auto &item : Assets.music){
+        if (item.first == name){
+            return item.second;
+        }
+    }
+
+    // ATTEMPT 2: Load from asset package 
+    Music music = {};
+    if (IsAssetLoaded(name)){
+        RawAsset asset = QueryAsset(name,".ogg");
+        if (asset.data != NULL){
+            if (GetAssetType(asset.path) == ASSET_MUSIC) {
+                // read from memory
+                music = LoadMusicStreamFromMemory(".ogg", (const unsigned char*) asset.data, asset.size);
+            }
+            else {
+                TraceLog(LOG_ERROR, "Packaged asset with name %s is not music!", name.c_str());
+                return {};
+            }
+        }
+    }
+
+    Assets.music.insert({name,music});
+    return music;
+}
+
 Font RequestFont(const std::string& name){
     // ATTEMPT 1: Load font from cache
     for (const auto &item : Assets.fonts){
@@ -524,6 +574,47 @@ Font RequestFont(const std::string& name){
 Font GetRetroFont(){
     return RequestFont("font_core_retro2");
 }
+
+#ifdef MAGMA_VIDEO
+
+Video RequestVideo(const std::string& name){
+
+    // Request music of the video
+    std::string videoPrefix = "video_";
+    std::string musicName = "music_" + name.substr(videoPrefix.length());
+    Music audio = RequestMusic(musicName);
+
+    // ATTEMPT 1: Load video from cache
+    for (const auto &item : Assets.videos){
+        if (item.first == name){
+            return item.second;
+        }
+    }
+
+    Video video;
+    // ATTEMPT 2: Load from asset package
+    if (IsAssetLoaded(name)){
+        RawAsset asset = QueryAsset(name,".mpeg");
+        if (asset.data != NULL){
+            if (GetAssetType(asset.path) == ASSET_VIDEO) {
+                // read from memory
+                video = LoadVideoFromMemory((uint8_t*) asset.data, asset.size, audio);
+                if (!video.mpeg) {
+                    TraceLog(LOG_ERROR, "Malformed video %s!", name.c_str());
+                }
+            }
+            else {
+                TraceLog(LOG_ERROR, "Packaged asset with name %s is not a video!", name.c_str());
+            }
+        }
+    }
+
+    // Cache the video
+    Assets.videos.insert({name,video});
+    return video;
+}
+
+#endif
 
 // TODO put in engine
 std::vector<std::string> split(const std::string& s, char delim) {
@@ -693,8 +784,11 @@ AssetType GetAssetType(const char* name) {
     if (ext == ".png" || ext == ".gif" || ext == ".jpg" || ext == ".jpeg") {
         return ASSET_TEXTURE;
     }
-    if (ext == ".wav" || ext == ".mp3" || ext == ".ogg") {
+    if (ext == ".wav") {
         return ASSET_SOUND;
+    }
+    if (ext == ".ogg") {
+        return ASSET_MUSIC;
     }
     if (ext == ".obj" || ext == ".fbx") {
         return ASSET_MODEL;
@@ -707,6 +801,9 @@ AssetType GetAssetType(const char* name) {
     }
     if (ext == ".vs") {
         return ASSET_VERT_SHADER;
+    }
+    if (ext == ".mpeg") {
+        return ASSET_VIDEO;
     }
     return ASSET_CUSTOM;
 }
@@ -742,3 +839,145 @@ bool IsAssetLoaded(const std::string& name) {
     RawAsset asset = QueryAsset(name);
     return asset.data != NULL;
 }
+
+#ifdef MAGMA_VIDEO
+
+// URGENT TODO: put in video.cpp
+
+static void ReceivedVideoFrame(plm_t *mpeg, plm_frame_t *frame, void *user) {
+    uint8_t* pixels = (uint8_t*) user;
+    assert(pixels);
+
+    size_t widthPixels = frame->width * 3;
+    plm_frame_to_rgb(frame, pixels, widthPixels);
+}
+
+static void InitVideo(Video& video) {
+    assert(video.mpeg);
+
+    // allocate memory
+    video.frameData = new uint8_t[plm_get_width(video.mpeg) * plm_get_height(video.mpeg) * 3];
+
+    // link methods
+    plm_set_video_decode_callback(video.mpeg, ReceivedVideoFrame, (void*) video.frameData);
+
+    // we don't use the audio from the video file itself because
+    // I'm too dumb to figure out audio
+    plm_set_audio_enabled(video.mpeg,false);
+}
+
+Video LoadVideo(const char* fileName, const char* audioFileName) {
+    Video video = {};
+    video.mpeg = plm_create_with_filename(fileName);
+    video.audio = LoadMusicStream(fileName);
+    video.timeScale = 1.f;
+    if (!video.audio.ctxData) {
+        ERROR("Could not audio audio!");
+    }
+    InitVideo(video);
+    return video;
+}
+
+Video LoadVideoFromMemory(uint8_t *bytes, size_t length, Music audio) {
+    Video video = {};
+    video.mpeg = plm_create_with_memory(bytes, length, false);
+    video.audio = audio;
+    video.timeScale = 1.f;
+    InitVideo(video);
+    return video;
+}
+
+void UnloadVideo(Video video, bool includeAudio) {
+    plm_destroy(video.mpeg);
+    free (video.frameData);
+    if (includeAudio) {
+        UnloadMusicStream(video.audio);
+    }
+}
+
+bool VideoHasAudio(Video video) {
+    return video.audio.ctxData;
+}
+
+Image GetVideoFrame(Video video) {
+    assert(video.mpeg);
+    assert(video.frameData);
+
+    Image image;
+    image.data = video.frameData;
+    image.width = plm_get_width(video.mpeg);
+    image.height = plm_get_height(video.mpeg);
+    image.mipmaps = 1;
+    image.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
+
+    return image;
+}
+
+Texture GetVideoFrameTexture(Video video) {
+    // prevent spamming of logs
+    SetTraceLogLevel(LOG_NONE);
+    Image frame = GetVideoFrame(video);
+    Texture frameTexture = LoadTextureFromImage(frame);
+    // do not dispose frame here!
+    SetTraceLogLevel(LOG_DEBUG); // TODO: Implement GetTraceLogLevel()
+    return frameTexture;
+}
+
+void DrawVideoFrame(Video video, Rectangle dest, Color tint) {
+    Texture texture = GetVideoFrameTexture(video);
+    Rectangle source = {
+        0.f, 0.f,
+        (float) texture.width, (float) texture.height,
+    };
+    DrawTexturePro(texture, source, dest, {0.f, 0.f}, 0.f, tint);
+    //UnloadTexture(texture);
+}
+
+void DrawVideoFrame(Video video, Vector2 pos, Color tint) {
+    assert(video.mpeg);
+    Rectangle dest = {
+        pos.x,
+        pos.y,
+        (float) plm_get_width(video.mpeg),
+        (float) plm_get_height(video.mpeg)
+    };
+    DrawVideoFrame(video, dest, tint);
+}
+
+void PlayAndDrawVideo(Video video, Rectangle dest, Color tint) {
+    AdvanceVideo(video);
+    DrawVideoFrame(video,dest,tint);
+}
+
+void PlayAndDrawVideo(Video video, Vector2 pos, Color tint) {
+    AdvanceVideo(video);
+    DrawVideoFrame(video,pos,tint);
+    PlayVideoAudio(video);
+}
+
+void PlayVideoAudio(Video video) {
+    // play audio
+    if (VideoHasAudio(video)) {
+        if (GetMusicTimePlayed(video.audio) < GetMusicTimeLength(video.audio)){
+            if (!IsMusicStreamPlaying(video.audio)) {
+                PlayMusicStream(video.audio);
+            }
+            UpdateMusicStream(video.audio);
+            SetMusicPitch(video.audio, video.timeScale);
+        } else {
+            StopMusicStream(video.audio);
+        }
+    }
+}
+
+float GetVideoFrameRate(Video video){
+    assert(video.mpeg);
+    return (float) plm_get_framerate(video.mpeg);
+}
+
+void AdvanceVideo(Video video, float delta){
+    assert(video.mpeg);
+    plm_decode(video.mpeg, delta*video.timeScale);
+}
+
+#endif
