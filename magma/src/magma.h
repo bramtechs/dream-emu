@@ -1,8 +1,5 @@
 #pragma once
 
-// TODO: implement!
-#define MAGMA_VIDEO
-
 // c(++) libraries
 #include <iostream>
 #include <vector>

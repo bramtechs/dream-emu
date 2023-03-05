@@ -1,64 +1,39 @@
 cmake_minimum_required(VERSION 3.0)
 project(magma CXX C)
 
+cmake_policy(SET CMP0054 NEW)
+
 # Adding Raylib
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
+set(BUILD_EXAMPLES OFF) # don't build the supplied examples
+set(BUILD_GAMES    OFF) # don't build the supplied example games
 
 # Customize raylib
-set(CUSTOMIZE_BUILD         ON CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_JPG  ON CACHE BOOL "" FORCE)
+set(CUSTOMIZE_BUILD         ON)
+set(SUPPORT_FILEFORMAT_JPG  ON)
 
-set(SUPPORT_GESTURES_SYSTEM     OFF CACHE BOOL "" FORCE)
-set(SUPPORT_MOUSE_GESTURES      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_SSH_KEYBOARD_RPI    OFF CACHE BOOL "" FORCE)
+include(CMakeDebloat.txt)
 
-set(SUPPORT_SSH_KEYBOARD_RPI    OFF CACHE BOOL "" FORCE)
-
-set(SUPPORT_GIF_RECORDING       OFF CACHE BOOL "" FORCE)
-set(SUPPORT_SCREEN_CAPTURE      OFF CACHE BOOL "" FORCE)
-
-set(SUPPORT_IMAGE_EXPORT        OFF CACHE BOOL "" FORCE)
-
-# don't include formats I'll likely never use
-set(SUPPORT_FILEFORMAT_DDS      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_HDR      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_PNM      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_KTX      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_ASTC     OFF CACHE BOOL "" FORCE)
-
-set(SUPPORT_FILEFORMAT_FNT      OFF CACHE BOOL "" FORCE)
-
-set(SUPPORT_FILEFORMAT_XM       OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_MOD      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_MP3      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_FLAC     OFF CACHE BOOL "" FORCE)
-
-set(SUPPORT_FILEFORMAT_XM       OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_MOD      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_MP3      OFF CACHE BOOL "" FORCE)
-set(SUPPORT_FILEFORMAT_FLAC     OFF CACHE BOOL "" FORCE)
-
-set(OFF CACHE BOOL "" FORCE)
+option(MAGMA_3D "Build 3D functionality." OFF)
+option(MAGMA_VIDEO "Build video player."  OFF)
 
 if (MAGMA_3D)
-    set(SUPPORT_MODULE_RMODELS      ON CACHE BOOL "" FORCE)
+    set(SUPPORT_MODULE_RMODELS      ON)
     message("Compiling 3D support")
 else()
-    set(SUPPORT_MESH_GENERATION     OFF CACHE BOOL "" FORCE)
-    set(SUPPORT_MODULE_RMODELS      OFF CACHE BOOL "" FORCE)
-    set(SUPPORT_FILEFORMAT_OBJ      OFF CACHE BOOL "" FORCE)
-    set(SUPPORT_FILEFORMAT_MTL      OFF CACHE BOOL "" FORCE)
-    set(SUPPORT_FILEFORMAT_IQM      OFF CACHE BOOL "" FORCE)
-    set(SUPPORT_FILEFORMAT_GLTF     OFF CACHE BOOL "" FORCE)
-    set(SUPPORT_FILEFORMAT_VOX      OFF CACHE BOOL "" FORCE)
+    set(SUPPORT_MESH_GENERATION     OFF)
+    set(SUPPORT_MODULE_RMODELS      OFF)
+    set(SUPPORT_FILEFORMAT_OBJ      OFF)
+    set(SUPPORT_FILEFORMAT_MTL      OFF)
+    set(SUPPORT_FILEFORMAT_IQM      OFF)
+    set(SUPPORT_FILEFORMAT_GLTF     OFF)
+    set(SUPPORT_FILEFORMAT_VOX      OFF)
+    message("Skipping 3D support")
 endif()
 
 if (MAGMA_VIDEO)
     message("Compiling video support")
-    set(MAGMA_VIDEO                 ON  CACHE BOOL "" FORCE)
 else()
-    set(MAGMA_VIDEO                 OFF  CACHE BOOL "" FORCE)
+    message("Skipping video support")
 endif()
 
 #set(SUPPORT_SCREEN_CAPTURE "Allow automatic screen capture of current screen pressing F12, defined in KeyCallback()" ON CUSTOMIZE_BUILD ON)

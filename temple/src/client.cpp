@@ -200,6 +200,8 @@ int main(int argc, char** argv)
     RegisterEntityBuilder(spawn_block);
     RegisterEntityBuilder(spawn_player);
 
+    Video video;
+
     // register custom entity callbacks
     group.RegisterUpdater(update_custom_component);
 
@@ -207,8 +209,6 @@ int main(int argc, char** argv)
 
     if (LoadAssets()) {
         LoadMagmaSettings();
-
-        Video video = RequestVideo("video_test2");
 
         MainMenu menu = MainMenu({
             WIDTH,
@@ -240,18 +240,6 @@ int main(int argc, char** argv)
 
                 BeginMode2D(camera);
 
-                // BeginPaletteMode(palette);
-                PlayAndDrawVideo(video, 30, 30);
-
-                DrawRetroText(TextFormat("playback scale %f (press PgDown and PgUp)", video.timeScale) , 30, 230, 15, YELLOW);
-                if (IsKeyPressed(KEY_PAGE_DOWN)){
-                    video.timeScale -= 0.1f;
-                }
-                if (IsKeyReleased(KEY_PAGE_UP)){
-                    video.timeScale += 0.1f;
-                }
-                DrawRetroText("pls kill me", 30, 270, 18*video.timeScale, RED);
-
                 if (!GameIsPaused()){
                     group.UpdateGroup(delta);
                 }
@@ -268,7 +256,6 @@ int main(int argc, char** argv)
 
                 EndMagmaDrawing();
                 DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
-                DrawRetroText("Implemented video support into my engine. I'm sorry...", 50, 140, 24, GREEN);
                 UpdateAndDrawLog();
 
                 UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
