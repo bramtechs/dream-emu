@@ -129,7 +129,6 @@ constexpr Palette INVALID_PALETTE = {
     }
 };
 
-#ifdef MAGMA_VIDEO
 struct plm_t;
 struct Video {
     plm_t* mpeg;
@@ -169,8 +168,6 @@ void AdvanceVideo(Video video, float delta);
 inline void AdvanceVideo(Video video){
     AdvanceVideo(video, GetFrameTime());
 }
-
-#endif
 
 struct MagmaWindow {
     Vector2 gameSize;
@@ -324,8 +321,6 @@ private:
 };
 
 
-#if defined(MAGMA_3D)
-
 struct Base {
     BoundingBox bounds;
     Color tint;
@@ -374,8 +369,6 @@ struct ModelRenderer{
 
     ModelRenderer(const char* modelPath, Base* base);
 };
-
-#endif
 
 struct Sprite {
     BoundingBox2D bounds;
@@ -466,10 +459,8 @@ struct EntityGroup {
 
     RayCollision GetRayCollision(Ray ray);
 
-#if defined(MAGMA_3D)
     bool GetMousePickedBase(Camera camera, Base** result);
     bool GetMousePickedBaseEx(Camera camera, Base** result, RayCollision* col);
-#endif
 
     // .comps -- data format
     // ====================
@@ -578,9 +569,7 @@ Sound RequestSound(const std::string& name);
 Music RequestMusic(const std::string& name); // WARN: not cached
 Font RequestFont(const std::string& name);
 
-#ifdef MAGMA_VIDEO
 Video RequestVideo(const std::string& name); // WARN: not cached
-#endif
 
 char* RequestCustom(const std::string& name, size_t* size, const char* ext=NULL); // NOTE: memory is disposed by DisposeAssets()
 
@@ -589,10 +578,8 @@ Palette ParsePalette(char* text, const char* name="unnamed");
 
 Font GetRetroFont();
 
-#if defined(MAGMA_3D)
 Model RequestModel(const std::string& name);
 Model LoadOBJFromMemory(const char* fileName);
-#endif
 
 int GetAssetType(const char* name);
 

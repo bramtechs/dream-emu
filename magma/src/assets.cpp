@@ -5,9 +5,7 @@
 
 #include "magma.h"
 
-#ifdef MAGMA_VIDEO
 #define PL_MPEG_IMPLEMENTATION
-#endif
 
 #include "external/pl_mpeg.h"
 
@@ -38,10 +36,7 @@ struct GameAssets {
     AssetMap<Sound> sounds;
     AssetMap<Music> music;
     AssetMap<Font> fonts;
-
-#ifdef MAGMA_VIDEO
     AssetMap<Video> videos;
-#endif
 };
 
 static GameAssets Assets = {};
@@ -165,11 +160,9 @@ void DisposeAssets() {
     for (const auto& item : Assets.indexedTextures) {
         UnloadTexture(item.second.texture);
     }
-#ifdef MAGMA_3D
     for (const auto& item : Assets.models) {
         UnloadModel(item.second);
     }
-#endif
     for (const auto& item : Assets.shaders) {
         UnloadShader(item.second);
     }
@@ -179,11 +172,9 @@ void DisposeAssets() {
     for (const auto& item : Assets.fonts) {
         UnloadFont(item.second);
     }
-#ifdef MAGMA_VIDEO
     for (const auto& item : Assets.videos) {
         UnloadVideo(item.second);
     }
-#endif
     TraceLog(LOG_DEBUG, "Disposed asset pack");
     UnloadTexture(PlaceholderTexture);
 }
@@ -321,7 +312,6 @@ char* load_filetext_from_pack(const char* fileName) {
     return (char*)TextFormat("%s\0", data); // add a null-terminator, just to be sure
 }
 
-#ifdef MAGMA_3D
 Model RequestModel(const std::string& name) {
 
     // ATTEMPT 1: get cached model
@@ -383,7 +373,6 @@ Model RequestModel(const std::string& name) {
     Assets.models.insert({ name,model });
     return model;
 }
-#endif
 
 Shader RequestShader(const std::string& name) {
     // ATTEMPT 1: Load shader from cache
@@ -575,8 +564,6 @@ Font GetRetroFont(){
     return RequestFont("font_core_retro2");
 }
 
-#ifdef MAGMA_VIDEO
-
 Video RequestVideo(const std::string& name){
 
     // Request music of the video
@@ -613,8 +600,6 @@ Video RequestVideo(const std::string& name){
     Assets.videos.insert({name,video});
     return video;
 }
-
-#endif
 
 // TODO put in engine
 std::vector<std::string> split(const std::string& s, char delim) {
@@ -840,8 +825,6 @@ bool IsAssetLoaded(const std::string& name) {
     return asset.data != NULL;
 }
 
-#ifdef MAGMA_VIDEO
-
 // URGENT TODO: put in video.cpp
 
 static void ReceivedVideoFrame(plm_t *mpeg, plm_frame_t *frame, void *user) {
@@ -979,5 +962,3 @@ void AdvanceVideo(Video video, float delta){
     assert(video.mpeg);
     plm_decode(video.mpeg, delta*video.timeScale);
 }
-
-#endif

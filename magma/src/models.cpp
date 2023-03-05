@@ -1,7 +1,5 @@
 #include "magma.h"
 
-#if defined(MAGMA_3D)
-
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <external/tinyobj_loader_c.h>
 
@@ -189,12 +187,9 @@ Model LoadOBJFromMemory(const char* fileName)
         {
             model.meshCount = 1;
             model.meshes = (Mesh*)RL_CALLOC(model.meshCount, sizeof(Mesh));
-#if defined(SUPPORT_MESH_GENERATION)
-            TRACELOG(LOG_WARNING, "MESH: [%s] Failed to load mesh data, default to cube mesh", fileName);
+            WARN("MESH: [%s] Failed to load mesh data, default to cube mesh", fileName);
             model.meshes[0] = GenMeshCube(1.0f, 1.0f, 1.0f);
-#else
             WARN("MESH: [%s] Failed to load mesh data", fileName);
-#endif
         }
         else
         {
@@ -216,5 +211,3 @@ Model LoadOBJFromMemory(const char* fileName)
 
     return model;
 }
-
-#endif

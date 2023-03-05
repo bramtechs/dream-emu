@@ -25,16 +25,14 @@ void TranslateEntity(EntityID id, Vector2 offset){
     }
 }
 
-#ifdef MAGMA_3D
 void TranslateEntity(EntityID id, Vector3 offset){
     assert(Group);
 
     Base* base = NULL;
-    Group->GetEntityComponent(id, COMP_BASE);
+    Group->GetEntityComponent(id, COMP_BASE, &base);
 
     base->Translate(offset);
 }
-#endif
 
 void SetEntityCenter(EntityID id, Vector2 pos){
     assert(Group);
@@ -53,16 +51,14 @@ void SetEntityCenter(EntityID id, Vector2 pos){
     }
 }
 
-#ifdef MAGMA_3D
 void SetEntityCenter(EntityID id, Vector3 pos){
     assert(Group);
 
     Base* base = NULL;
-    Group->GetEntityComponent(id, COMP_BASE, base);
+    Group->GetEntityComponent(id, COMP_BASE, &base);
 
     base->SetCenter(pos);
 }
-#endif
 
 void SetEntitySize(EntityID id, Vector2 size){
     assert(Group);
@@ -99,16 +95,14 @@ void SetEntitySize(EntityID id, Vector2 size){
     }
 }
 
-#ifdef MAGMA_3D
 void SetEntitySize(EntityID id, Vector3 pos){
     assert(Group);
 
     Base* base = NULL;
-    Group->GetEntityComponent(id, COMP_BASE, base);
+    Group->GetEntityComponent(id, COMP_BASE, &base);
 
     base->SetSize(pos);
 }
-#endif
 
 void SimplifyHitboxes(EntityGroup& group){
     ERROR("NOT IMPLEMENTED");
@@ -501,17 +495,12 @@ void UpdateExtendedComponent(EntityGroup& _group, IteratedComp& comp, float delt
 }
 
 // ===== 3d =====
-#ifdef MAGMA_3D
-
 PlayerFPS::PlayerFPS(float eyeHeight) {
     this->eyeHeight = eyeHeight;
     this->isFocused = true;
 
-    Camera* cam = &this->camera;
-    cam->projection = CAMERA_PERSPECTIVE;
-    cam->up = { 0.0f, 1.0f, 0.f };
-
-    SetCameraMode(*cam, CAMERA_CUSTOM);
+    this->camera.projection = CAMERA_PERSPECTIVE;
+    this->camera.up = { 0.0f, 1.0f, 0.f };
 
     SetAngle(0.f);
     SetFov(80.f);
@@ -535,6 +524,9 @@ void PlayerFPS::SetFov(float fovDeg) {
 
 // TODO shouldnt be a EntityGroup pointer but that doesnt compile for some reason
 Vector3 PlayerFPS::Update(void* group, float delta) {
+
+    // update camera
+    UpdateCamera(&camera, isFocused ? CAMERA_CUSTOM:CAMERA_FREE);
 
     // snap to the floor 
     Ray ray = { 0 };
@@ -596,7 +588,6 @@ Vector3 PlayerFPS::Update(void* group, float delta) {
 
 void PlayerFPS::Focus() {
     isFocused = true;
-    SetCameraMode(camera, CAMERA_CUSTOM);
 }
 
 void PlayerFPS::Unfocus() {
@@ -606,5 +597,3 @@ void PlayerFPS::Unfocus() {
 void PlayerFPS::Teleport(Vector3 pos) {
     camera.position = pos;
 }
-
-#endif

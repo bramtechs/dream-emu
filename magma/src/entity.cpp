@@ -13,8 +13,6 @@ void SetEntitySize(EntityID id, float x, float y, float z);
 
 void ResetEntityTranslation(EntityID id);
 
-#if defined(MAGMA_3D)
-
 Base::Base(Vector3 pos, Color tint) {
     BoundingBox box = {
         pos,
@@ -54,8 +52,6 @@ RayCollision Base::GetMouseRayCollision(Camera3D camera) {
     Ray ray = GetWindowMouseRay(camera);
     return GetRayCollisionBox(ray, bounds);
 }
-
-#endif
 
 // Sprite
 Sprite::Sprite(Vector2 pos, Color tint, int zOrder) {
@@ -148,8 +144,6 @@ Vector2 Sprite::halfSize() {
     return Vector2Scale(size(), 0.5f);
 }
 
-#if defined(MAGMA_3D)
-
 // ModelRenderer
 ModelRenderer::ModelRenderer(const char* modelPath, Base* base) {
     Model model = RequestModel(modelPath);
@@ -177,10 +171,9 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
             ModelRenderer* render = (ModelRenderer*)comp.second.data;
 
             Base* base = NULL;
-            GetEntityComponent(comp.first, COMP_BASE, base);
+            GetEntityComponent(comp.first, COMP_BASE, &base);
 
             Model model = RequestModel(render->model);
-
             if (render->accurate) { // do per triangle collisions
                 Vector3 offset = Vector3Add(base->center(), render->offset);
                 for (int j = 0; j < model.meshCount; j++) {
@@ -205,9 +198,6 @@ RayCollision EntityGroup::GetRayCollision(Ray ray) {
     return hit;
 }
 
-#endif
-
-#ifdef MAGMA_3D
 bool EntityGroup::GetMousePickedBase(Camera camera, Base** result) {
     RayCollision col = { 0 };
     return GetMousePickedBaseEx(camera, result, &col);
@@ -227,7 +217,6 @@ bool EntityGroup::GetMousePickedBaseEx(Camera camera, Base** result, RayCollisio
     *result = NULL;
     return false;
 }
-#endif
 
 void EntityGroup::ClearGroup() {
     entityCount = 0;
@@ -481,7 +470,6 @@ static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta)
     //    }
 }
 
-#if defined(MAGMA_3D)
 static void Draw3DComponent(EntityGroup& group, IteratedComp& comp) {
     switch (comp.second.type) {
     case COMP_MODEL_RENDERER:
@@ -490,7 +478,7 @@ static void Draw3DComponent(EntityGroup& group, IteratedComp& comp) {
         auto renderer = (ModelRenderer*)comp.second.data;
 
         Base* base = NULL;
-        GetEntityComponent(comp.first, COMP_BASE, base);
+        group.GetEntityComponent(comp.first, COMP_BASE, &base);
 
         Model model = RequestModel(renderer->model);
         DrawModelEx(model, Vector3Add(base->center(), renderer->offset),
@@ -499,19 +487,19 @@ static void Draw3DComponent(EntityGroup& group, IteratedComp& comp) {
     } break;
     }
 }
-static void Draw3DComponentDebug(EntityGroup& group, IteratedComp& comp) {
+
+static void Draw3DComponentDebug(EntityGroup& group, IteratedComp& comp, void* data) {
     switch (comp.first) {
     case COMP_BASE:
     {
         auto base = (Base*)comp.second.data;
-        RayCollision col = base->GetMouseRayCollision(camera);
+        RayCollision col = base->GetMouseRayCollision(*(Camera*)data);
         Color tint = col.hit ? WHITE : GRAY;
         DrawBoundingBox(base->bounds, tint);
         DrawPoint3D(base->center(), col.hit ? WHITE : GRAY);
     } break;
     }
 }
-#endif
 
 static void DrawComponent(EntityGroup& group, IteratedComp& comp) {
     switch (comp.second.type) {
@@ -595,9 +583,7 @@ EntityGroup::EntityGroup() {
     // add stock updators, drawers
     RegisterUpdater(UpdateComponent);
     RegisterDrawer(DrawComponent);
-#ifdef MAGMA_3D
-    RegisterDrawer(Update3DComponent);
-#endif
+    // RegisterDrawer(Update3DComponent);
 
     // add extended updaters, drawers
     RegisterUpdater(UpdateExtendedComponent);

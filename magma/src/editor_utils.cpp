@@ -62,7 +62,6 @@ static Description DescribeComponentPlatformerPlayer(void* data){
     return { STRING(PlatformerPlayer), TextFormat("Pose: %s",poseName), GREEN };
 }
 
-#ifdef MAGMA_3D
 static Description DescribeComponentBase(void* data){
     auto base = (Base*) data;
     BoundingBox b = base->bounds;
@@ -76,7 +75,6 @@ static Description DescribeComponentModelRenderer(void* data){
                 renderer->offset.x,renderer->offset.y,renderer->offset.z), PINK
     };
 }
-#endif
 
 // spawners
 static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos){
@@ -102,11 +100,8 @@ EditorSession::EditorSession() {
         REGCOMP(COMP_ANIM_PLAYER,       DescribeComponentAnimationPlayer);
         REGCOMP(COMP_PLAT_PLAYER,       DescribeComponentPlatformerPlayer);
         REGCOMP(COMP_PHYS_BODY,         DescribeComponentPhysicsBody);
-
-#ifdef MAGMA_3D
         REGCOMP(COMP_BASE,              DescribeComponentBase);
         REGCOMP(COMP_MODEL_RENDERER,    DescribeComponentModelRenderer);
-#endif
 
         // declare stock builder-functions
         RegisterStockEntityBuilder(SpawnWallBrush);
