@@ -1,6 +1,9 @@
 #include "magma.h"
 #include "client.hpp"
 
+#define IMPLEMENT_TEMPLE_LEVEL_SELECT
+#include "level_select.hpp"
+
 // fox player sprite
 constexpr Vector2 FOX_CELL_SIZE = {17,32};
 constexpr float FOX_ANIM_FPS = 15.f;
@@ -226,6 +229,8 @@ int main(int argc, char** argv)
             layout_menu,
             }, true);
 
+        LevelSelect levelSelect;
+
         while (!WindowShouldClose()) // Detect window close button or ESC key
         {
             float delta = GetFrameTime();
@@ -233,35 +238,38 @@ int main(int argc, char** argv)
 
             if (menu.UpdateAndDraw(delta)) {
 
-                // draw main stuff
-                BeginMagmaDrawing();
+                // draw level select
+                const char* selectedLevel = NULL;
+                if (levelSelect.UpdateAndDraw(delta, &selectedLevel)){
+                    // draw main stuff
+                    BeginMagmaDrawing();
 
-                ClearBackground(SKYBLUE);
+                    ClearBackground(SKYBLUE);
 
-                BeginMode2D(camera);
+                    BeginMode2D(camera);
 
-                if (!GameIsPaused()){
-                    group.UpdateGroup(delta);
+                    if (!GameIsPaused()){
+                        group.UpdateGroup(delta);
+                    }
+                    group.DrawGroup();
+                    group.DrawGroupDebug();
+
+                    // EndPaletteMode();
+
+                    UpdateAndRenderEditor(camera, group, delta);
+                    UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
+                    UpdateAndRenderInputBoxes(delta);
+
+                    EndMode2D();
+
+                    EndMagmaDrawing();
+                    DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
+                    UpdateAndDrawLog();
+
+                    UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
+
+                    EndDrawing();
                 }
-                group.DrawGroup();
-                group.DrawGroupDebug();
-
-                // EndPaletteMode();
-
-                UpdateAndRenderEditor(camera, group, delta);
-                UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
-                UpdateAndRenderInputBoxes(delta);
-
-                EndMode2D();
-
-                EndMagmaDrawing();
-                DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
-                UpdateAndDrawLog();
-
-                UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
-
-                EndDrawing();
-
             }
 
         }

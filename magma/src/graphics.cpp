@@ -168,6 +168,11 @@ Vector2 GetWindowMousePosition(Camera2D camera) {
     return world;
 }
 
+Vector2 GetWindowMousePosition() {
+    Vector2 mouse = Win.scaledMouse;
+    return mouse;
+}
+
 Color Palette::GetIndexColor(int index) {
     if (index == -1){
         return BLANK;

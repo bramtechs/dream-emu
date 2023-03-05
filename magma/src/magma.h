@@ -631,6 +631,7 @@ Vector2 MeasureRetroText(const char* text, int fontSize=18);
 Ray GetWindowMouseRay(Camera3D camera);
 
 Vector2 GetWindowMousePosition(Camera2D camera);
+Vector2 GetWindowMousePosition();
 Vector2 GetWindowTopLeft();
 Vector2 GetWindowCenter();
 
