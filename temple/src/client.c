@@ -1,14 +1,15 @@
 #include "magma.h"
-#include "client.hpp"
+#include "client.h"
+#include "level_data.h"
 
 #define IMPLEMENT_TEMPLE_LEVEL_SELECT
-#include "level_select.hpp"
+#include "level_select.h"
 
 // fox player sprite
-constexpr Vector2 FOX_CELL_SIZE = {17,32};
-constexpr float FOX_ANIM_FPS = 15.f;
+#define FOX_CELL_SIZE {17,32}
 
-constexpr int COMP_FOX_PLAYER = 100;
+#define FOX_ANIM_FPS        15.f
+#define COMP_FOX_PLAYER     100
 
 static const SheetAnimation ANIM_FOX_IDLE = {
     STRING(ANIM_FOX_IDLE),
@@ -60,16 +61,12 @@ static const SheetAnimation ANIM_FOX_LAND = {
     0.f,
 };
 
-struct FoxPlayer {
+typedef struct {
     uint score;
     uint lives;
+} FoxPlayer;
 
-    FoxPlayer(){
-        this->score = 0;
-        this->lives = 0;
-    }
-};
-
+#if 0 // TODO write it in C
 // factory functions
 EntityID spawn_block(EntityGroup& group, Vector3 pos){
     EntityID id = group.AddEntity();
@@ -170,6 +167,8 @@ static bool layout_menu(float delta){
     return false;
 }
 
+#endif
+
 int main(int argc, char** argv)
 {
     SetTraceLogCallback(MagmaLogger);
@@ -185,34 +184,30 @@ int main(int argc, char** argv)
     INFO("Launched at %s", GetWorkingDirectory());
 
     // TempleGame
-    AdvEntityGroup group(9.8f);
     Shader shader;
 
     Camera2D camera = {};
-    camera.offset = Vector2Zero();          // Camera offset (displacement from target)
+    camera.offset = Vector2Zero();              // Camera offset (displacement from target)
     camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
     camera.rotation = 0.f;                      // Camera rotation in degrees
     camera.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
-
-    Palette palette;
 
     // vsync
     SetTargetFPS(60);
 
     // setup editor
-    RegisterEntityBuilder(spawn_block);
-    RegisterEntityBuilder(spawn_player);
-
-    Video video;
+    //RegisterEntityBuilder(spawn_block);
+    //RegisterEntityBuilder(spawn_player);
 
     // register custom entity callbacks
-    group.RegisterUpdater(update_custom_component);
+    // group.RegisterUpdater(update_custom_component);
 
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
     if (LoadAssets()) {
         LoadMagmaSettings();
 
+#if 0
         MainMenu menu = MainMenu({
             WIDTH,
             HEIGHT,
@@ -228,19 +223,18 @@ int main(int argc, char** argv)
             "basically a mario clone, pls don't sue",
             layout_menu,
             }, true);
-
-        LevelSelect levelSelect;
+#endif
 
         while (!WindowShouldClose()) // Detect window close button or ESC key
         {
             float delta = GetFrameTime();
             float time = GetTime();
 
-            if (menu.UpdateAndDraw(delta)) {
+            // if (menu.UpdateAndDraw(delta)) {
 
                 // draw level select
-                const char* selectedLevel = NULL;
-                if (levelSelect.UpdateAndDraw(delta, &selectedLevel)){
+                LevelInfo* selectedLevel = NULL;
+                if (UpdateAndDrawLevelSelect(delta, &selectedLevel)){
                     // draw main stuff
                     BeginMagmaDrawing();
 
@@ -248,29 +242,23 @@ int main(int argc, char** argv)
 
                     BeginMode2D(camera);
 
-                    if (!GameIsPaused()){
-                        group.UpdateGroup(delta);
-                    }
-                    group.DrawGroup();
-                    group.DrawGroupDebug();
-
-                    // EndPaletteMode();
-
-                    UpdateAndRenderEditor(camera, group, delta);
-                    UpdateAndRenderPauseMenu(delta,{0,0,0,50}, &group);
-                    UpdateAndRenderInputBoxes(delta);
+                    //if (!GameIsPaused()){
+                    //    group.UpdateGroup(delta);
+                    //}
+                    //group.DrawGroup();
+                    //group.DrawGroupDebug();
 
                     EndMode2D();
 
                     EndMagmaDrawing();
-                    DrawRetroText("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
+                    DrawRetroTextEx("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
                     UpdateAndDrawLog();
 
-                    UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
+                    //UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
 
                     EndDrawing();
                 }
-            }
+            // }
 
         }
 

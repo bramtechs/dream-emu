@@ -1,25 +1,21 @@
 #pragma once
 
-const char* ALL_LEVELS[] = {
-    "map_level001",
-    "map_level001",
-    "map_fluffoverload",
-    "map_level001",
-    "map_level001",
-    "map_level001",
-};
+#define IMPLEMENT_TEMPLE_LEVEL_DATA
+#include "level_data.h"
+
+typedef struct {
+    uint score;
+    uint time;
+    uint crystals;
+} LevelScores;
 
 const char* MAP_SPRITE = "spr_map_placeholder";
 
-struct LevelSelect {
-
-    bool UpdateAndDraw(float delta, const char** selectedLevel);
-};
+bool UpdateAndDrawLevelSelect(float delta, LevelInfo* selectedLevel);
 
 #ifdef IMPLEMENT_TEMPLE_LEVEL_SELECT
 
-
-bool LevelSelect::UpdateAndDraw(float delta, const char** selectedLevel){
+bool UpdateAndDrawLevelSelect(float delta, LevelInfo* selectedLevel){
 
     // draw main stuff
     BeginMagmaDrawing();

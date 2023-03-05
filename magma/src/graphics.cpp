@@ -1,7 +1,9 @@
 #include "magma.h"
+#include "magma_entity.hpp"
+#include <magma_gui.hpp>
 
 #define Win Window
-MagmaWindow Window = {0};
+MagmaWindow Window = { 0 };
 
 void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) {
     Win.gameSize = { (float)gameWidth, (float)gameHeight };
@@ -66,6 +68,13 @@ void EndMagmaDrawing() {
 
     // ....
 
+    UpdateAndRenderEditor();
+    UpdateAndRenderEditorGUI();
+
+    // TODO:
+    // UpdateAndRenderPauseMenu({ 0,0,0,50 });
+    // UpdateAndRenderInputBoxes();
+
     EndTextureMode();
 
     BeginDrawing();
@@ -78,42 +87,10 @@ void EndMagmaDrawing() {
         { topLeft.x, topLeft.y, (float)Win.gameSize.x * Win.scale, (float)Win.gameSize.y * Win.scale }, { 0, 0 }, 0.0f, WHITE);
 }
 
-void SetDefaultPalette(Palette palette) {
-    Window.defaultPalette = palette;
-    Window.hasDefaultPalette = true;
-}
-
-void ClearDefaultPalette() {
-    Window.hasDefaultPalette = false;
-}
-
-static std::string CurrentPaletteName = "";
-void BeginPaletteMode(Palette palette){
-    Shader shader = RequestShader("frag_core_palette_switch");
-
-    std::string palName = std::string(palette.name,64);
-    if (CurrentPaletteName != palName){
-        // put colors into shader if needed
-        int paletteLoc = GetShaderLocation(shader, "palette");
-        SetShaderValueV(shader, paletteLoc, palette.colors, SHADER_UNIFORM_IVEC3, COLORS_PER_PALETTE);
-
-        CurrentPaletteName = palName;
-    }
-
-    BeginShaderMode(shader);
-
-    // ------
-}
-
-void EndPaletteMode(){
-    // ------
-    EndShaderMode();
-}
-
-float GetTimeScale(){
+float GetTimeScale() {
     return Window.timeScale;
 }
-void SetTimeScale(float scale){
+void SetTimeScale(float scale) {
     Window.timeScale = scale;
 }
 
@@ -146,7 +123,7 @@ Vector2 GetWindowTopLeft() {
     };
 }
 
-Vector2 GetWindowCenter(){
+Vector2 GetWindowCenter() {
     return {
         Win.gameSize.x * 0.5f,
         Win.gameSize.y * 0.5f,
@@ -173,107 +150,11 @@ Vector2 GetWindowMousePosition() {
     return mouse;
 }
 
-Color Palette::GetIndexColor(int index) {
-    if (index == -1){
-        return BLANK;
-    }
-    Color result = {
-        (unsigned char) Clamp(index, 0, 255),
-        0,
-        0,
-        255
-    };
-    return result;
-}
-
-Color Palette::GetColor(int index) {
-    if (index < 0 || index >= COLORS_PER_PALETTE) {
-        WARN("Could not get color indexed %d from palette %s", index, name);
-        return {255,0,255,255};
-    }
-    Color result = {
-        (unsigned char) colors[index * 3 + 0],
-        (unsigned char) colors[index * 3 + 1],
-        (unsigned char) colors[index * 3 + 2],
-        255
-    };
-    return result;
-}
-
-int Palette::MapColor(Color color) {
-    if (color.a == 0){
-        return -1;
-    }
-
-    for (int i = 0; i < COLORS_PER_PALETTE; i++) {
-        if (colors[i * 3 + 0] == color.r &&
-            colors[i * 3 + 1] == color.g &&
-            colors[i * 3 + 2] == color.b) {
-            return i;
-        }
-    }
-    WARN("Could not map color into palette %s", name);
-    return 0;
-}
-
-int Palette::MapColorLoosely(Color color) {
-    if (color.a == 0){
-        return -1;
-    }
-
-    Vector3 inCol = {
-        (float) color.r,
-        (float) color.g,
-        (float) color.b
-    };
-
-    int closestID = 0;
-    float closestDiff = FLT_MAX;
-    for (int i = 0; i < COLORS_PER_PALETTE; i++) {
-        Vector3 palCol{
-            (float) colors[i * 3 + 0],
-            (float) colors[i * 3 + 1],
-            (float) colors[i * 3 + 2]
-        };
-        float diff = Vector3DistanceSqr(palCol, inCol);
-        if (diff < closestDiff) {
-            closestDiff = diff;
-            closestID = i;
-        }
-    }
-    return closestID;
-}
-
-void Palette::MapImage(Image img) {
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            Color origColor = GetImageColor(img, x, y);
-            int i = MapColorLoosely(origColor);
-            Color newColor = GetIndexColor(i);
-            ImageDrawRectangle(&img, x,y,1,1, newColor);
-        }
-    }
-}
-
-void Palette::DrawPreview(Rectangle region) {
-    const int DEV = 16;
-
-    int size = region.width / DEV;
-    int i = 0;
-    for (int y = 0; y < DEV; y++) {
-        for (int x = 0; x < DEV; x++) {
-            Color col = GetColor(i);
-            DrawRectangle(region.x+x*size, region.y+y*size, size, size, col);
-            i++;
-        }
-    }
-}
-
 void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor) {
     int width = Win.unscaled ? GetScreenWidth() : Window.gameSize.x;
     int height = Win.unscaled ? GetScreenHeight() : Window.gameSize.y;
 
-    float offset = GetTime()*tileSize;
+    float offset = GetTime() * tileSize;
 
     // draw live grid
     int xx = 0; int yy = 0;
@@ -285,7 +166,7 @@ void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color 
         xx = 0;
         yy++;
     }
-    DrawRectangleGradientV(0, 0, width, height+abs(sin(GetTime())*100), BLANK, highlightColor);
+    DrawRectangleGradientV(0, 0, width, height + abs(sin(GetTime()) * 100), BLANK, highlightColor);
 
     // draw text
     if (text != NULL && text != "") {
@@ -299,12 +180,29 @@ void DrawBoundingBox(BoundingBox2D bounds, Color tint) {
     DrawRectangleLinesEx(rect, 1.f, tint);
 }
 
-void DrawRetroText(const char* text, int posX, int posY, int fontSize, Color color){
-    Font font = GetRetroFont();
-    DrawTextEx(font, text, {(float) posX, (float) posY}, (float) fontSize, 1.f, color);
+#define DEFAULT_FONT_SIZE 18
+void DrawRetroText(const char* text, int posX, int posY, Color color) {
+    DrawRetroTextPro(text, { (float)posX, (float)posY }, DEFAULT_FONT_SIZE, color);
 }
 
-Vector2 MeasureRetroText(const char* text, int fontSize){
+void DrawRetroTextV(const char* text, Vector2 pos, Color color) {
+    DrawRetroTextPro(text, pos, DEFAULT_FONT_SIZE, color);
+}
+
+void DrawRetroTextEx(const char* text, int posX, int posY, int fontSize, Color color) {
+    DrawRetroTextPro(text, { (float)posX, (float)posY }, fontSize, color);
+}
+
+void DrawRetroTextPro(const char* text, Vector2 pos, int fontSize, Color color) {
+    Font font = GetRetroFont();
+    DrawTextEx(font, text, pos, (float) DEFAULT_FONT_SIZE, 1.f, color);
+}
+
+Vector2 MeasureRetroText(const char* text) {
+    return MeasureRetroTextEx(text, DEFAULT_FONT_SIZE);
+}
+
+Vector2 MeasureRetroTextEx(const char* text, int fontSize) {
     Font font = GetRetroFont();
     return MeasureTextEx(font, text, fontSize, 1.f);
 }

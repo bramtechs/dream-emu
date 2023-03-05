@@ -1,9 +1,18 @@
 #include "magma.h"
+#include "magma_gui.hpp"
+#include "magma_entity.hpp"
 
 typedef void (*UpdateAndDrawMode)(EntityGroup& group, Camera* camera, float delta);
 typedef void (*UpdateAndDrawModeGUI)(EntityGroup& group, Camera* camera, float delta);
 
-static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float delta);
+typedef EntityID(*EntityBuilderFunction)(EntityGroup& group, Vector3 pos);
+
+struct Description {
+    std::string typeName;
+    std::string info;
+    Color color = WHITE;
+};
+typedef Description(*ComponentDescriptor)(void* data);
 
 enum EditorMode {
     MODE_NORMAL,
@@ -30,10 +39,11 @@ struct EditorSession {
     bool includeHitbox = false;
     EditorMode mode = MODE_NORMAL;
     Texture tileBeingDrawn = {};
-    std::pair<std::string, EntityBuilderFunction> builderBeingUsed = { "", NULL };
+
+    std::pair<const char*, EntityBuilderFunction> builderBeingUsed = { "", NULL };
 
     std::unordered_map<EditorMode, EditorModeInfo> modes;
-    std::unordered_map<std::string, EntityBuilderFunction> builders;
+    std::unordered_map<const char*, EntityBuilderFunction> builders;
     std::unordered_map<ItemType, ComponentDescriptor> descriptors;
 
     EditorSession();
@@ -52,10 +62,16 @@ private:
     void LinkModes();
 };
 
+static void DrawAxis(Vector2 pos, float len = 20.f, float thick = 2.f);
+static void DrawBox2DBody(PhysicsBody* phys, Color color = GRAY, bool fill = false);
+static void SwitchMode(EditorMode mode);
+static void DrawGridCell(Vector2 pos, float size, float thick = 1.f, Color tint = GRAY, bool snap = true);
+static void DrawGrid(Camera2D camera);
+static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos);
+static Description DescribeComponent(CompContainer cont);
+
 static EditorSession Session = EditorSession();
 static bool EditorIs3D = false;
-
-#include "editor_utils.cpp"
 
 static void ProcNormalMode(EntityGroup& group, Camera* camera, float delta) {
 
@@ -133,7 +149,7 @@ static void ProcNormalMode(EntityGroup& group, Camera* camera, float delta) {
 
                 // draw text if sprite hidden
                 if (!sprite->isVisible) {
-                    DrawRetroText("hidden", sprite->bounds.min.x, sprite->bounds.min.y, 12, GRAY);
+                    DrawRetroTextEx("hidden", sprite->bounds.min.x, sprite->bounds.min.y, 12, GRAY);
                 }
             }
             else if (CheckCollisionPointRec(mouse, rect)) {
@@ -199,8 +215,8 @@ static void ProcTextureModeGUI(EntityGroup& group, Camera* camera, float delta) 
 
     auto names = GetAssetNames(ASSET_TEXTURE);
     menu.RenderPanel();
-    for (int i = 0; i < names.size(); i++) {
-        menu.DrawPopButton(names[i].c_str());
+    for (int i = 0; i < names.count; i++) {
+        menu.DrawPopButton(names.entries[i]);
     }
     menu.EndButtons();
 
@@ -213,16 +229,10 @@ static void ProcTextureModeGUI(EntityGroup& group, Camera* camera, float delta) 
         Sprite* sprite = NULL;
         group.GetEntityComponent(Session.subjectID, COMP_SPRITE, &sprite);
 
-        Texture newTexture;
-        if (HasDefaultPalette()) {
-            newTexture = RequestIndexedTexture(names[index]);
-        }
-        else {
-            newTexture = RequestTexture(names[index]);
-        }
+        Texture newTexture = RequestTexture(names.entries[index]);
 
         sprite->SetTexture(newTexture);
-        DEBUG("Switched entity texture to %s", names[index].c_str());
+        DEBUG("Switched entity texture to %s", names.entries[index]);
 
         // go back to default mode
         SwitchMode(MODE_NORMAL);
@@ -250,7 +260,7 @@ static void ProcHitboxMode(EntityGroup& group, Camera* camera, float delta) {
         };
 
         EntityID touchedID = 0;
-        if (((AdvEntityGroup*)&group)->IsHitboxAtPos(checkPos, &touchedID)) {
+        if (group.IsHitboxAtPos(checkPos, &touchedID)) {
             if (Session.removalMode) {
                 // remove the hitbox
                 group.DestroyEntity(touchedID);
@@ -293,7 +303,7 @@ static void ProcHitboxModeGUI(EntityGroup& group, Camera* camera, float delta) {
         Session.removalMode = !Session.removalMode;
     });
     buttons.AddButton("Simplify", [&group](){
-        SimplifyHitboxes(group);
+        //SimplifyHitboxes(group);
     });
     buttons.AddButton("Exit", [&group]() {
         SwitchMode(MODE_NORMAL);
@@ -374,9 +384,9 @@ static void ProcTileMode(EntityGroup& group, Camera* camera, float delta) {
             snapPos.x, snapPos.y,
             Session.gridSize, Session.gridSize
         };
-        const char* text = Session.builderBeingUsed.first.c_str();
-        Vector2 textPos = MeasureRetroText(text, 12);
-        DrawRetroText(text, rect.x + textPos.x * 0.5f, rect.y + textPos.y * 0.5f, 12, BLUE);
+        const char* text = Session.builderBeingUsed.first;
+        Vector2 textPos = MeasureRetroTextEx(text, 12);
+        DrawRetroTextEx(text, rect.x + textPos.x * 0.5f, rect.y + textPos.y * 0.5f, 12, BLUE);
         DrawRectangleLinesEx(rect, 3.f, BLUE);
     }
 }
@@ -394,7 +404,7 @@ static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
     // label all spawners
     buttons.AddSpacer("=== Spawners ===");
     for (const auto& builder : Session.builders) {
-        const char* name = builder.first.c_str();
+        const char* name = builder.first;
         buttons.AddButton(name, [&builder](){
             Session.builderBeingUsed = builder;
             Session.tileBeingDrawn = {};
@@ -404,8 +414,9 @@ static void ProcTileModeGUI(EntityGroup& group, Camera* camera, float delta) {
     // label all raw tiles
     buttons.AddSpacer("=== Tiles ===");
     static auto tiles = GetTileNames();
-    for (const auto& tile : tiles) {
-        buttons.AddButton(tile.c_str(), [&tile](){
+    for (int i = 0; i < tiles.count; i++) {
+        const char* tile = tiles.entries[i];
+        buttons.AddButton(tiles.entries[i], [&tile]() {
             Session.builderBeingUsed = { "", NULL };
             Session.tileBeingDrawn = RequestTexture(tile);
         });
@@ -444,7 +455,7 @@ static void ProcSpawnModeGUI(EntityGroup& group, Camera* camera, float delta) {
     }
 
     for (const auto& builder : Session.builders) {
-        menu.DrawPopButton(builder.first.c_str());
+        menu.DrawPopButton(builder.first);
     }
 
     menu.DrawPopButton("", false, true);
@@ -474,7 +485,7 @@ static void ProcSpawnModeGUI(EntityGroup& group, Camera* camera, float delta) {
     menu.EndButtons();
 }
 
-static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float delta) {
+void UpdateAndRenderEditor() {
     if (IsKeyPressed(KEY_F3)) { // TODO: Debug build only
         ToggleEditor();
     }
@@ -500,7 +511,7 @@ static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float de
 
         // draw other cells
         if (Session.drawGrid) {
-            DrawGrid(*(Camera2D*)camera);
+            DrawGrid(Group.camera2D);
         }
     }
 
@@ -516,11 +527,25 @@ static void DoUpdateAndRenderEditor(EntityGroup& group, Camera* camera, float de
     try {
         EditorModeInfo info = Session.modes.at(Session.mode);
         if (info.func != NULL) {
-            (*info.func)(group, camera, delta);
+            float delta = GetFrameTime();
+            (*info.func)(Group, &Group.camera3D, delta);
         }
     }
     catch (const std::out_of_range& e) {
     }
+}
+
+// HACK: We need to add an artificial delay when switching editor modes 
+// to avoid insta-clicking newly opened popup-menus
+// Instead of improving the popup code, this hack is used instead.
+static float NextModeTime = 0.f;
+static EditorMode NextMode = MODE_NORMAL;
+
+static void SwitchMode(EditorMode mode) {
+    Session.mode = MODE_DELAY;
+    NextMode = mode;
+    NextModeTime = GetTime() + 0.1f;
+    DEBUG("Editor switched mode");
 }
 
 void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta) {
@@ -539,7 +564,7 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta) {
     // draw timescale if non-standard
     float scale = GetTimeScale();
     if (abs(scale - 1.f) > EPSILON) {
-        DrawRetroText(TextFormat("TIME SCALE %.3f\nDELTA %f", scale, GetFrameTime()), 20, 40, 18, RED);
+        DrawRetroTextEx(TextFormat("TIME SCALE %.3f\nDELTA %f", scale, GetFrameTime()), 20, 40, 18, RED);
     }
 
     Color bgColor = ColorAlpha(BLACK, 0.5f);
@@ -554,8 +579,8 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta) {
 
     // draw selected sprite properties
     const char* header = TextFormat("Entity count: %d\nNext entity: %d\nSelected Entity: %d\n=== Components ====", group.entityCount, group.nextEntity, Session.subjectID);
-    DrawRetroText(header, x, y, FONT_SIZE, WHITE);
-    y += MeasureRetroText(header, FONT_SIZE).y + 20;
+    DrawRetroTextEx(header, x, y, FONT_SIZE, WHITE);
+    y += MeasureRetroTextEx(header, FONT_SIZE).y + 20;
 
     if (Session.hasSubject) {
         // collect all components of id
@@ -563,8 +588,8 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta) {
             // call descriptor to describe the component where dealing with, (fancy toString() function)
             auto desc = DescribeComponent(cont);
             const char* format = TextFormat("--> %s %s\n%s", desc.typeName.c_str(), cont.persistent ? "(PERSIST)" : "", desc.info.c_str());
-            DrawRetroText(format, x, y, FONT_SIZE, desc.color);
-            y += MeasureRetroText(format, FONT_SIZE).y + 10;
+            DrawRetroTextEx(format, x, y, FONT_SIZE, desc.color);
+            y += MeasureRetroTextEx(format, FONT_SIZE).y + 10;
         }
     }
 
@@ -587,11 +612,25 @@ void UpdateAndRenderEditorGUI(EntityGroup& group, Camera* camera, float delta) {
     }
 }
 
+void EditorSession::LinkModes() {
+    LinkMode(MODE_DELAY);
+    LinkMode(MODE_NORMAL, ProcNormalMode, ProcNormalModeGUI);
+    LinkMode(MODE_TEXTURE, NULL, ProcTextureModeGUI, "Change texture");
+    LinkMode(MODE_SPAWN, NULL, ProcSpawnModeGUI, "Spawn entity");
+    LinkMode(MODE_HITBOX, ProcHitboxMode, ProcHitboxModeGUI, "Draw hitboxes");
+    LinkMode(MODE_TILE, ProcTileMode, ProcTileModeGUI, "Draw tiles");
+}
+
+// descriptors
+
+#define REGCOMP(C,F) RegisterComponentDescriptor(C,F)
+#define RegisterStockEntityBuilder(F) RegisterEntityBuilderEx(#F,F,true)
+
 void RegisterComponentDescriptor(ItemType type, ComponentDescriptor func) {
     Session.descriptors.insert({ type, func });
 }
 
-Description DescribeComponent(CompContainer cont) {
+static Description DescribeComponent(CompContainer cont) {
     Description desc;
     try
     {
@@ -607,11 +646,205 @@ Description DescribeComponent(CompContainer cont) {
     return desc;
 }
 
-void EditorSession::LinkModes() {
-    LinkMode(MODE_DELAY);
-    LinkMode(MODE_NORMAL, ProcNormalMode, ProcNormalModeGUI);
-    LinkMode(MODE_TEXTURE, NULL, ProcTextureModeGUI, "Change texture");
-    LinkMode(MODE_SPAWN, NULL, ProcSpawnModeGUI, "Spawn entity");
-    LinkMode(MODE_HITBOX, ProcHitboxMode, ProcHitboxModeGUI, "Draw hitboxes");
-    LinkMode(MODE_TILE, ProcTileMode, ProcTileModeGUI, "Draw tiles");
+void RegisterEntityBuilderEx(const char* name, EntityBuilderFunction func,
+    bool isStock) {
+    // prevent adding same function twice
+    for (const auto& builder : Session.builders) {
+        if (TextIsEqual(builder.first, name)) {
+            ERROR("Already added entity builder function");
+            return;
+        }
+    }
+
+    DEBUG("Registered entity builder with name %s", name);
+    Session.builders.insert({ name, func});
+}
+
+static Description DescribeComponentSprite(void* data) {
+    auto sprite = (Sprite*)data;
+    Vector2 center = sprite->center();
+    BoundingBox2D b = sprite->bounds;
+    bool isVisible = sprite->isVisible;
+    return { STRING(Sprite), TextFormat("Center: %f %f\nBounds: %f %f\n %f %f\nVisible: %d",center.x,center.y,b.min.x,b.min.y,b.max.x,b.max.y,isVisible), SKYBLUE };
+}
+
+static Description DescribeComponentPhysicsBody(void* data) {
+    auto phys = (PhysicsBody*)data;
+    if (phys->initialized && phys->body) {
+        b2Vec2 pos = phys->body->GetPosition();
+        b2Vec2 vel = phys->body->GetLinearVelocity();
+        float mass = phys->body->GetMass();
+        float inertia = phys->body->GetInertia();
+
+        return { STRING(PhysicsBody), TextFormat("Phys Pos: %f %f\nVel: %f %f\nDynamic: %d\nMass: %f kg\nInertia: %f",
+                    pos.x,pos.y,vel.x,vel.y,phys->dynamic,mass,inertia), PURPLE
+        };
+    }
+    return { STRING(PhysicsBody), "Not initialized!" };
+}
+
+static Description DescribeComponentAnimationPlayer(void* data) {
+    auto anim = (AnimationPlayer*)data;
+    if (anim->curAnim) {
+        return { STRING(AnimationPlayer), TextFormat("Frame: %d\nAnim: %s\nFPS: %f",
+                abs(anim->curFrame),anim->curAnim->name,anim->curAnim->fps), YELLOW
+        };
+    }
+    else {
+        return { STRING(AnimationPlayer), TextFormat("Frame: %d - NO ANIMATION",
+                abs(anim->curFrame)), YELLOW
+        };
+    }
+}
+
+static Description DescribeComponentPlatformerPlayer(void* data) {
+    auto player = (PlatformerPlayer*)data;
+    const char* poseName = PlayerPoseNames[player->pose];
+    return { STRING(PlatformerPlayer), TextFormat("Pose: %s",poseName), GREEN };
+}
+
+static Description DescribeComponentBase(void* data) {
+    auto base = (Base*)data;
+    BoundingBox b = base->bounds;
+    return { STRING(Base), TextFormat("Bounds: %f %f %f\n %f %f %f",b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z), RED };
+}
+
+static Description DescribeComponentModelRenderer(void* data) {
+    auto renderer = (ModelRenderer*)data;
+    return { STRING(ModelRenderer), TextFormat("Model: %s\nAccurate: %d\nOffset: %f %f %f",
+                renderer->model,renderer->accurate,
+                renderer->offset.x,renderer->offset.y,renderer->offset.z), PINK
+    };
+}
+
+// spawners
+static EntityID SpawnWallBrush(EntityGroup& group, Vector3 pos) {
+    EntityID id = group.AddEntity();
+
+    Sprite sprite = Sprite();
+    Texture texture = RequestPlaceholderTexture();
+    sprite.SetTexture(texture);
+    sprite.SetSize(Session.gridSize, Session.gridSize);
+    sprite.SetCenter({ pos.x,pos.y });
+    sprite.Hide();
+    group.AddEntityComponent(id, COMP_SPRITE, sprite);
+
+    PhysicsBody body = PhysicsBody(false);
+    group.AddEntityComponent(id, COMP_PHYS_BODY, body);
+
+    return id;
+}
+
+// session contructor
+EditorSession::EditorSession() {
+    REGCOMP(COMP_SPRITE, DescribeComponentSprite);
+    REGCOMP(COMP_ANIM_PLAYER, DescribeComponentAnimationPlayer);
+    REGCOMP(COMP_PLAT_PLAYER, DescribeComponentPlatformerPlayer);
+    REGCOMP(COMP_PHYS_BODY, DescribeComponentPhysicsBody);
+    REGCOMP(COMP_BASE, DescribeComponentBase);
+    REGCOMP(COMP_MODEL_RENDERER, DescribeComponentModelRenderer);
+
+    // declare stock builder-functions
+    RegisterStockEntityBuilder(SpawnWallBrush);
+
+    LinkModes();
+}
+
+// utils
+
+static void DrawGridCell(Vector2 pos, float size, float thick, Color tint, bool snap) {
+    if (snap) {
+        pos = Vector2Snap(pos, size);
+    }
+    Rectangle cell = { pos.x, pos.y , size, size };
+    DrawRectangleLinesEx(cell, thick, tint);
+}
+
+static void DrawGrid(Camera2D camera) {
+    Vector2 mouse = Vector2Snap(GetWindowMousePosition(camera), Session.gridSize);
+
+    // draw cursor grid cell
+    DrawGridCell(mouse, Session.gridSize, 1.f, RED, false);
+
+    Color col = fabs(Session.gridSize - PIXELS_PER_UNIT) < EPSILON ? ColorAlpha(WHITE, 0.5f) : ColorAlpha(LIGHTGRAY, 0.5f);
+    for (int y = -3; y <= 3; y++) {
+        for (int x = -3; x <= 3; x++) {
+            Vector2 cellPos = {
+                mouse.x + (x * Session.gridSize),
+                mouse.y + (y * Session.gridSize),
+            };
+            DrawGridCell(cellPos, Session.gridSize, 1.f, col, false);
+        }
+    }
+}
+
+static void DrawAxis(Vector2 pos, float len, float thick) {
+    DrawLineEx(pos, { pos.x + len, pos.y }, thick, RED);
+    DrawLineEx(pos, { pos.x, pos.y + len }, thick, GREEN);
+}
+
+static void DrawBox2DBody(PhysicsBody* phys, Color color, bool fill) {
+    assert(phys);
+    // only draw if box2d body exists
+    if (!phys->initialized) {
+        return;
+    }
+
+    // draw each fixture's shape
+    b2Fixture* next = phys->body->GetFixtureList();
+    while (next) {
+        b2Shape* shape = next->GetShape();
+        Vector2 worldPos = *(Vector2*)&phys->body->GetPosition();
+        switch (shape->GetType()) {
+        case b2Shape::Type::e_polygon:
+        {
+            assert(sizeof(b2Vec2) == sizeof(Vector2));
+            auto poly = (b2PolygonShape*)shape;
+            size_t vertexCount = poly->m_count;
+            std::vector<Vector2> vertCpy(vertexCount);
+            for (int i = 0; i < vertexCount; i++) {
+                Vector2 origVert = *(Vector2*)&poly->m_vertices[i];
+                Vector2 scled = Vector2Add(origVert, worldPos);
+                scled = Vector2Scale(scled, PIXELS_PER_UNIT);
+                vertCpy[i] = scled;
+            }
+            if (fill) {
+                // quick and dirty wireframe drawing
+                for (int i = 0; i < vertexCount; i++) {
+                    for (int j = 0; j < vertexCount; j++) {
+                        if (i == j) continue;
+                        DrawLineEx(vertCpy[i], vertCpy[j], 1.f, color);
+                    }
+                }
+
+                b2Vec2 center = phys->body->GetWorldCenter();
+                DrawCircle(center.x * PIXELS_PER_UNIT, center.y * PIXELS_PER_UNIT, 4.f, color);
+            }
+            DrawLineStrip(&vertCpy[0], vertexCount, color);
+        }
+        break;
+        default:
+            // TODO: implement other shapes
+            break;
+        }
+        next = next->GetNext();
+    }
+}
+
+// smaller functions
+bool EditorIsOpen() {
+    return Session.isOpen;
+}
+
+void OpenEditor() {
+    Session.isOpen = true;
+}
+
+void CloseEditor() {
+    Session.isOpen = false;
+}
+
+bool ToggleEditor() {
+    Session.isOpen = !Session.isOpen;
+    return Session.isOpen;
 }

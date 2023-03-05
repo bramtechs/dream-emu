@@ -1,5 +1,8 @@
 #include "magma.h"
 
+#include <iostream>
+#include <vector>
+
 #define WIDTH 640
 #define HEIGHT 480
 #define SCALE 1.4

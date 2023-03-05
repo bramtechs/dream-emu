@@ -1,5 +1,7 @@
 #include "magma.h"
 
+#include <string.h>
+
 MagmaSettings Settings = { 0 };
 
 void SaveMagmaSettings(){

@@ -11,6 +11,12 @@
 // CLI: tool to generate "Deflation" packages
 namespace fs = std::filesystem;
 
+struct RawAsset {
+    char path[PATH_MAX_LEN];
+    int64_t size;
+    char* data;
+};
+
 std::vector<std::string> get_supported_formats() {
     return {
         ".png",

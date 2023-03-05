@@ -1,11 +1,20 @@
 #include "magma.h"
 
+#include <iostream>
 #include <filesystem>
 
 bool IS_DEBUG = false;
 
 std::vector<std::string> CommandArguments;
 bool InitializedArguments;
+
+static bool IsRunningWithArguments(std::initializer_list<std::string> args);
+inline bool IsRunningWithArgument(std::string arg) {
+    return IsRunningWithArguments({ arg });
+}
+inline bool IsRunningWithArgumentPair(std::string shortArg, std::string longArg) {
+    return IsRunningWithArguments({ shortArg, longArg });
+}
 
 void RegisterArguments(int argc, char** argv){
     if (InitializedArguments){
@@ -50,15 +59,6 @@ static bool ShowLogger = false;
 static float LoggerOffsetY = 0.f;
 static TraceLogLevel AssertLevel = LOG_NONE;
 static TraceLogLevel OpenLevel = LOG_NONE;
-
-MovingRectangle::MovingRectangle(Rectangle rect, Vector2 vel) {
-    this->vx = vel.x;
-    this->vy = vel.y;
-    this->x = rect.x;
-    this->y = rect.y;
-    this->w = rect.width;
-    this->h = rect.height;
-}
 
 bool CreateDirectory(const char* path) {
     if (DirectoryExists(path)) {
@@ -134,7 +134,11 @@ void ClearLog() {
     Buffer.clear();
 }
 
-void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
+void DrawLog(float offsetX, float offsetY, int fontSize) {
+    DrawLogEx(offsetX, offsetY, fontSize, true);
+}
+
+void DrawLogEx(float offsetX, float offsetY, int fontSize, bool drawBG) {
     static int bgWidth = 0;
 
     // draw background
@@ -143,7 +147,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
         DrawRectangle(0, 0, bgWidth + 25, GetScreenHeight(), bgCol);
 
         // draw tooltip
-        DrawRetroText("Show/hide logs with F2\nScroll by holding LEFT SHIFT.", 10, GetScreenHeight() - 40, 16, WHITE);
+        DrawRetroTextEx("Show/hide logs with F2\nScroll by holding LEFT SHIFT.", 10, GetScreenHeight() - 40, 16, WHITE);
     }
 
     // draw lines
@@ -169,7 +173,7 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
         }
 
         const char* text = line.msg;
-        DrawRetroText(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
+        DrawRetroTextEx(text, offsetX, offsetY + y + LoggerOffsetY, fontSize, color);
 
         // expand background if needed
         if (drawBG) {
@@ -181,7 +185,11 @@ void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
     }
 }
 
-void UpdateAndDrawLog(float offsetX, float offsetY, int fontSize) {
+void UpdateAndDrawLog() {
+    UpdateAndDrawLogEx(10.f, 10.f, 16);
+}
+
+void UpdateAndDrawLogEx(float offsetX, float offsetY, int fontSize) {
     if (IsKeyPressed(KEY_F2)) {
         ToggleLogger();
         LoggerOffsetY = 0.f;
@@ -288,13 +296,18 @@ Vector3 Vector3Snap(Vector3 v3, float gridSize) {
     return cell;
 }
 
-Color InvertColor(Color col, bool invertAlpha) {
+Color InvertColor(Color col) {
     col.r = 255 - col.r;
     col.g = 255 - col.g;
     col.b = 255 - col.b;
-    if (invertAlpha) {
-        col.a = 255 - col.a;
-    }
+    return col;
+}
+
+Color InvertColorWAlpha(Color col) {
+    col.r = 255 - col.r;
+    col.g = 255 - col.g;
+    col.b = 255 - col.b;
+    col.a = 255 - col.a;
     return col;
 }
 
@@ -316,107 +329,6 @@ float GetRectangleDiameter(Rectangle rec) {
 }
 float GetRectangleDiameterSquared(Rectangle rec) {
     return rec.width * rec.width + rec.height * rec.height;
-}
-
-float SweptAABB(MovingRectangle source, MovingRectangle target, Vector2* normal) {
-    MovingRectangle& b1 = source;
-    MovingRectangle& b2 = target;
-
-    float xInvEntry, yInvEntry;
-    float xInvExit, yInvExit;
-
-    // find the distance between the objects on the near and far sides for both x and y 
-    if (b1.vx > 0.0f)
-    {
-        xInvEntry = b2.x - (b1.x + b1.w);
-        xInvExit = (b2.x + b2.w) - b1.x;
-    }
-    else
-    {
-        xInvEntry = (b2.x + b2.w) - b1.x;
-        xInvExit = b2.x - (b1.x + b1.w);
-    }
-
-    if (b1.vy > 0.0f)
-    {
-        yInvEntry = b2.y - (b1.y + b1.h);
-        yInvExit = (b2.y + b2.h) - b1.y;
-    }
-    else
-    {
-        yInvEntry = (b2.y + b2.h) - b1.y;
-        yInvExit = b2.y - (b1.y + b1.h);
-    }
-
-    // find time of collision and time of leaving for each axis (if statement is to prevent divide by zero) 
-    float xEntry, yEntry;
-    float xExit, yExit;
-
-    if (b1.vx == 0.0f)
-    {
-        xEntry = -std::numeric_limits<float>::infinity();
-        xExit = std::numeric_limits<float>::infinity();
-    }
-    else
-    {
-        xEntry = xInvEntry / b1.vx;
-        xExit = xInvExit / b1.vx;
-    }
-
-    if (b1.vy == 0.0f)
-    {
-        yEntry = -std::numeric_limits<float>::infinity();
-        yExit = std::numeric_limits<float>::infinity();
-    }
-    else
-    {
-        yEntry = yInvEntry / b1.vy;
-        yExit = yInvExit / b1.vy;
-    }
-
-    // find the earliest/latest times of collisionfloat 
-    float entryTime = std::max(xEntry, yEntry);
-    float exitTime = std::min(xExit, yExit);
-
-
-    // if there was no collision
-    if (entryTime > exitTime || xEntry < 0.0f && yEntry < 0.0f || xEntry > 1.0f || yEntry > 1.0f)
-    {
-        normal->x = 0.0f;
-        normal->y = 0.0f;
-        return 1.0f;
-    }
-    else // if there was a collision 
-    {
-        // calculate normal of collided surface
-        if (xEntry > yEntry)
-        {
-            if (xInvEntry < 0.0f)
-            {
-                normal->x = 1.0f;
-                normal->y = 0.0f;
-            }
-            else
-            {
-                normal->x = -1.0f;
-                normal->y = 0.0f;
-            }
-        }
-        else
-        {
-            if (yInvEntry < 0.0f)
-            {
-                normal->x = 0.0f;
-                normal->y = 1.0f;
-            }
-            else
-            {
-                normal->x = 0.0f;
-                normal->y = -1.0f;
-            }
-        } // return the time of collision
-        return entryTime;
-    }
 }
 
 Rectangle BoundingBoxToRect(BoundingBox box) {
