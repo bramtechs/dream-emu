@@ -112,10 +112,6 @@ Vector2 Sprite::halfSize() {
 
 // ModelRenderer
 void AttachModelRenderer(EntityID id, const char* modelPath){
-    AttachModelRendererEx(id, modelPath, false, Vector3Zero());
-}
-
-void AttachModelRendererEx(EntityID id, const char* modelPath, bool accurate, Vector3 offset) {
     Base* base = GetEntityComponent();
 
     Model model = RequestModel(modelPath);
@@ -129,13 +125,9 @@ void AttachModelRendererEx(EntityID id, const char* modelPath, bool accurate, Ve
     Vector3 modelCenter = Vector3Add(modelBox.min, Vector3Scale(size, 0.5f));
     Vector3 offset = Vector3Subtract(base->center(), modelCenter);
 
-    ModelRenderer renderer = {
-        model,
-        accurate,
-        offset
-    };
-
-    AddEntityComponent(Group, id, COMP_MODEL_RENDERER, &renderer);
+    this->model = modelPath;
+    this->accurate = false;
+    this->offset = offset;
 }
 
 ModelRenderer::ModelRenderer() {
@@ -913,3 +905,247 @@ void EntityGroup::RegisterUpdater(UpdateComponentFunc updateFunc) {
 void EntityGroup::RegisterDrawer(DrawComponentFunc drawFunc, bool isDebug) {
     drawers.insert({ drawFunc,isDebug });
 }
+
+
+RayCollision GetEntityMouseRayCollision(){
+
+}
+
+// sprite
+void SetSpriteTexture(Sprite* sprite, Texture texture) {
+    Rectangle source = {
+        0.f, 0.f,
+        texture.width, texture.height,
+    };
+    SetSpriteTextureEx(sprite, texture, source);
+}
+
+void SetSpriteTextureEx(Sprite* sprite, Texture texture, Rectangle srcRect) {
+    sprite->texture = texture;
+    sprite->srcRect = srcRect;
+}
+
+void FlipSprite(Sprite* sprite, bool hFlip, bool vFlip){
+    sprite->hFlip = hFlip;
+    sprite->vFlip = vFlip;
+}
+
+void FlipSpriteX(Sprite* sprite, bool hFlip) {
+    FlipSprite(hFlip, sprite->vFlip);
+}
+void FlipSpriteY(Sprite* sprite, bool vFlip) {
+    FlipSprite(sprite->hFlip, vFlip);
+}
+
+// physicsbody
+
+
+// model renderer
+void AttachModelRenderer(EntityID id, const char* modelPath);
+void AttachModelRendererEx(EntityID id, const char* modelPath, bool accurate, Vector3 offset);
+
+// component-independent entity functions
+void TranslateEntityV(EntityID id, Vector3 offset){
+    PhysicsBody* phys = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
+        b2Vec2 pos = phys->body->GetPosition();
+        phys->body->SetTransform({pos.x + offset.x/PIXELS_PER_UNIT,
+                                  pos.y + offset.y/PIXELS_PER_UNIT},0.f);
+        return;
+    }
+
+    Sprite* sprite = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_SPRITE, &sprite)) {
+        sprite->bounds.min = Vector2Add(sprite->bounds.min, Vector3To2(offset));
+        sprite->bounds.max = Vector2Add(sprite->bounds.max, Vector3To2(offset));
+        return;
+    }
+
+    Base* base = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_BASE, &base)) {
+        base->bounds.min = Vector3Add(sprite->bounds.min, offset);
+        base->bounds.max = Vector3Add(sprite->bounds.max, offset);
+        return;
+    }
+
+    panic();
+}
+
+void SetEntityOrigin(EntityID id, float x, float y, float z) {
+
+}
+
+void SetEntityOriginV(EntityID id, Vector3 origin) {
+
+}
+
+void SetEntityVisible(EntityID id, bool visible){
+    Sprite* sprite = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_SPRITE, &sprite)) {
+        sprite->isVisible = visible;
+        return;
+    }
+
+    panic();
+}
+
+void ShowEntity(EntityID id) {
+    SetEntityVisible(id, true);
+}
+
+void HideEntity(EntityID id) {
+    SetEntityVisible(id, false);
+}
+
+void TranslateEntity(EntityID id, float x, float y, float z) {
+    Vector3 offset = { x,y,z };
+    Translate3DEntityV(id, offset);
+}
+
+void SetEntityCenterV(EntityID id, Vector3 pos){
+
+    PhysicsBody* phys = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
+        if (phys->initialized) {
+            phys->body->SetTransform({ pos.x / PIXELS_PER_UNIT,pos.y / PIXELS_PER_UNIT }, 0.f);
+        }
+        return;
+    }
+
+    Base* base = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_BASE, &base)) {
+        base->bounds.min = Vector3Subtract(pos, halfSize());
+        base->bounds.max = Vector3Add(pos, halfSize());
+        return;
+    }
+
+    Sprite* sprite = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_SPRITE, &sprite)) {
+        Sprite* sprite = NULL;
+        Group.GetEntityComponent(id, COMP_SPRITE, &sprite);
+
+        sprite->SetCenter(pos);
+        return;
+    }
+
+    panic();
+}
+
+void SetEntityCenter(EntityID id, float x, float y, float z) {
+    Vector3 offset = { x,y,z };
+    SetEntityCenterV(id, offset);
+}
+
+void SetEntitySizeV(EntityID id, Vector3 size){
+
+    Base* base = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_BASE, &base)) {
+        base->bounds.max = Vector3Add(base->bounds.min, size);
+    }
+
+    Sprite* sprite = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_SPRITE, &sprite)) {
+        sprite->bounds.max = Vector2Add(sprite->bounds.min, size);
+    }
+
+    PhysicsBody* phys = NULL;
+    if (Group.TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
+        b2Fixture* fixture = phys->body->GetFixtureList();
+        if(fixture){
+            const b2Shape* shape = fixture->GetShape();
+            switch (shape->GetType()){
+                case b2Shape::e_polygon:
+                    {
+                        auto poly = (b2PolygonShape*) shape;
+                        b2Vec2 pos = phys->body->GetPosition();
+                        poly->SetAsBox(size.x*0.5f, size.y*0.5f, pos, 0.f);
+                        // TODO: test
+                    }
+                    break;
+                default:
+                    ERROR("TODO: Other shapes not implemented");
+                    break;
+            }
+        }else {
+            ERROR("Physics object does not have a single fixture with a shape");
+        }
+    }
+
+    panic();
+}
+
+void SetEntitySize(EntityID id, float x, float y) {
+    SetEntitySizeV(id, { x,y });
+}
+
+void ResetEntityTranslation(EntityID id) {
+    SetEntityCenterV(id, Vector3Zero());
+}
+
+// same but getters
+Vector3 GetEntityCenter(EntityID id) {
+
+}
+
+Vector3 GetEntitySize(EntityID id) {
+
+}
+
+Vector3 GetEntityHalfSize(EntityID id) {
+
+}
+
+Vector3 GetEntityHalfSize(EntityID id) {
+
+}
+
+Region GetEntityRegion(Sprite* sprite) {
+
+}
+
+// scene ( aka entity group )
+void ClearScene() {
+
+}
+
+bool LoadScene(const char* fileName);
+bool SaveScene(const char* fileName, uint version);
+
+EntityID AddEntity();
+void DestroyEntity(EntityID id);
+
+bool EntityExists(EntityID id);
+bool EntityHasComponent(EntityID id, ItemType type);
+bool HasPhysics();
+
+bool IsEntityAtPos(Vector2 centerPos, EntityID* found);
+
+#define AddEntityComponent(I,T,D,P) AddEntityComponentEx(I,T,D,sizeof(D),P)
+void* AddEntityComponentRaw(EntityID id, ItemType type, void* data, size_t size, bool persistent);
+
+// get **or create** a component (asserts valid pointer)
+void GetEntityComponent(EntityID id, ItemType filter, void** result) { 
+}
+
+bool TryGetEntityComponent(EntityID id, ItemType filter, void** result){
+
+}
+
+CompContainers GetEntityComponents(EntityID id, ItemType type = COMP_ALL);
+CompContainers GetComponents(ItemType type = COMP_ALL);
+
+void RegisterUpdater(CompType type, UpdateComponentFunc updateFunc){
+
+}
+
+void RegisterDrawer(CompType type, DrawComponentFunc drawFunc){
+
+}
+
+void RegisterDebugDrawer(CompType type, DrawComponentFunc drawFunc){
+
+}
+
+void UpdateScene(float delta);
+void DrawScene();
+void DrawSceneDebug();

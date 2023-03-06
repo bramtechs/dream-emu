@@ -239,23 +239,14 @@ goto cour_end
     Vector2 GetWindowCenter();
 
     // entities
-    void TranslateEntityV(EntityID id, Vector2 offset);
-    void TranslateEntity(EntityID id, float x, float y);
+    void TranslateEntityV(EntityID id, Vector3 offset);
+    void TranslateEntity(EntityID id, float x, float y, float z);
 
-    void Translate3DEntityV(EntityID id, Vector3 offset);
-    void Translate3DEntity(EntityID id, float x, float y, float z);
+    void SetEntityCenterV(EntityID id, Vector3 pos);
+    void SetEntityCenter(EntityID id, float x, float y, float z);
 
-    void SetEntityCenterV(EntityID id, Vector2 pos);
-    void SetEntityCenter(EntityID id, float x, float y);
-
-    void Set3DEntityCenterV(EntityID id, Vector3 pos);
-    void Set3DEntityCenter(EntityID id, float x, float y, float z);
-
-    void SetEntitySizeV(EntityID id, Vector2 pos);
-    void SetEntitySize(EntityID id, float x, float y);
-
-    void Set3DEntitySizeV(EntityID id, Vector3 pos);
-    void Set3DEntitySize(EntityID id, float x, float y, float z);
+    void SetEntitySizeV(EntityID id, Vector3 pos);
+    void SetEntitySize(EntityID id, float x, float y, float z);
 
     void ResetEntityTranslation(EntityID id);
 
