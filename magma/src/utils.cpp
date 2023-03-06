@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <magma_gui.hpp>
 
 bool IS_DEBUG = false;
 
@@ -134,11 +135,7 @@ void ClearLog() {
     Buffer.clear();
 }
 
-void DrawLog(float offsetX, float offsetY, int fontSize) {
-    DrawLogEx(offsetX, offsetY, fontSize, true);
-}
-
-void DrawLogEx(float offsetX, float offsetY, int fontSize, bool drawBG) {
+static void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
     static int bgWidth = 0;
 
     // draw background
@@ -186,16 +183,15 @@ void DrawLogEx(float offsetX, float offsetY, int fontSize, bool drawBG) {
 }
 
 void UpdateAndDrawLog() {
-    UpdateAndDrawLogEx(10.f, 10.f, 16);
-}
-
-void UpdateAndDrawLogEx(float offsetX, float offsetY, int fontSize) {
+    float offsetX = 10.f;
+    float offsetY = 10.f;
+    int fontSize = 16;
     if (IsKeyPressed(KEY_F2)) {
         ToggleLogger();
         LoggerOffsetY = 0.f;
     }
     if (ShowLogger) {
-        DrawLog(offsetX, offsetY, fontSize);
+        DrawLog(offsetX, offsetY, fontSize, true);
 
         // scrolling
         if (IsKeyDown(KEY_LEFT_SHIFT)) {
@@ -219,27 +215,6 @@ void CloseLogger() {
 bool ToggleLogger() {
     ShowLogger = !ShowLogger;
     return ShowLogger;
-}
-
-void* M_MemAlloc(size_t size) {
-    void* ptr = MemAlloc(size);
-    Allocations++;
-    return ptr;
-}
-
-void M_MemFree(void* ptr)
-{
-    MemFree(ptr);
-    Allocations--;
-}
-
-void CheckAllocations() {
-    if (Allocations == 0) {
-        INFO("All allocations got freed!");
-    }
-    else {
-        WARN("%d allocations did not get freed!", Allocations);
-    }
 }
 
 Vector3 Vector2ToVector3(Vector2 vec2){
@@ -338,7 +313,7 @@ Rectangle BoundingBoxToRect(BoundingBox box) {
     return { pos.x, pos.y, size.x, size.y };
 }
 
-Rectangle BoundingBoxToRect(BoundingBox2D box) {
+Rectangle BoundingBox2DToRect(BoundingBox2D box) {
     Vector2 pos = box.min;
     Vector2 size = Vector2Subtract(box.max, box.min);
     return { pos.x, pos.y, size.x, size.y };
@@ -348,4 +323,38 @@ std::string GetTempDirectory() {
     std::filesystem::path path = std::filesystem::temp_directory_path();
     std::string tempFolStr = path.string();
     return tempFolStr;
+}
+
+StringArray InitStringArrayEx(size_t capacity) {
+    StringArray arr;
+    arr.capacity = capacity;
+    arr.count = 0;
+    void* mem = calloc(capacity, sizeof(char*));
+    assert(mem);
+    arr.entries = (char**)mem;
+    return arr;
+}
+
+StringArray InitStringArray() {
+    return InitStringArrayEx(10);
+}
+
+void AppendString(StringArray* array, const char* str) {
+    if (array->count == array->capacity) {
+        // resize array
+        array->capacity *= 2;
+        void* mem = realloc(array->entries, array->capacity * sizeof(char*));
+        assert(mem);
+        array->entries = (char**)mem;
+    }
+    array->count++;
+}
+
+void UnloadStringArray(StringArray* array) {
+    for (size_t i = 0; i < array->count; i++) {
+        free(array->entries[i]);
+    }
+    free(array->entries);
+    array->count = 0;
+    array->capacity = 0;
 }

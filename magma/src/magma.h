@@ -1,11 +1,16 @@
 #pragma once
 
-// adapter to merge C++ with C game code
+// scuffed adapter to merge C++ with C game code
 
 // the all powerful raylib
 #include "raylib.h"
 #include "raymath.h"
+
 #include "stdint.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MAX(a, b) ((a)>(b)? (a) : (b))
 #define MIN(a, b) ((a)<(b)? (a) : (b))
@@ -19,10 +24,10 @@
 
 #define TODO(M) TraceLog(LOG_FATAL,"TODO: %s", M); assert(false);
 
-typedef unsigned int uint;
-typedef uint EntityID;
-typedef uint ItemType;
-typedef int AssetType;
+	typedef unsigned int uint;
+	typedef uint EntityID;
+	typedef uint ItemType;
+	typedef int AssetType;
 
 #define COMP_ALL                0
 #define COMP_PERSISTENT     10000
@@ -72,321 +77,285 @@ typedef int AssetType;
 #define FADE_DURATION 1
 
 #undef assert
-inline void assert(bool cond) {
-    if (!cond) {
-        int* val = NULL;
-        *val = 666;
-    }
-}
-inline void panic() {
-    assert(false);
-}
+	inline void assert(bool cond) {
+		if (!cond) {
+			int* val = NULL;
+			*val = 666;
+		}
+	}
+	inline void panic() {
+		assert(false);
+	}
 
-extern bool IS_DEBUG;
+	extern bool IS_DEBUG;
 
-typedef struct {
-    Vector2 min;
-    Vector2 max;
-} BoundingBox2D;
+	typedef struct {
+		Vector2 min;
+		Vector2 max;
+	} BoundingBox2D;
 
-typedef int VideoID;
-typedef struct {
-    VideoID id;
-    uint8_t* frameData;
+	typedef int VideoID;
+	typedef struct {
+		VideoID id;
+		uint8_t* frameData;
 
-    float timeScale;
-    Music audio;
-} Video;
+		float timeScale;
+		Music audio;
+	} Video;
 
-Video LoadVideo(const char* fileName);
-Video LoadVideoWithAudio(const char* fileName, const char* audioFileName);
+	Video LoadVideo(const char* fileName);
+	Video LoadVideoWithAudio(const char* fileName, const char* audioFileName);
 
-Video LoadVideoFromMemory(uint8_t *bytes, size_t length);
-Video LoadVideoWithAudioFromMemory(uint8_t* bytes, size_t length, Music music);
+	Video LoadVideoFromMemory(uint8_t* bytes, size_t length);
+	Video LoadVideoWithAudioFromMemory(uint8_t* bytes, size_t length, Music music);
 
-void UnloadVideo(Video video, bool includeAudio);
-bool VideoHasAudio(Video video);
+	void UnloadVideo(Video video, bool includeAudio);
+	bool VideoHasAudio(Video video);
 
-// easy playback
-void PlayAndDrawVideoRec(Video video, Rectangle dest, Color tint);
-void PlayAndDrawVideoV(Video video, Vector2 pos, Color tint);
-void PlayAndDrawVideo(Video video, int posX, int posY, Color tint);
+	// easy playback
+	void PlayAndDrawVideoRec(Video video, Rectangle dest, Color tint);
+	void PlayAndDrawVideoV(Video video, Vector2 pos, Color tint);
+	void PlayAndDrawVideo(Video video, int posX, int posY, Color tint);
 
-// advanced playback
-void DrawVideoFrameRec(Video video, Rectangle dest, Color tint);
-void DrawVideoFrameV(Video video, Vector2 pos, Color tint);
-void DrawVideoFrame(Video video, int posX, int posY, Color tint);
+	// advanced playback
+	void DrawVideoFrameRec(Video video, Rectangle dest, Color tint);
+	void DrawVideoFrameV(Video video, Vector2 pos, Color tint);
+	void DrawVideoFrame(Video video, int posX, int posY, Color tint);
 
-void PlayVideoAudio(Video video);
+	void PlayVideoAudio(Video video);
 
-Image GetVideoFrame(Video video);
-Texture GetVideoFrameTexture(Video video); // WARN: Dispose after use!
-float GetVideoFrameRate(Video video);
-void AdvanceVideo(Video video, float delta);
-inline void AdvanceVideo(Video video){
-    AdvanceVideo(video, GetFrameTime());
-}
+	Image GetVideoFrame(Video video);
+	Texture GetVideoFrameTexture(Video video); // WARN: Dispose after use!
+	float GetVideoFrameRate(Video video);
+	void AdvanceVideo(Video video, float delta);
 
-typedef struct {
-    Vector2 gameSize;
-    Vector2 winSize;
-    RenderTexture2D renderTarget;
+	typedef struct {
+		Vector2 gameSize;
+		Vector2 winSize;
+		RenderTexture2D renderTarget;
 
-    float timeScale;
-    float scale;
-    bool unscaled;
-    Vector2 scaledMouse;
-} MagmaWindow;
+		float timeScale;
+		float scale;
+		bool unscaled;
+		Vector2 scaledMouse;
+	} MagmaWindow;
 
-extern MagmaWindow Window;
+	extern MagmaWindow Window;
 
-typedef struct {
-    bool unlockFrameRate;
-    bool skipIntro;
-} MagmaSettings;
-extern MagmaSettings Settings;
+	typedef struct {
+		bool unlockFrameRate;
+		bool skipIntro;
+	} MagmaSettings;
+	extern MagmaSettings Settings;
 
-// TODO: stack abuse (multiple kilobytes of data)
-typedef struct {
-    size_t count;
-    char entries[STRING_COUNT][STRING_MAX_LEN];
-} StringArray;
+	// TODO: stack abuse (multiple kilobytes of data)
+	typedef struct {
+		size_t count;
+		size_t capacity;
+		char** entries;
+	} StringArray;
 
-void* M_MemAlloc(size_t size);
-void M_MemFree(void* ptr);
-void CheckAllocations();
-void UnloadStringArray(StringArray array);
+	StringArray InitStringArrayEx(size_t capacity);
+	StringArray InitStringArray();
+	void AppendString(StringArray* array, const char* str);
+	void UnloadStringArray(StringArray* array);
 
-// math stuff
-Vector3 Vector2ToVector3(Vector2 vec2);
-Vector2 Vector3ToVector2(Vector3 vec3);
-Vector2 Vector2Absolute(Vector2 v2);
-Vector2 Vector2Snap(Vector2 v2, float gridSize);
-Vector3 Vector3Absolute(Vector3 v3);
-Vector3 Vector3Snap(Vector3 v3, float gridSize);
+	// math stuff
+	Vector3 Vector2ToVector3(Vector2 vec2);
+	Vector2 Vector3ToVector2(Vector3 vec3);
+	Vector2 Vector2Absolute(Vector2 v2);
+	Vector2 Vector2Snap(Vector2 v2, float gridSize);
+	Vector3 Vector3Absolute(Vector3 v3);
+	Vector3 Vector3Snap(Vector3 v3, float gridSize);
 
-Color InvertColor(Color col);
-Color InvertColorWAlpha(Color col);
-Color ColorLerp(Color src, Color dst, float factor);
-Rectangle BoundingBoxToRect(BoundingBox box);
-Rectangle BoundingBoxToRect(BoundingBox2D box);
-float GetRectangleDiameter(Rectangle rec);
-float GetRectangleDiameterSquared(Rectangle rec);
+	Color InvertColor(Color col);
+	Color InvertColorWAlpha(Color col);
+	Color ColorLerp(Color src, Color dst, float factor);
+	Rectangle BoundingBoxToRect(BoundingBox box);
+	Rectangle BoundingBox2DToRect(BoundingBox2D box);
+	float GetRectangleDiameter(Rectangle rec);
+	float GetRectangleDiameterSquared(Rectangle rec);
 
-// asset manager
-bool LoadAssets();
-void DisposeAssets();
-bool ImportAssetPackage(const char* filePath);
-StringArray GetAssetPaths(AssetType type);
-StringArray GetAssetNames(AssetType type);
-StringArray GetTileNames();
-size_t GetAssetCount();
+	// asset manager
+	bool LoadAssets();
+	void DisposeAssets();
+	bool ImportAssetPackage(const char* filePath);
+	StringArray GetFilteredAssetPaths(AssetType type);
+	StringArray GetFilteredAssetNames(AssetType type);
+	StringArray GetAssetPaths();
+	StringArray GetAssetNames();
+	StringArray GetTileNames();
+	size_t GetAssetCount();
 
-Texture RequestTexture(const char* name);
-Texture RequestPlaceholderTexture();
-Image RequestImage(const char* name);
-Shader RequestShader(const char* name);
-Sound RequestSound(const char* name);
-Music RequestMusic(const char* name); // WARN: not cached
-Font RequestFont(const char* name);
-Video RequestVideo(const char* name); // WARN: not cached
-char* RequestCustom(const char* name, size_t* size, const char* ext); // NOTE: memory is disposed by DisposeAssets()
-Model RequestModel(const char* name);
-Font GetRetroFont();
-int GetAssetType(const char* name);
-void PrintAssetStats();
-void PrintAssetList();
-bool IsAssetLoaded(const char* name);
+	Texture RequestTexture(const char* name);
+	Texture RequestPlaceholderTexture();
+	Image RequestImage(const char* name);
+	Shader RequestShader(const char* name);
+	Sound RequestSound(const char* name);
+	Music RequestMusic(const char* name); // WARN: not cached
+	Font RequestFont(const char* name);
+	Video RequestVideo(const char* name); // WARN: not cached
+	char* RequestCustom(const char* name, size_t* size, const char* ext); // NOTE: memory is disposed by DisposeAssets()
+	Model RequestModel(const char* name);
+	Font GetRetroFont();
+	int GetAssetType(const char* name);
+	void PrintAssetStats();
+	void PrintAssetList();
+	bool IsAssetLoaded(const char* name);
 
-void ShowFailScreen(const char* text); // do not run in game loop
+	void ShowFailScreen(const char* text); // do not run in game loop
 
-void InitMagmaWindow(int gameWidth,int gameHeight, int winWidth, int winHeight, const char* title);
-void InitMagmaWindow(int winWidth, int winHeight, const char* title);
-void CloseMagmaWindow();
+	void InitMagmaWindow(int winWidth, int winHeight, const char* title);
+	void InitMagmaWindowEx(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title);
+	void CloseMagmaWindow();
 
-void RegisterArguments(int argc, char** argv);
+	void RegisterArguments(int argc, char** argv);
 
+	Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
+	Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
 
-Rectangle GetScreenBounds(); // rectangle of screen (x,y always 0,0)
-Rectangle GetWindowBounds(); // rectangle of game window (x,y always 0,0)
+	void SetTimeScale(float scale);
+	float GetTimeScale();
 
-void OpenSystemConsole();
-void CloseSystemConsole();
+	void BeginMagmaDrawing();
+	void EndMagmaDrawing();
 
-void SetTimeScale(float scale);
-float GetTimeScale();
+	void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor);
+	void DrawBoundingBox2D(BoundingBox2D bounds, Color tint);
 
-void BeginMagmaDrawing();
-void EndMagmaDrawing();
+	void DrawRetroText(const char* text, int posX, int posY, Color color);
+	void DrawRetroTextV(const char* text, Vector2 pos, Color color);
+	void DrawRetroTextEx(const char* text, int posX, int posY, int fontSize, Color color);
+	void DrawRetroTextPro(const char* text, Vector2 pos, int fontSize, Color color);
 
-void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color altColor, Color highlightColor, Color textColor);
-void DrawBoundingBox(BoundingBox2D bounds, Color tint);
+	Vector2 MeasureRetroText(const char* text);
+	Vector2 MeasureRetroTextEx(const char* text, int fontSize);
 
-void DrawRetroText(const char* text, int posX, int posY, Color color);
-void DrawRetroTextV(const char* text, Vector2 pos, Color color);
-void DrawRetroTextEx(const char* text, int posX, int posY, int fontSize, Color color);
-void DrawRetroTextPro(const char* text, Vector2 pos, int fontSize, Color color);
+	Ray GetWindowMouseRay(Camera3D camera);
 
-Vector2 MeasureRetroText(const char* text);
-Vector2 MeasureRetroTextEx(const char* text, int fontSize);
+	Vector2 GetWindowMousePositionEx(Camera2D camera);
+	Vector2 GetWindowMousePosition();
+	Vector2 GetWindowTopLeft();
+	Vector2 GetWindowCenter();
 
-Ray GetWindowMouseRay(Camera3D camera);
+	// entities
+	void TranslateEntityV(EntityID id, Vector2 offset);
+	void TranslateEntity(EntityID id, float x, float y);
 
-Vector2 GetWindowMousePosition(Camera2D camera);
-Vector2 GetWindowMousePosition();
-Vector2 GetWindowTopLeft();
-Vector2 GetWindowCenter();
+	void Translate3DEntityV(EntityID id, Vector3 offset);
+	void Translate3DEntity(EntityID id, float x, float y, float z);
 
-// entities
-void SetEntityCenter(EntityID id, Vector2 pos);
-void SetEntityCenter(EntityID id, Vector3 pos);
-void SetEntityCenter(EntityID id, float x, float y);
-void SetEntityCenter(EntityID id, float x, float y, float z);
+	void SetEntityCenterV(EntityID id, Vector2 pos);
+	void SetEntityCenter(EntityID id, float x, float y);
 
-void SetEntitySize(EntityID id, Vector2 pos);
-void SetEntitySize(EntityID id, Vector3 pos);
-void SetEntitySize(EntityID id, float x, float y);
-void SetEntitySize(EntityID id, float x, float y, float z);
+	void Set3DEntityCenterV(EntityID id, Vector3 pos);
+	void Set3DEntityCenter(EntityID id, float x, float y, float z);
 
-void ResetEntityTranslation(EntityID id);
-void MagmaLogger(int msgType, const char* text, va_list args);
-void SetTraceLogAssertLevel(TraceLogLevel level);
-void SetTraceLogOpenLevel(TraceLogLevel level);
-void ClearLog();
+	void SetEntitySizeV(EntityID id, Vector2 pos);
+	void SetEntitySize(EntityID id, float x, float y);
 
-void DrawLog(float offsetX, float offsetY, int fontSize);
-void DrawLogEx(float offsetX, float offsetY, int fontSize, bool drawBG);
+	void Set3DEntitySizeV(EntityID id, Vector3 pos);
+	void Set3DEntitySize(EntityID id, float x, float y, float z);
 
-void UpdateAndDrawLog();
-void UpdateAndDrawLogEx(float offsetX, float offsetY, int fontSize);
+	void ResetEntityTranslation(EntityID id);
 
-bool LoggerIsOpen();
-void OpenLogger();
-void CloseLogger();
-bool ToggleLogger();
+	void ResetEntityTranslation(EntityID id);
+	void MagmaLogger(int msgType, const char* text, va_list args);
+	void SetTraceLogAssertLevel(TraceLogLevel level);
+	void SetTraceLogOpenLevel(TraceLogLevel level);
+	void ClearLog();
 
-void SaveMagmaSettings();
-void LoadMagmaSettings();
-bool CreateDirectory(const char* path);
+	bool LoggerIsOpen();
+	void OpenLogger();
+	void CloseLogger();
+	bool ToggleLogger();
 
-// gui
-bool GameIsPaused();
-void PauseGame();
-void UnpauseGame();
-bool ToggleGamePaused();
+	void SaveMagmaSettings();
+	void LoadMagmaSettings();
+	bool CreateDirectory(const char* path);
 
-// gui keyboard
-typedef void (*InputBoxEntered)(char* text);
-bool ShowInputBox(const char* title, InputBoxEntered callback);
-bool ShowInputBoxEx(const char* title, InputBoxEntered callback, const char* defText, uint minLength, uint maxLength);
-void UpdateAndRenderInputBoxes(float delta);
+	// gui
+	bool GameIsPaused();
+	void PauseGame();
+	void UnpauseGame();
+	bool ToggleGamePaused();
 
-bool EditorIsOpen();
-void OpenEditor();
-void CloseEditor();
-bool ToggleEditor();
+	// gui keyboard
+	typedef void (*InputBoxEntered)(char* text);
+	bool ShowInputBox(const char* title, InputBoxEntered callback);
+	bool ShowInputBoxEx(const char* title, InputBoxEntered callback, const char* defText, uint minLength, uint maxLength);
 
-// contains more "advanced" components and entities, not needed for some types of games
-// can be removed from engine
-// TODO: Make optional with build flag
+	bool EditorIsOpen();
+	void OpenEditor();
+	void CloseEditor();
+	bool ToggleEditor();
 
-// TODO: Add texture support
-typedef struct {
-    Color backColor;
-    Color lineColor;
-    Color textColor;
+	// contains more "advanced" components and entities, not needed for some types of games
+	// can be removed from engine
+	// TODO: Make optional with build flag
 
-    int fontSize;
-    float padding;
+	// TODO: Add texture support
+	typedef struct {
+		Color backColor;
+		Color lineColor;
+		Color textColor;
 
-    float arrowPadding;
-    float arrowScale;
-    float arrowOscil;
-    bool arrowTumbleMode;
-} PopMenuConfig;
-// TODO: get default function
+		int fontSize;
+		float padding;
 
-typedef enum {
-    POSE_IDLE,
-    POSE_WALK,
-    POSE_SLIDE,
-    POSE_JUMP,
-    POSE_FALL,
-    POSE_DUCK,
-} PlayerPose;
+		float arrowPadding;
+		float arrowScale;
+		float arrowOscil;
+		bool arrowTumbleMode;
+	} PopMenuConfig;
+	// TODO: get default function
 
-const char* PlayerPoseNames[] = {
-    STRING(POSE_IDLE),
-    STRING(POSE_WALK),
-    STRING(POSE_SLIDE),
-    STRING(POSE_JUMP),
-    STRING(POSE_FALL),
-    STRING(POSE_DUCK),
-};
+	typedef enum {
+		POSE_IDLE,
+		POSE_WALK,
+		POSE_SLIDE,
+		POSE_JUMP,
+		POSE_FALL,
+		POSE_DUCK,
+	} PlayerPose;
 
-typedef enum {
-    PLAY_LOOP,
-    PLAY_PING_PONG,
-    PLAY_ONCE,
-} PlaybackMode;
+	inline const char** GetPlayerPoseNames() {
+		const char* names[] = {
+			STRING(POSE_IDLE),
+			STRING(POSE_WALK),
+			STRING(POSE_SLIDE),
+			STRING(POSE_JUMP),
+			STRING(POSE_FALL),
+			STRING(POSE_DUCK),
+			NULL
+		};
+		return names;
+	};
+
+	typedef enum {
+		PLAY_LOOP,
+		PLAY_PING_PONG,
+		PLAY_ONCE,
+	} PlaybackMode;
 
 #define COMP_PHYS_BODY      10
 #define COMP_ANIM_PLAYER    11
 #define COMP_PLAT_PLAYER    12
 
-typedef struct {
-    const char* name; // description 
-    const char* sheetName; // name of texture
-    Vector2 origin; // top left of sector
-    Vector2 cellSize; // size of each cell
-    uint count; // number of cells in anim
-    PlaybackMode mode;
-    float fps;
-} SheetAnimation;
+	typedef struct {
+		const char* name; // description 
+		const char* sheetName; // name of texture
+		Vector2 origin; // top left of sector
+		Vector2 cellSize; // size of each cell
+		uint count; // number of cells in anim
+		PlaybackMode mode;
+		float fps;
+	} SheetAnimation;
 
-// entity group functions
-void SetEntityGroupCamera2D(Camera2D camera);
-void SetEntityGroupCamera3D(Camera3D camera);
+	// entity group functions
+	void SetEntityGroupCamera2D(Camera2D camera);
+	void SetEntityGroupCamera3D(Camera3D camera);
 
-// component-independent entity functions
-void TranslateEntity(EntityID id, Vector2 offset);
-
-void TranslateEntity(EntityID id, Vector3 offset);
-inline void TranslateEntity(EntityID id, float x, float y, float z) {
-    Vector3 offset = { x,y,z };
-    TranslateEntity(id, offset);
+#ifdef __cplusplus
 }
-
-inline void TranslateEntity(EntityID id, float x, float y) {
-    Vector2 offset = { x,y };
-    TranslateEntity(id, offset);
-}
-
-void SetEntityCenter(EntityID id, Vector2 pos);
-void SetEntityCenter(EntityID id, Vector3 pos);
-inline void SetEntityCenter(EntityID id, float x, float y, float z) {
-    Vector3 offset = { x,y,z };
-    SetEntityCenter(id, offset);
-}
-
-inline void SetEntityCenter(EntityID id, float x, float y) {
-    Vector2 offset = { x,y };
-    SetEntityCenter(id, offset);
-}
-
-void SetEntitySize(EntityID id, Vector2 pos);
-inline void SetEntitySize(EntityID id, float x, float y) {
-    Vector2 offset = { x,y };
-    SetEntitySize(id, offset);
-}
-
-void SetEntitySize(EntityID id, Vector3 pos);
-inline void SetEntitySize(EntityID id, float x, float y, float z) {
-    Vector3 offset = { x,y,z };
-    SetEntitySize(id, offset);
-}
-
-inline void ResetEntityTranslation(EntityID id) {
-    Vector3 origin = Vector3Zero();
-    SetEntityCenter(id, origin);
-}
+#endif

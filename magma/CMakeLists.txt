@@ -11,6 +11,7 @@ set(BUILD_GAMES    OFF) # don't build the supplied example games
 set(CUSTOMIZE_BUILD         ON)
 set(SUPPORT_FILEFORMAT_JPG  ON)
 set(SUPPORT_FILEFORMAT_JPG  ON)
+set(SUPPORT_MODULE_RMODELS  ON)
 include(CMakeDebloat.txt)
 
 add_subdirectory(src)

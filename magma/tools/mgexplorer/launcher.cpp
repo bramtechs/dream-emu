@@ -86,7 +86,7 @@ int launch(std::vector<std::string> args){
                     if (validate_dropped_file(&filePath)) {
                         const char* text = TextFormat("Loading %s...",filePath);
                         DrawCheckeredBackground(32,text,
-                                                GREEN,DARKGREEN,LIME);
+                                                GREEN,DARKGREEN,LIME, WHITE);
                     }
                     else {
                         showError = true;
@@ -94,12 +94,12 @@ int launch(std::vector<std::string> args){
                 }
                 else {
                     DrawCheckeredBackground(32,"Drag and drop an .mga asset pack\ninto this window to explore!",
-                                            GREEN,DARKGREEN,LIME);
+                                            GREEN,DARKGREEN,LIME, WHITE);
                 }
 
                 if (showError) {
                         DrawCheckeredBackground(32,"Invalid file!",
-                                                RED,ORANGE,RED);
+                                                RED,ORANGE,RED, WHITE);
                         if (IsMouseButtonPressed(0)) {
                             showError = false;
                         }
@@ -135,7 +135,6 @@ int launch(std::vector<std::string> args){
                 break;
         }
 
-        UpdateAndDrawLog();
         EndDrawing();
     }
 

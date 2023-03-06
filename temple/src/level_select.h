@@ -26,18 +26,15 @@ bool UpdateAndDrawLevelSelect(float delta, LevelInfo* selectedLevel){
     Texture texture = RequestTexture(MAP_SPRITE);
     DrawTexture(texture, 0.f,0.f, WHITE);
 
-    UpdateAndRenderPauseMenu(delta,{0,0,0,50});
-    UpdateAndRenderInputBoxes(delta);
-
     // draw mouse coords
     Vector2 mouse = GetWindowMousePosition();
-    DrawRetroText(TextFormat("x: %d\ny: %d",(int)mouse.x,(int)mouse.y),50,250,18,WHITE);
+    DrawRetroTextEx(TextFormat("x: %d\ny: %d",(int)mouse.x,(int)mouse.y),50,250,18,WHITE);
 
     EndMagmaDrawing();
 
     EndDrawing();
 
-    *selectedLevel = ALL_LEVELS[0];
+    *selectedLevel = GetAllLevels()[0];
 
     return false;
 }

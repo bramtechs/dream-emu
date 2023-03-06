@@ -82,5 +82,10 @@ struct PopMenu {
     void ProcessSelectedButton(ButtonTable& table);
 };
 
+void OpenSystemConsole();
+void CloseSystemConsole();
+
 void UpdateAndRenderEditor();
 void UpdateAndRenderEditorGUI();
+
+void UpdateAndDrawLog();

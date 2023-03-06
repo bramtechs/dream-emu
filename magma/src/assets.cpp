@@ -44,14 +44,14 @@ Model LoadOBJFromMemory(const char* fileName);
 static GameAssets Assets = {};
 static Texture PlaceholderTexture = {};
 
-static RawAsset QueryAsset(const std::string& name, std::string filterExt = "") {
-    std::string baseName = GetFileNameWithoutExt(name.c_str());
+static RawAsset QueryAsset(const char* name, const char* filterExt = NULL) {
+    const char* baseName = GetFileNameWithoutExt(name);
 
     for (int i = 0; i < Assets.assets.size(); i++) {
         RawAsset item = Assets.assets.at(i);
-        std::string base = GetFileNameWithoutExt(item.path);
-        std::string ext = GetFileExtension(item.path);
-        if (filterExt.empty() || ext == filterExt) {
+        const char* base = GetFileNameWithoutExt(item.path);
+        const char* ext = GetFileExtension(item.path);
+        if (filterExt == NULL || TextIsEqual(ext, filterExt)) {
             if (base == baseName) {
                 RawAsset a;
                 memcpy(&a, &item, sizeof(RawAsset));
@@ -558,7 +558,7 @@ char* RequestCustom(const char* name, size_t* size, const char* ext) {
     return asset.data;
 }
 
-StringArray GetAssetPaths(AssetType type) {
+StringArray GetFilteredAssetPaths(AssetType type) {
     StringArray result = {};
 
     for (auto& item : Assets.assets) {
@@ -570,7 +570,11 @@ StringArray GetAssetPaths(AssetType type) {
     return result;
 }
 
-StringArray GetAssetNames(AssetType type) {
+StringArray GetAssetPaths() {
+    return GetFilteredAssetPaths(ASSET_ANY);
+}
+
+StringArray GetFilteredAssetNames(AssetType type) {
     StringArray result = {};
 
     std::vector<std::string> names;
@@ -583,12 +587,16 @@ StringArray GetAssetNames(AssetType type) {
     return result;
 }
 
+StringArray GetAssetNames() {
+    return GetFilteredAssetNames(ASSET_ANY);
+}
+
 StringArray GetTileNames() {
     StringArray result = {};
 
     std::string prefix = "tile_";
     std::vector<std::string> names;
-    auto textures = GetAssetNames(ASSET_TEXTURE);
+    auto textures = GetFilteredAssetNames(ASSET_TEXTURE);
     for (int i = 0; i < MIN(textures.count,STRING_COUNT); i++) {
         std::string name = textures.entries[i];
         if (name.substr(0, prefix.size()) == prefix) {
@@ -654,7 +662,7 @@ size_t GetAssetCount() {
     return Assets.assets.size();
 }
 
-bool IsAssetLoaded(const std::string& name) {
+bool IsAssetLoaded(const char* name) {
     RawAsset asset = QueryAsset(name);
     return asset.data != NULL;
 }

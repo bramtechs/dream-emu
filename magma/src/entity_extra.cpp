@@ -23,14 +23,28 @@ void TranslateEntity(EntityID id, Vector2 offset){
     }
 }
 
-void TranslateEntity(EntityID id, Vector3 offset){
+void Translate3DEntityV(EntityID id, Vector3 offset){
     Base* base = NULL;
     Group.GetEntityComponent(id, COMP_BASE, &base);
-
     base->Translate(offset);
 }
 
-void SetEntityCenter(EntityID id, Vector2 pos){
+void Translate3DEntity(EntityID id, float x, float y, float z) {
+    Vector3 offset = { x,y,z };
+    Translate3DEntityV(id, offset);
+}
+
+void TranslateEntityV(EntityID id, Vector2 offset) {
+    Sprite* sprite = NULL;
+    Group.GetEntityComponent(id, COMP_SPRITE, &sprite);
+    sprite->Translate(offset);
+}
+
+void TranslateEntity(EntityID id, float x, float y) {
+    TranslateEntityV(id, { x,y });
+}
+
+void SetEntityCenterV(EntityID id, Vector2 pos){
     PhysicsBody* phys = NULL;
     if (Group.TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
         if (phys->initialized) {
@@ -45,14 +59,24 @@ void SetEntityCenter(EntityID id, Vector2 pos){
     }
 }
 
-void SetEntityCenter(EntityID id, Vector3 pos){
+void SetEntityCenter(EntityID id, float x, float y) {
+    Vector2 offset = { x,y };
+    SetEntityCenterV(id, offset);
+}
+
+void Set3DEntityCenterV(EntityID id, Vector3 pos){
     Base* base = NULL;
     Group.GetEntityComponent(id, COMP_BASE, &base);
 
     base->SetCenter(pos);
 }
 
-void SetEntitySize(EntityID id, Vector2 size){
+void Set3DEntityCenter(EntityID id, float x, float y, float z) {
+    Vector3 offset = { x,y,z };
+    Set3DEntityCenterV(id, offset);
+}
+
+void SetEntitySizeV(EntityID id, Vector2 size){
     PhysicsBody* phys = NULL;
     if (Group.TryGetEntityComponent(id, COMP_PHYS_BODY, &phys)) {
         // TODO:
@@ -85,11 +109,23 @@ void SetEntitySize(EntityID id, Vector2 size){
     }
 }
 
-void SetEntitySize(EntityID id, Vector3 pos){
+void SetEntitySize(EntityID id, float x, float y) {
+    SetEntitySizeV(id, { x,y });
+}
+
+void Set3DEntitySizeV(EntityID id, Vector3 pos){
     Base* base = NULL;
     Group.GetEntityComponent(id, COMP_BASE, &base);
-
     base->SetSize(pos);
+}
+
+void Set3DEntitySize(EntityID id, float x, float y, float z) {
+    Set3DEntitySizeV(id, { x,y,z });
+}
+
+void ResetEntityTranslation(EntityID id) {
+    Vector3 origin = Vector3Zero();
+    Set3DEntityCenterV(id, origin);
 }
 
 void SimplifyHitboxes(EntityGroup& group){

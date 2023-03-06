@@ -20,7 +20,11 @@ struct Explorer {
         this->succeeded = ImportAssetPackage(filePath);
         this->tileMode = false;
 
-        paths = GetAssetPaths();
+        // TODO: rewrite
+        StringArray arr = GetAssetPaths();
+        for (int i = 0; i < arr.count; i++) {
+            paths.push_back(arr.entries[i]);
+        }
         selectedIndex = 0;
         listOffsetY = 0;
 
@@ -59,7 +63,7 @@ struct Explorer {
 
             const char* tooltip = "Toggle tiling by pressing T";
             int tlen = MeasureText(tooltip, 16);
-            DrawRetroText(tooltip, GetScreenWidth() - tlen - 30, GetScreenHeight() - 30, 18, LIGHTGRAY);
+            DrawRetroTextEx(tooltip, GetScreenWidth() - tlen - 30, GetScreenHeight() - 30, 18, LIGHTGRAY);
 
             if (IsKeyPressed(KEY_T)) {
                 tileMode = !tileMode;
@@ -85,15 +89,15 @@ struct Explorer {
             BeginMode3D(cam3);
             DrawModel(model, Vector3Zero(), 1.0f, WHITE);
             EndMode3D();
-            DrawRetroText("3D functionality was not compiled", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
+            DrawRetroTextEx("3D functionality was not compiled", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
         }
 
         break;
         case ASSET_SOUND:
-            DrawRetroText("Audio playback not implemented", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
+            DrawRetroTextEx("Audio playback not implemented", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
             break;
         case ASSET_CUSTOM:
-            DrawRetroText("Custom unsupported datatype, use your imagination.", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
+            DrawRetroTextEx("Custom unsupported datatype, use your imagination.", GetScreenWidth() / 3, GetScreenHeight() / 3, 36, RED);
             break;
         }
 
@@ -126,7 +130,7 @@ struct Explorer {
 
         // TEST MODE
         if (testMode) {
-            DrawRetroText("test mode", 360, 10, 12, ORANGE);
+            DrawRetroTextEx("test mode", 360, 10, 12, ORANGE);
             selectedIndex++;
             if (selectedIndex >= GetAssetCount()) {
                 WARN("TEST COMPLETE");
@@ -138,7 +142,7 @@ struct Explorer {
         selectedIndex = Wrap(selectedIndex, 0, GetAssetCount());
 
         Color typeColor = GetAssetTypeColor(selectedPath.c_str());
-        DrawRetroText(selectedPath.c_str(), bgWidth + 40, 50, 30, typeColor);
+        DrawRetroTextEx(selectedPath.c_str(), bgWidth + 40, 50, 30, typeColor);
 
         // scrolling of the list
         if (assetType != ASSET_MODEL || IsKeyDown(KEY_LEFT_SHIFT)) {
@@ -154,7 +158,7 @@ struct Explorer {
 
         bool mouseOver = CheckCollisionPointRec(GetMousePosition(), region);
         Color tint = mouseOver ? color : ColorBrightness(color, -0.3f);
-        DrawRetroText(text, x, y, FONT_SIZE, tint);
+        DrawRetroTextEx(text, x, y, FONT_SIZE, tint);
 
         // click on the button
         if (mouseOver && IsMouseButtonPressed(0)) {

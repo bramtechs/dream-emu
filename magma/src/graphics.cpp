@@ -5,7 +5,7 @@
 #define Win Window
 MagmaWindow Window = { 0 };
 
-void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) {
+void InitMagmaWindowEx(int gameWidth, int gameHeight, int winWidth, int winHeight, const char* title) {
     Win.gameSize = { (float)gameWidth, (float)gameHeight };
     Win.winSize = { (float)winWidth, (float)winHeight };
     Win.unscaled = false;
@@ -28,23 +28,7 @@ void InitMagmaWindow(int gameWidth, int gameHeight, int winWidth, int winHeight,
 }
 
 void InitMagmaWindow(int winWidth, int winHeight, const char* title) {
-    Win.winSize = { (float)winWidth, (float)winHeight };
-    Win.gameSize = Win.winSize;
-    Win.unscaled = true;
-
-    assert(winWidth > 0 && winHeight > 0);
-
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(winWidth, winHeight, title);
-    SetWindowMinSize(winWidth / 2, winHeight / 2);
-    SetWindowPosition((GetMonitorWidth(0) - winWidth) / 2, (GetMonitorHeight(0) - winHeight) / 2);
-    SetWindowSize(winWidth, winHeight);
-
-    SetExitKey(KEY_DELETE);
-
-    // Render texture initialization, used to hold the rendering result so we can easily resize it
-    Win.renderTarget = LoadRenderTexture(winWidth, winHeight);
-    SetTextureFilter(Win.renderTarget.texture, TEXTURE_FILTER_POINT);  // Texture scale filter to use
+    InitMagmaWindowEx(winWidth, winHeight, winWidth, winHeight, title);
 }
 
 void BeginMagmaDrawing() {
@@ -138,7 +122,7 @@ Ray GetWindowMouseRay(Camera3D camera) {
 }
 
 // no idea why this works but it does
-Vector2 GetWindowMousePosition(Camera2D camera) {
+Vector2 GetWindowMousePositionEx(Camera2D camera) {
     Vector2 mouse = Win.scaledMouse;
     Vector2 world = GetScreenToWorld2D(mouse, camera);
     //world = Vector2Subtract(world, GetWindowTopLeft());
@@ -175,8 +159,8 @@ void DrawCheckeredBackground(int tileSize, const char* text, Color color, Color 
     }
 }
 
-void DrawBoundingBox(BoundingBox2D bounds, Color tint) {
-    Rectangle rect = BoundingBoxToRect(bounds);
+void DrawBoundingBox2D(BoundingBox2D bounds, Color tint) {
+    Rectangle rect = BoundingBox2DToRect(bounds);
     DrawRectangleLinesEx(rect, 1.f, tint);
 }
 

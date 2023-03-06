@@ -216,7 +216,7 @@ void EntityGroup::ClearGroup() {
     entityCount = 0;
     nextEntity = 0;
     for (const auto& comp : comps) {
-        M_MemFree(comp.second.data);
+        free(comp.second.data);
     }
     comps.clear();
 
@@ -259,7 +259,7 @@ bool EntityGroup::LoadGroup(const char* fileName) {
         uint64_t compSize = 0;
         buffer.read((char*)&compSize, sizeof(uint64_t));
 
-        void* compData = M_MemAlloc(compSize);
+        void* compData = malloc(compSize);
         buffer.read((char*)compData, compSize);
 
         // map saved ID's to new EntityID's
@@ -289,7 +289,7 @@ bool EntityGroup::LoadGroup(const char* fileName) {
         AddEntityComponent(destID, compType, compData, compSize, true);
 
         // memfree readed data
-        M_MemFree(compData);
+        free(compData);
     }
     buffer.close();
     return true;
@@ -360,7 +360,7 @@ void EntityGroup::DestroyEntity(EntityID id) {
     size_t count = 0;
     auto items = comps.equal_range(id); // get all results
     for (auto it=items.first; it!=items.second; ++it){
-        M_MemFree(it->second.data);
+        free(it->second.data);
         count++;
     }
 
@@ -407,7 +407,7 @@ void* EntityGroup::AddEntityComponent(EntityID id, ItemType type, void* data, si
     // make data stick with a malloc
     CompContainer cont;
     cont.type = type;
-    cont.data = M_MemAlloc(size);
+    cont.data = malloc(size);
     cont.size = size;
     cont.persistent = persistent;
     memcpy(cont.data, data, size);
@@ -650,7 +650,7 @@ static void DrawComponent(EntityGroup& group, IteratedComp& comp) {
             sprite->texture.width > 0 &&
             sprite->texture.height > 0)
         {
-            Rectangle dest = BoundingBoxToRect(sprite->bounds);
+            Rectangle dest = BoundingBox2DToRect(sprite->bounds);
             Rectangle src = {
                 sprite->srcRect.x,
                 sprite->srcRect.y,
@@ -671,7 +671,7 @@ static void DrawComponentDebug(IteratedComp& comp) {
         // RayCollision col = base->GetMouseRayCollision(camera);
         // Color tint = col.hit ? WHITE : GRAY;
         Color tint = WHITE;
-        DrawBoundingBox(sprite->bounds, tint);
+        DrawBoundingBox2D(sprite->bounds, tint);
         DrawCircleV(sprite->center(), 2.f, RED);
     } break;
     default:

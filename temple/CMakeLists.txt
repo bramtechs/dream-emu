@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(temple C)
+project(temple CXX C)
 set(CMAKE_C_STANDARD 11)
 
 FILE(GLOB THESAUCE src/*.c src/*.h)

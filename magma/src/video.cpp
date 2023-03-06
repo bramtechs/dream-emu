@@ -151,12 +151,12 @@ void DrawVideoFrame(Video video, int posX, int posY, Color tint) {
 }
 
 void PlayAndDrawVideoRec(Video video, Rectangle dest, Color tint) {
-    AdvanceVideo(video);
+    AdvanceVideo(video, GetFrameTime());
     DrawVideoFrameRec(video, dest, tint);
 }
 
 void PlayAndDrawVideoV(Video video, Vector2 pos, Color tint) {
-    AdvanceVideo(video);
+    AdvanceVideo(video, GetFrameTime());
     DrawVideoFrameV(video, pos, tint);
     PlayVideoAudio(video);
 }

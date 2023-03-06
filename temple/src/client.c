@@ -186,7 +186,7 @@ int main(int argc, char** argv)
     // TempleGame
     Shader shader;
 
-    Camera2D camera = {};
+    Camera2D camera = { 0 };
     camera.offset = Vector2Zero();              // Camera offset (displacement from target)
     camera.target = Vector2Zero();              // Camera target (rotation and zoom origin)
     camera.rotation = 0.f;                      // Camera rotation in degrees
@@ -252,7 +252,6 @@ int main(int argc, char** argv)
 
                     EndMagmaDrawing();
                     DrawRetroTextEx("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
-                    UpdateAndDrawLog();
 
                     //UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
 
@@ -271,7 +270,6 @@ int main(int argc, char** argv)
         // render fail screen until game close
         ShowFailScreen("Could not find 'assets.mga'.\nPlease extract your download.");
     }
-    CheckAllocations();
 
     CloseMagmaWindow();
     CloseAudioDevice();

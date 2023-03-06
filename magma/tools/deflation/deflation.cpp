@@ -108,7 +108,7 @@ void save(PackList pack, const char* output, bool compress=false) {
 
         // sign file with MGA
         int compSignedSize = sizeof(char)*3+compSize;
-        char* compSignedData = (char*) M_MemAlloc(compSignedSize);
+        char* compSignedData = (char*) malloc(compSignedSize);
         compSignedData[0] = 0x4d;
         compSignedData[1] = 0x47;
         compSignedData[2] = 0x41;
