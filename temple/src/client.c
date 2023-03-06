@@ -66,108 +66,19 @@ typedef struct {
     uint lives;
 } FoxPlayer;
 
-#if 0 // TODO write it in C
-// factory functions
-EntityID spawn_block(EntityGroup& group, Vector3 pos){
-    EntityID id = group.AddEntity();
-
-    Sprite sprite = Sprite({pos.x, pos.y});
-    Texture blockTexture = RequestTexture("spr_block");
-    sprite.SetTexture(blockTexture);
-    group.AddEntityComponent(id, COMP_SPRITE, sprite, true);
-
-    return id;
+static EntityID SpawnFoxPlayer(Vector2 pos) {
+   // spawn player
+   PlatformerPlayerConfig config;
+   config.moveSpeed = 3000.f;
+   config.jumpForce = 800.f;
+   config.animations[POSE_IDLE]  = &ANIM_FOX_IDLE;
+   config.animations[POSE_WALK]  = &ANIM_FOX_WALK;
+   config.animations[POSE_SLIDE] = &ANIM_FOX_STOP;
+   config.animations[POSE_JUMP]  = &ANIM_FOX_JUMP;
+   config.animations[POSE_FALL]  = &ANIM_FOX_LAND;
+   config.animations[POSE_DUCK]  = &ANIM_FOX_IDLE;
+   return SpawnPlatformerPlayer(pos, config);
 }
-
-EntityID spawn_player(EntityGroup& group, Vector3 pos) {
-    EntityID id = group.AddEntity();
-
-    Sprite sprite = Sprite({pos.x, pos.y});
-    Texture foxTexture = RequestTexture("spr_player_fox");
-    sprite.SetTexture(foxTexture);
-    group.AddEntityComponent(id, COMP_SPRITE, sprite, true);
-
-    AnimationPlayer animPlayer = AnimationPlayer(ANIM_FOX_IDLE);
-    group.AddEntityComponent(id, COMP_ANIM_PLAYER,animPlayer);
-
-    PhysicsBody body = PhysicsBody(30.f,0.5f);
-    group.AddEntityComponent(id, COMP_PHYS_BODY,body);
-
-    PlatformerPlayer player = PlatformerPlayer();
-    group.AddEntityComponent(id, COMP_PLAT_PLAYER,player, true);
-
-    FoxPlayer fox = FoxPlayer();
-    group.AddEntityComponent(id, COMP_FOX_PLAYER,fox, true);
-
-    return id;
-}
-
-static void update_custom_component(EntityGroup& group, IteratedComp& comp, float delta){
-    switch (comp.second.type) {
-        case COMP_FOX_PLAYER:
-        {
-            auto fox = (FoxPlayer*) comp.second.data;
-
-            Sprite* sprite = NULL;
-            group.GetEntityComponent(comp.first, COMP_SPRITE, &sprite);
-
-            AnimationPlayer* anim = NULL;
-            group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER, &anim);
-
-            PlatformerPlayer* plat = NULL;
-            group.GetEntityComponent(comp.first, COMP_PLAT_PLAYER, &plat);
-
-            // look left or right
-            sprite->SetFlippedX(!plat->isLookingRight);
-
-            // set animation according to pose
-            switch (plat->pose){
-                case POSE_WALK:
-                    anim->SetAnimation(ANIM_FOX_WALK);
-                    break;
-                case POSE_SLIDE:
-                    anim->SetAnimation(ANIM_FOX_STOP);
-                    break;
-                case POSE_JUMP:
-                    anim->SetAnimation(ANIM_FOX_JUMP);
-                    break;
-                case POSE_FALL:
-                    anim->SetAnimation(ANIM_FOX_LAND);
-                    break;
-                default:
-                    anim->SetAnimation(ANIM_FOX_IDLE);
-                    break;
-            }
-
-            if (abs(sprite->center().x) > WIDTH*2 || abs(sprite->center().y) > HEIGHT*2) {
-                SetEntityCenter(comp.first, GetWindowCenter().x,GetWindowCenter().y);
-                WARN("Player fell off bounds!");
-            }
-        }
-    }
-}
-
-static bool layout_menu(float delta){
-    static auto menu = PopMenu();
-
-
-    ButtonTable buttons;
-    buttons.AddButton("New game",NULL);
-    buttons.AddButton("Load game",NULL);
-    buttons.AddButton("Options",NULL);
-    buttons.AddButton("Quit",[](){
-        CloseWindow();
-    });
-
-    menu.RenderPanel();
-    menu.DrawPopButtons(buttons);
-    menu.ProcessSelectedButton(buttons);
-    menu.EndButtons({150,250});
-
-    return false;
-}
-
-#endif
 
 int main(int argc, char** argv)
 {
@@ -195,13 +106,6 @@ int main(int argc, char** argv)
     // vsync
     SetTargetFPS(60);
 
-    // setup editor
-    //RegisterEntityBuilder(spawn_block);
-    //RegisterEntityBuilder(spawn_player);
-
-    // register custom entity callbacks
-    // group.RegisterUpdater(update_custom_component);
-
     RenderTexture2D target = LoadRenderTexture(WIDTH, HEIGHT);
 
     if (LoadAssets()) {
@@ -225,6 +129,8 @@ int main(int argc, char** argv)
             }, true);
 #endif
 
+        SpawnFoxPlayer((Vector2){300.f,300.f});
+
         while (!WindowShouldClose()) // Detect window close button or ESC key
         {
             float delta = GetFrameTime();
@@ -242,18 +148,10 @@ int main(int argc, char** argv)
 
                     BeginMode2D(camera);
 
-                    //if (!GameIsPaused()){
-                    //    group.UpdateGroup(delta);
-                    //}
-                    //group.DrawGroup();
-                    //group.DrawGroupDebug();
-
                     EndMode2D();
 
                     EndMagmaDrawing();
                     DrawRetroTextEx("Move with AD, jump with Space\nPress Escape for menu\nPlatforming movement is still very early.", 50, 50, 18, RED);
-
-                    //UpdateAndRenderEditorGUI(group, (Camera*)&camera, delta);
 
                     EndDrawing();
                 }

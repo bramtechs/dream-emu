@@ -141,11 +141,14 @@ struct PhysicsBody {
 struct PlatformerPlayer {
     float moveSpeed;
     float jumpForce;
+    float gravityScale;
 
     PlayerPose pose;
     bool isLookingRight;
 
-    PlatformerPlayer(float moveSpeed = 3000.f, float jumpForce = 800.f, PlayerPose defaultPose = POSE_IDLE);
+    const SheetAnimation* animations[PLAYER_POSE_COUNT];
+
+    PlatformerPlayer(PlatformerPlayerConfig& config);
 };
 
 struct AnimationPlayer {
@@ -202,7 +205,7 @@ struct EntityGroup {
         Camera3D camera3D;
         Camera2D camera2D;
     };
-    
+
     float gravity;
     b2World* world;
 

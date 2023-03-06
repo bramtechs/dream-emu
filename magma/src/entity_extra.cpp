@@ -168,10 +168,14 @@ float PhysicsBody::angle(){
     return angle;
 }
 
-PlatformerPlayer::PlatformerPlayer(float moveSpeed, float jumpForce, PlayerPose defaultPose) {
-    this->moveSpeed = moveSpeed;
-    this->jumpForce = jumpForce;
-    this->pose = defaultPose;
+PlatformerPlayer::PlatformerPlayer(PlatformerPlayerConfig& config) {
+    this->moveSpeed = config.moveSpeed;
+    this->jumpForce = config.jumpForce;
+    this->pose = POSE_IDLE;
+
+    for (int i = 0; i < PLAYER_POSE_COUNT; i++) {
+        this->animations[i] = config.animations[i];
+    }
 }
 
 AnimationPlayer::AnimationPlayer()
@@ -293,4 +297,25 @@ void PlayerFPS::Unfocus() {
 
 void PlayerFPS::Teleport(Vector3 pos) {
     camera.position = pos;
+}
+
+// pre-made entity composition 
+EntityID SpawnPlatformerPlayer(Vector2 pos, PlatformerPlayerConfig config) {
+    EntityID id = Group.AddEntity();
+
+    Sprite sprite = Sprite({pos.x, pos.y});
+    Texture foxTexture = RequestTexture("spr_player_fox");
+    sprite.SetTexture(foxTexture);
+    Group.AddEntityComponent(id, COMP_SPRITE, sprite, true);
+
+    AnimationPlayer animPlayer = AnimationPlayer();
+    Group.AddEntityComponent(id, COMP_ANIM_PLAYER,animPlayer);
+
+    PhysicsBody body = PhysicsBody(30.f,0.5f);
+    Group.AddEntityComponent(id, COMP_PHYS_BODY,body);
+
+    PlatformerPlayer player = PlatformerPlayer(config);
+    Group.AddEntityComponent(id, COMP_PLAT_PLAYER,player, true);
+
+    return id;
 }

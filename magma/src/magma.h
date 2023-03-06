@@ -259,7 +259,6 @@ goto cour_end
 
     void ResetEntityTranslation(EntityID id);
 
-    void ResetEntityTranslation(EntityID id);
     void MagmaLogger(int msgType, const char* text, va_list args);
     void SetTraceLogAssertLevel(TraceLogLevel level);
     void SetTraceLogOpenLevel(TraceLogLevel level);
@@ -310,6 +309,7 @@ goto cour_end
     } PopMenuConfig;
     // TODO: get default function
 
+#define PLAYER_POSE_COUNT 6
     typedef enum {
         POSE_IDLE,
         POSE_WALK,
@@ -355,6 +355,16 @@ goto cour_end
     // entity group functions
     void SetEntityGroupCamera2D(Camera2D camera);
     void SetEntityGroupCamera3D(Camera3D camera);
+
+    // pre-made entity composition
+    typedef struct {
+        float moveSpeed;
+        float jumpForce;
+
+        const SheetAnimation* animations[PLAYER_POSE_COUNT];
+    } PlatformerPlayerConfig;
+
+    EntityID SpawnPlatformerPlayer(Vector2 pos, PlatformerPlayerConfig config);
 
 #ifdef __cplusplus
 }

@@ -223,7 +223,7 @@ void EntityGroup::ClearGroup() {
     delete this->world;
 
     // make box2d world
-    b2Vec2 gravVec2(0.f, gravity);
+    b2Vec2 gravVec2(0.f, this->gravity);
     this->world = new b2World(gravVec2);
     DEBUG("Allocated Box2D world");
 }
@@ -471,6 +471,9 @@ static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta)
         group.GetEntityComponent(comp.first, COMP_SPRITE, &sprite);
 
         // advance current animation
+        if (!animPlayer->curAnim) {
+            break;
+        }
         const SheetAnimation& anim = *animPlayer->curAnim;
 
         // check if not playing outside of sheet
@@ -563,8 +566,6 @@ static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta)
             break;
         }
 
-        phys->body->SetGravityScale(3.f); // TODO: make field
-
         bool isMoving = false;
         b2Vec2 force = { 0.f, -0.01f };
         if (IsKeyDown(KEY_A)) {
@@ -586,8 +587,6 @@ static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta)
         }
         phys->body->ApplyForceToCenter(force, true);
 
-        // TODO: take gravity into account
-        // determine if falling or jumping
         PlayerPose* pose = &plat->pose;
         auto curVel = phys->body->GetLinearVelocity();
 
@@ -602,6 +601,24 @@ static void UpdateComponent(EntityGroup& group, IteratedComp& comp, float delta)
         }
         else if (!isMoving) { // determine if idling
             plat->pose = POSE_IDLE;
+        }
+
+        // ==== Animation ===
+        Sprite* sprite = NULL;
+        group.GetEntityComponent(comp.first, COMP_SPRITE, &sprite);
+
+        AnimationPlayer* anim = NULL;
+        group.GetEntityComponent(comp.first, COMP_ANIM_PLAYER, &anim);
+
+        // look left or right
+        sprite->SetFlippedX(!plat->isLookingRight);
+
+        // set animation according to pose
+        const SheetAnimation& sheet = *plat->animations[plat->pose];
+        if (sheet.name){
+            anim->SetAnimation(sheet);
+        }else{
+            ERROR("No animation registered for pose %s",GetPlayerPoseNames()[(int)plat->pose]);
         }
 
     } break;
@@ -760,8 +777,8 @@ EntityGroup::EntityGroup() {
     // RegisterDrawer(Update3DComponent);
 
     // add extended updaters, drawers
-    this->gravity = gravity;
     this->world = NULL;
+    this->gravity = 10.f;
 
     ClearGroup();
 
