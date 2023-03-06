@@ -42,8 +42,18 @@ void BeginMagmaDrawing() {
     Win.scaledMouse.y = (mouse.y - (GetScreenHeight() - (Win.gameSize.y * Win.scale)) * 0.5f) / Win.scale;
     virtualMouse = Vector2Clamp(virtualMouse, { 0, 0 }, { (float)Win.gameSize.x, (float)Win.gameSize.y });
 
+    // Update entities
+    float delta = GetFrameTime();
+    if (!GameIsPaused()) {
+        Group.UpdateGroup(delta);
+    }
+
     BeginTextureMode(Win.renderTarget);
     ClearBackground(BLACK);
+
+    // Draw entities
+    Group.DrawGroup();
+    Group.DrawGroupDebug();
 
     // ....
 }
@@ -53,11 +63,8 @@ void EndMagmaDrawing() {
     // ....
 
     UpdateAndRenderEditor();
-    UpdateAndRenderEditorGUI();
-
-    // TODO:
-    // UpdateAndRenderPauseMenu({ 0,0,0,50 });
-    // UpdateAndRenderInputBoxes();
+    UpdateAndRenderPauseMenu();
+    UpdateAndRenderInputBoxes();
 
     EndTextureMode();
 
@@ -69,6 +76,11 @@ void EndMagmaDrawing() {
     // Draw render texture to screen, properly scaled
     DrawTexturePro(Win.renderTarget.texture, { 0.0f, 0.0f, (float)Win.renderTarget.texture.width, (float)-Win.renderTarget.texture.height },
         { topLeft.x, topLeft.y, (float)Win.gameSize.x * Win.scale, (float)Win.gameSize.y * Win.scale }, { 0, 0 }, 0.0f, WHITE);
+
+    // Draw overlays
+    UpdateAndRenderLogger();
+    UpdateAndRenderEditorGUI();
+
 }
 
 float GetTimeScale() {

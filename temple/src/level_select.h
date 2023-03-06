@@ -16,6 +16,8 @@ bool UpdateAndDrawLevelSelect(float delta, LevelInfo* selectedLevel);
 #ifdef IMPLEMENT_TEMPLE_LEVEL_SELECT
 
 bool UpdateAndDrawLevelSelect(float delta, LevelInfo* selectedLevel){
+    
+    return true;
 
     // draw main stuff
     BeginMagmaDrawing();

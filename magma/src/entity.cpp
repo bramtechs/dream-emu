@@ -220,14 +220,12 @@ void EntityGroup::ClearGroup() {
     }
     comps.clear();
 
-    if (HasPhysics()) {
-        delete this->world;
+    delete this->world;
 
-        // make box2d world
-        b2Vec2 gravVec2(0.f, gravity);
-        this->world = new b2World(gravVec2);
-        DEBUG("Allocated Box2D world");
-    }
+    // make box2d world
+    b2Vec2 gravVec2(0.f, gravity);
+    this->world = new b2World(gravVec2);
+    DEBUG("Allocated Box2D world");
 }
 
 #define CHECK(C) if (!(C)) return false;
@@ -359,20 +357,20 @@ void EntityGroup::DestroyEntity(EntityID id) {
     // manually free memory
     size_t count = 0;
     auto items = comps.equal_range(id); // get all results
-    for (auto it=items.first; it!=items.second; ++it){
+    for (auto it = items.first; it != items.second; ++it) {
         free(it->second.data);
         count++;
     }
 
-    if (count > 0){
+    if (count > 0) {
         // remove all components with id
         comps.erase(id);
 
         entityCount--;
-        DEBUG("Removed entity %d with %d components.",id ,count);
+        DEBUG("Removed entity %d with %d components.", id, count);
     }
-    else{
-        WARN("Entity %d can't be removed as it doesn't exist!",id);
+    else {
+        WARN("Entity %d can't be removed as it doesn't exist!", id);
     }
 }
 
@@ -386,18 +384,18 @@ bool EntityGroup::EntityExists(EntityID id) {
 }
 
 bool EntityGroup::IsEntityAtPos(Vector2 centerPos, EntityID* found) {
-    std::multimap<EntityID,CompContainer> sprites = GetComponents(COMP_SPRITE);
-    for (auto& comp: sprites){
-         auto sprite = (Sprite*) comp.second.data;
-         Vector2 sprCenter = sprite->center();
-         if (FloatEquals(sprCenter.x, centerPos.x) && FloatEquals(sprCenter.y, centerPos.y)) {
+    std::multimap<EntityID, CompContainer> sprites = GetComponents(COMP_SPRITE);
+    for (auto& comp : sprites) {
+        auto sprite = (Sprite*)comp.second.data;
+        Vector2 sprCenter = sprite->center();
+        if (FloatEquals(sprCenter.x, centerPos.x) && FloatEquals(sprCenter.y, centerPos.y)) {
             if (found) {
                 *found = comp.first;
             }
             return true;
-         }
+        }
     }
-    if (found){
+    if (found) {
         *found = -1;
     }
     return false;
@@ -431,7 +429,7 @@ std::vector<CompContainer> EntityGroup::GetEntityComponents(EntityID id, ItemTyp
     std::vector<CompContainer> conts;
 
     auto items = comps.equal_range(id); // get all results
-    for (auto it=items.first; it!=items.second; ++it){
+    for (auto it = items.first; it != items.second; ++it) {
         if (type == COMP_ALL || it->second.type == type) {
             CompContainer container = it->second;
             conts.push_back(container);
@@ -767,7 +765,11 @@ EntityGroup::EntityGroup() {
 
     ClearGroup();
 
-    // add extended updaters, drawers
+    // setup 2d camera for now
+    this->camera2D.offset = Vector2Zero();              // Camera offset (displacement from target)
+    this->camera2D.target = Vector2Zero();              // Camera target (rotation and zoom origin)
+    this->camera2D.rotation = 0.f;                      // Camera rotation in degrees
+    this->camera2D.zoom = 1.f;                          // Camera zoom (scaling), should be 1.0f by default
 }
 
 EntityGroup::~EntityGroup() {

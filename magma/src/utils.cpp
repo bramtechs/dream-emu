@@ -182,7 +182,7 @@ static void DrawLog(float offsetX, float offsetY, int fontSize, bool drawBG) {
     }
 }
 
-void UpdateAndDrawLog() {
+void UpdateAndRenderLogger() {
     float offsetX = 10.f;
     float offsetY = 10.f;
     int fontSize = 16;
@@ -329,9 +329,8 @@ StringArray InitStringArrayEx(size_t capacity) {
     StringArray arr;
     arr.capacity = capacity;
     arr.count = 0;
-    void* mem = calloc(capacity, sizeof(char*));
-    assert(mem);
-    arr.entries = (char**)mem;
+    arr.entries = (char**)calloc(capacity, sizeof(char*));
+    assert(arr.entries);
     return arr;
 }
 
@@ -347,7 +346,7 @@ void AppendString(StringArray* array, const char* str) {
         assert(mem);
         array->entries = (char**)mem;
     }
-    array->count++;
+    array->entries[array->count++] = strdup(str); // mallocs under the hood
 }
 
 void UnloadStringArray(StringArray* array) {

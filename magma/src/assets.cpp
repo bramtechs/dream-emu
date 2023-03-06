@@ -575,13 +575,12 @@ StringArray GetAssetPaths() {
 }
 
 StringArray GetFilteredAssetNames(AssetType type) {
-    StringArray result = {};
+    StringArray result = InitStringArrayEx(Assets.assets.size());
 
-    std::vector<std::string> names;
     for (auto& item : Assets.assets) {
         if (result.count < STRING_COUNT && (type == ASSET_ANY || GetAssetType(item.path) == type)) {
             const char* name = GetFileNameWithoutExt(item.path);
-            strcpy_s(result.entries[result.count++], STRING_MAX_LEN, name);
+            AppendString(&result, name);
         }
     }
     return result;
@@ -592,15 +591,15 @@ StringArray GetAssetNames() {
 }
 
 StringArray GetTileNames() {
-    StringArray result = {};
 
-    std::string prefix = "tile_";
-    std::vector<std::string> names;
-    auto textures = GetFilteredAssetNames(ASSET_TEXTURE);
-    for (int i = 0; i < MIN(textures.count,STRING_COUNT); i++) {
+    StringArray textures = GetFilteredAssetNames(ASSET_TEXTURE);
+    StringArray result = InitStringArrayEx(textures.count);
+
+    std::string prefix = "tile_";    
+    for (int i = 0; i < textures.count; i++) {
         std::string name = textures.entries[i];
         if (name.substr(0, prefix.size()) == prefix) {
-            strcpy_s(result.entries[result.count++], STRING_MAX_LEN, name.c_str());
+            AppendString(&result, name.c_str());
         }
     }
     return result;

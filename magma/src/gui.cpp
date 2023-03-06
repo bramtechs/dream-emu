@@ -176,7 +176,7 @@ void ButtonTable::AddSpacer(const char* text) {
 }
 
 PopMenu::PopMenu(int priority) {
-    this->config = PopMenuConfig();
+    this->config = GetDefaultPopMenuConfig();
     this->initialized = false;
     this->id = PopMenus.size();
     this->group = ButtonGroup();
@@ -363,13 +363,14 @@ static PauseMenuSession PauseSession = PauseMenuSession();
 // TODO: remove
 static bool IsMuted = false;
 
-void UpdateAndRenderPauseMenu(float delta, Color bgColor) {
+void UpdateAndRenderPauseMenu() {
     if (IsKeyPressed(KEY_ESCAPE)) {
         ToggleGamePaused();
     }
     if (!GameIsPaused()) return;
 
     // draw bg (if any)
+    Color bgColor = ColorAlpha(BLACK, 0.5f);
     DrawRectangleRec(GetWindowBounds(), bgColor);
 
     ButtonTable buttons;
@@ -607,6 +608,7 @@ bool MainMenu::UpdateAndDraw(float delta) {
 }
 
 // virtual keyboard
+// TODO: fix weird extra space issue
 
 std::string ALPHABET_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 std::string ALPHABET_LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -696,7 +698,7 @@ struct InputBox {
 
         float offsetX = MeasureRetroTextEx(title.c_str(), FONT_SIZE).x;
         DrawRetroText(title.c_str(), topLeft.x + WIDTH * 0.5f - offsetX * 0.5f,
-                                     topLeft.y + PADDING, WHITE);
+            topLeft.y + PADDING, WHITE);
 
         // draw input text
         const int FLICKER_INTERVAL = 500;
@@ -709,7 +711,7 @@ struct InputBox {
         }
 
         DrawRetroText(displayedText, topLeft.x + PADDING + 20,
-                                     topLeft.y + PADDING + 25, WHITE);
+            topLeft.y + PADDING + 25, WHITE);
 
         // draw letters
         this->group.reset();
@@ -797,9 +799,8 @@ struct InputBox {
         isActive = false;
         if (callback != NULL) {
             // dispose previous accepted text
-            delete[] AcceptedText;
-            AcceptedText = new char[curText.length()];
-            strcpy_s(AcceptedText, curText.length(), curText.c_str());
+            delete AcceptedText;
+            AcceptedText = strdup(curText.c_str());
             (*callback)(AcceptedText);
         }
         DEBUG("Accepted input: %s", curText.c_str());
@@ -837,6 +838,24 @@ struct InputBox {
             }
         }
     }
+
+    private:
+        std::string TrimString(std::string& str) {
+            // Find the first non-whitespace character
+            size_t first = str.find_first_not_of(" \t\n\r");
+
+            if (first == std::string::npos)
+            {
+                // The string is all whitespace
+                return "";
+            }
+
+            // Find the last non-whitespace character
+            size_t last = str.find_last_not_of(" \t\n\r");
+
+            // Return the trimmed string
+            return str.substr(first, last - first + 1);
+        }
 };
 
 static InputBox ActiveInputBox = InputBox();
@@ -855,8 +874,9 @@ bool ShowInputBoxEx(const char* title, InputBoxEntered callback, const char* def
     return true;
 }
 
-void UpdateAndRenderInputBoxes(float delta) {
+void UpdateAndRenderInputBoxes() {
     if (ActiveInputBox.isActive) {
+        float delta = GetFrameTime();
         ActiveInputBox.UpdateAndRender(delta);
     }
 }

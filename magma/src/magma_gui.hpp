@@ -88,4 +88,7 @@ void CloseSystemConsole();
 void UpdateAndRenderEditor();
 void UpdateAndRenderEditorGUI();
 
-void UpdateAndDrawLog();
+void UpdateAndRenderPauseMenu();
+void UpdateAndRenderInputBoxes();
+
+void UpdateAndRenderLogger();
